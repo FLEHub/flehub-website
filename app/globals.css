@@ -1,0 +1,72 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 220 15% 12%;
+    --card: 0 0% 100%;
+    --card-foreground: 220 15% 12%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 220 15% 12%;
+    --primary: 152 100% 32%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 152 25% 95%;
+    --secondary-foreground: 152 60% 18%;
+    --muted: 220 10% 96%;
+    --muted-foreground: 220 10% 48%;
+    --accent: 152 35% 92%;
+    --accent-foreground: 152 70% 18%;
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 220 10% 88%;
+    --input: 220 10% 88%;
+    --ring: 152 100% 32%;
+    --chart-1: 152 80% 35%;
+    --chart-2: 196 70% 45%;
+    --chart-3: 40 80% 55%;
+    --chart-4: 280 55% 55%;
+    --chart-5: 0 75% 55%;
+    --radius: 0.5rem;
+  }
+}
+
+@layer base {
+  * { @apply border-border; }
+  body { @apply bg-white text-foreground antialiased; }
+  h1, h2, h3, h4, h5, h6 { @apply tracking-tight; }
+}
+
+@layer utilities {
+  .text-flehub-green { color: #00A550; }
+  .bg-flehub-green { background-color: #00A550; }
+  .bg-flehub-green-dark { background-color: #007A3D; }
+  .bg-flehub-green-light { background-color: #E8F8F0; }
+  .border-flehub-green { border-color: #00A550; }
+  .hover\:bg-flehub-green-dark:hover { background-color: #007A3D; }
+  .focus\:ring-flehub-green:focus { --tw-ring-color: #00A550; }
+}
+
+.gradient-hero {
+  background: linear-gradient(135deg, #00A550 0%, #007A3D 40%, #004D26 100%);
+}
+
+.card-hover {
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.card-hover:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 30px rgba(0, 165, 80, 0.15);
+}
+
+.nav-link {
+  @apply text-sm font-medium text-gray-600 hover:text-[#00A550] transition-colors duration-200;
+}
+
+.sidebar-link {
+  @apply flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 text-gray-600 hover:bg-[#E8F8F0] hover:text-[#00A550];
+}
+.sidebar-link.active {
+  @apply bg-[#E8F8F0] text-[#00A550] font-semibold;
+}
