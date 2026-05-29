@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
+import { createClient as createSupabaseClient } from '@supabase/supabase-js';
 
 export async function POST(request: NextRequest) {
   const { email, password } = await request.json();
@@ -28,14 +29,25 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: error.message }, { status: 401 });
   }
 
-  if (!data.user) {
+  if (!data.user || !data.session) {
     return NextResponse.json(
       { error: 'Une erreur inattendue est survenue. Veuillez réessayer.' },
       { status: 500 }
     );
   }
 
-  const { data: profile, error: profileError } = await supabase
+  // Utiliser le token d'accès pour contourner le problème RLS dans la même requête
+  const authedSupabase = createSupabaseClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+      global: {
+        headers: { Authorization: `Bearer ${data.session.access_token}` },
+      },
+    }
+  );
+
+  const { data: profile, error: profileError } = await authedSupabase
     .from('profiles')
     .select('role, status')
     .eq('id', data.user.id)
