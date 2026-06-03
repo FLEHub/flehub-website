@@ -81,6 +81,8 @@ export default function SchoolDashboard() {
   const [students, setStudents] = useState<Student[]>([]);
   const [examSessions, setExamSessions] = useState<ExamSession[]>([]);
   const [loading, setLoading] = useState(true);
+  const [fetchError, setFetchError] = useState<string | null>(null);
+  const [profileSetupMissing, setProfileSetupMissing] = useState(false);
 
   // Enroll dialog
   const [enrollOpen, setEnrollOpen] = useState(false);
@@ -102,23 +104,37 @@ export default function SchoolDashboard() {
   }, []);
 
   async function fetchData() {
+    setFetchError(null);
+    setProfileSetupMissing(false);
+
     try {
       const {
         data: { user },
       } = await supabase.auth.getUser();
-      if (!user) return;
+      if (!user) {
+        setFetchError('You must be signed in to view this dashboard.');
+        return;
+      }
 
-      const { data: school } = await supabase
+      const { data: school, error: schoolError } = await supabase
         .from('schools')
         .select('*')
         .eq('profile_id', user.id)
         .maybeSingle();
 
-      if (!school) return;
+      if (schoolError) {
+        setFetchError(`Failed to load school profile: ${schoolError.message}`);
+        return;
+      }
+
+      if (!school) {
+        setProfileSetupMissing(true);
+        return;
+      }
+
       setSchoolId(school.id);
 
-      // Students enrolled at this school
-      const { data: enrollments } = await supabase
+      const { data: enrollments, error: enrollmentsError } = await supabase
         .from('school_enrollments')
         .select(
           `
@@ -134,6 +150,11 @@ export default function SchoolDashboard() {
         )
         .eq('school_id', school.id)
         .order('enrolled_at', { ascending: false });
+
+      if (enrollmentsError) {
+        setFetchError(`Failed to load enrolled students: ${enrollmentsError.message}`);
+        return;
+      }
 
       const studentsMapped: Student[] = await Promise.all(
         (enrollments ?? []).map(async (e: any) => {
@@ -165,40 +186,79 @@ export default function SchoolDashboard() {
 
       setStudents(studentsMapped);
 
-      // Stats
-      const { count: regCount } = await supabase
-        .from('exam_registrations')
-        .select('*', { count: 'exact', head: true })
-        .eq('school_id', school.id);
+      const learnerIds = studentsMapped.map((s) => s.id).filter(Boolean);
+      let regCount = 0;
+      let pendingCount = 0;
 
-      const { count: certCount } = await supabase
+      if (learnerIds.length > 0) {
+        const { count, error: regError } = await supabase
+          .from('exam_registrations')
+          .select('*', { count: 'exact', head: true })
+          .in('learner_id', learnerIds);
+
+        if (regError) {
+          setFetchError(`Failed to load exam registrations: ${regError.message}`);
+          return;
+        }
+
+        regCount = count ?? 0;
+
+        const { data: registrations, error: pendingError } = await supabase
+          .from('exam_registrations')
+          .select('id, learner_id, exam_session_id')
+          .in('learner_id', learnerIds);
+
+        if (pendingError) {
+          setFetchError(`Failed to load pending results: ${pendingError.message}`);
+          return;
+        }
+
+        const { data: results } = await supabase
+          .from('exam_results')
+          .select('learner_id, exam_session_id')
+          .in('learner_id', learnerIds);
+
+        const resultKeys = new Set(
+          (results ?? []).map((r) => `${r.learner_id}:${r.exam_session_id}`)
+        );
+
+        pendingCount = (registrations ?? []).filter(
+          (r) => !resultKeys.has(`${r.learner_id}:${r.exam_session_id}`)
+        ).length;
+      }
+
+      const { count: certCount, error: certError } = await supabase
         .from('certificates')
         .select('*', { count: 'exact', head: true })
         .eq('school_id', school.id);
 
-      const { count: pendingCount } = await supabase
-        .from('exam_registrations')
-        .select('*', { count: 'exact', head: true })
-        .eq('school_id', school.id)
-        .is('result_id', null);
+      if (certError) {
+        setFetchError(`Failed to load certificates: ${certError.message}`);
+        return;
+      }
 
       setStats({
         totalStudents: studentsMapped.length,
-        examRegistrations: regCount ?? 0,
+        examRegistrations: regCount,
         certificatesIssued: certCount ?? 0,
-        pendingResults: pendingCount ?? 0,
+        pendingResults: pendingCount,
       });
 
-      // Exam sessions
-      const { data: exSessions } = await supabase
+      const { data: exSessions, error: sessionsError } = await supabase
         .from('exam_sessions')
         .select('id, title, cefr_level, exam_date')
         .order('exam_date', { ascending: false })
         .limit(20);
 
+      if (sessionsError) {
+        setFetchError(`Failed to load exam sessions: ${sessionsError.message}`);
+        return;
+      }
+
       setExamSessions(exSessions ?? []);
     } catch (err) {
       console.error(err);
+      setFetchError('An unexpected error occurred while loading the dashboard.');
     } finally {
       setLoading(false);
     }
@@ -393,6 +453,18 @@ export default function SchoolDashboard() {
           </Button>
         </div>
       </div>
+
+      {fetchError && (
+        <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+          {fetchError}
+        </div>
+      )}
+
+      {profileSetupMissing && (
+        <div className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
+          Your school profile is not set up yet. Please contact an administrator or complete registration.
+        </div>
+      )}
 
       {/* Stat Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">

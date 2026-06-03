@@ -1,10 +1,10 @@
 import { redirect } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';
+import { getProfileForUser } from '@/lib/supabase/get-profile';
 
 export default async function DashboardPage() {
   const supabase = await createClient();
 
-  // Get the authenticated user
   const {
     data: { user },
     error: userError,
@@ -14,23 +14,16 @@ export default async function DashboardPage() {
     redirect('/login');
   }
 
-  // Fetch the user's profile to determine role
-  const { data: profile, error: profileError } = await supabase
-    .from('profiles')
-    .select('role, status')
-    .eq('id', user.id)
-    .maybeSingle();
+  const { profile } = await getProfileForUser(user.id);
 
-  if (profileError || !profile) {
-    redirect('/login');
+  if (!profile) {
+    redirect('/login?reason=profile_missing');
   }
 
-  // Redirect pending accounts back to login
   if (profile.status === 'pending') {
     redirect('/login?pending=true');
   }
 
-  // Role-based redirect
   switch (profile.role) {
     case 'admin':
       redirect('/dashboard/admin');

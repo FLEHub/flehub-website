@@ -2,8 +2,10 @@ export const dynamic = 'force-dynamic';
 
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
+import { getProfileForUser } from '@/lib/supabase/get-profile'
 import { Sidebar } from '@/components/dashboard/sidebar'
-import { Header } from '@/components/dashboard/header'
+import { DashboardHeader } from '@/components/dashboard/dashboard-header'
+import { ProfileSetupError } from '@/components/dashboard/profile-setup-error'
 
 export default async function DashboardLayout({
   children,
@@ -21,17 +23,21 @@ export default async function DashboardLayout({
     redirect('/login')
   }
 
-  const { data: profile, error: profileError } = await supabase
-    .from('profiles')
-    .select('full_name, email, role, status')
-    .eq('id', user.id)
-    .maybeSingle()
+  const { profile, error: profileError } = await getProfileForUser(user.id)
 
-  if (profileError || !profile) {
-    redirect('/login')
+  if (!profile) {
+    return (
+      <ProfileSetupError
+        title="Profile not available"
+        message={
+          profileError
+            ? `We could not load your profile (${profileError}). Please contact an administrator or sign in again.`
+            : 'Your account profile has not been set up yet. Please contact an administrator.'
+        }
+      />
+    )
   }
 
-  // Block suspended/rejected users
   if (profile.status === 'suspended' || profile.status === 'rejected') {
     redirect('/login?reason=account_inactive')
   }
@@ -39,23 +45,15 @@ export default async function DashboardLayout({
   const safeProfile = {
     full_name: profile.full_name ?? '',
     email: profile.email ?? user.email ?? '',
-    role: (profile.role as 'admin' | 'school' | 'teacher' | 'learner') ?? 'learner',
+    role: profile.role ?? 'learner',
   }
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Sidebar */}
       <Sidebar role={safeProfile.role} profile={safeProfile} />
-
-      {/* Main area */}
       <div className="lg:ml-60 flex flex-col min-h-screen transition-all duration-200">
-        {/* Top header */}
-        <Header title="" profile={safeProfile} />
-
-        {/* Page content */}
-        <main className="flex-1 pt-16">
-          {children}
-        </main>
+        <DashboardHeader profile={safeProfile} />
+        <main className="flex-1 pt-16">{children}</main>
       </div>
     </div>
   )

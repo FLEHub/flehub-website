@@ -259,19 +259,19 @@ export default function RegisterPage() {
       // Insert into role-specific table
       if (selectedRole === 'learner') {
         await supabase.from('learners').insert({
-          id: userId,
+          profile_id: userId,
           subtype: formData.subtype,
           cefr_level: formData.cefr_level,
         });
       } else if (selectedRole === 'teacher') {
         await supabase.from('teachers').insert({
-          id: userId,
+          profile_id: userId,
           bio: formData.bio.trim(),
           qualifications: formData.qualifications.trim(),
         });
       } else if (selectedRole === 'school') {
         await supabase.from('schools').insert({
-          id: userId,
+          profile_id: userId,
           school_name: formData.school_name.trim(),
           province: formData.province,
           district: formData.district,

@@ -49,70 +49,110 @@ export default function TeacherDashboard() {
   const [sessions, setSessions] = useState<LiveSession[]>([]);
   const [activity, setActivity] = useState<LearnerActivity[]>([]);
   const [loading, setLoading] = useState(true);
+  const [fetchError, setFetchError] = useState<string | null>(null);
+  const [profileSetupMissing, setProfileSetupMissing] = useState(false);
 
   useEffect(() => {
     async function fetchDashboard() {
+      setFetchError(null);
+      setProfileSetupMissing(false);
+
       try {
         const {
           data: { user },
         } = await supabase.auth.getUser();
-        if (!user) return;
+        if (!user) {
+          setFetchError('You must be signed in to view this dashboard.');
+          return;
+        }
 
-        // Get teacher record
-        const { data: teacher } = await supabase
+        const { data: teacher, error: teacherError } = await supabase
           .from('teachers')
           .select('*')
           .eq('profile_id', user.id)
           .maybeSingle();
 
-        if (!teacher) return;
+        if (teacherError) {
+          setFetchError(`Failed to load teacher profile: ${teacherError.message}`);
+          return;
+        }
+
+        if (!teacher) {
+          setProfileSetupMissing(true);
+          return;
+        }
+
         setTeacherId(teacher.id);
 
-        // Published courses count
-        const { count: coursesCount } = await supabase
+        const { count: coursesCount, error: coursesError } = await supabase
           .from('courses')
           .select('*', { count: 'exact', head: true })
           .eq('teacher_id', teacher.id)
           .eq('is_published', true);
 
-        // Exercises count
-        const { count: exercisesCount } = await supabase
+        if (coursesError) {
+          setFetchError(`Failed to load courses: ${coursesError.message}`);
+          return;
+        }
+
+        const { count: exercisesCount, error: exercisesError } = await supabase
           .from('exercises')
           .select('*', { count: 'exact', head: true })
           .eq('teacher_id', teacher.id);
 
-        // Upcoming sessions count
+        if (exercisesError) {
+          setFetchError(`Failed to load exercises: ${exercisesError.message}`);
+          return;
+        }
+
         const now = new Date().toISOString();
-        const { count: sessionsCount } = await supabase
+        const { count: sessionsCount, error: sessionsCountError } = await supabase
           .from('live_sessions')
           .select('*', { count: 'exact', head: true })
           .eq('teacher_id', teacher.id)
           .gte('scheduled_at', now)
           .eq('status', 'scheduled');
 
-        // Learners assigned (via enrollments linked to teacher's courses)
-        const { count: learnersCount } = await supabase
-          .from('course_enrollments')
-          .select('learner_id', { count: 'exact', head: true })
-          .in(
-            'course_id',
-            (
-              await supabase
-                .from('courses')
-                .select('id')
-                .eq('teacher_id', teacher.id)
-            ).data?.map((c) => c.id) ?? []
-          );
+        if (sessionsCountError) {
+          setFetchError(`Failed to load sessions: ${sessionsCountError.message}`);
+          return;
+        }
+
+        const { data: teacherCourses, error: teacherCoursesError } = await supabase
+          .from('courses')
+          .select('id')
+          .eq('teacher_id', teacher.id);
+
+        if (teacherCoursesError) {
+          setFetchError(`Failed to load course enrollments: ${teacherCoursesError.message}`);
+          return;
+        }
+
+        const courseIds = teacherCourses?.map((c) => c.id) ?? [];
+        let learnersCount = 0;
+
+        if (courseIds.length > 0) {
+          const { count, error: learnersCountError } = await supabase
+            .from('course_enrollments')
+            .select('learner_id', { count: 'exact', head: true })
+            .in('course_id', courseIds);
+
+          if (learnersCountError) {
+            setFetchError(`Failed to load learners: ${learnersCountError.message}`);
+            return;
+          }
+
+          learnersCount = count ?? 0;
+        }
 
         setStats({
           publishedCourses: coursesCount ?? 0,
-          totalLearners: learnersCount ?? 0,
+          totalLearners: learnersCount,
           upcomingSessions: sessionsCount ?? 0,
           exercisesCreated: exercisesCount ?? 0,
         });
 
-        // Upcoming live sessions (next 3)
-        const { data: upcomingSessions } = await supabase
+        const { data: upcomingSessions, error: upcomingSessionsError } = await supabase
           .from('live_sessions')
           .select('id, title, scheduled_at, duration_minutes, cefr_level, max_participants')
           .eq('teacher_id', teacher.id)
@@ -120,10 +160,14 @@ export default function TeacherDashboard() {
           .order('scheduled_at', { ascending: true })
           .limit(3);
 
+        if (upcomingSessionsError) {
+          setFetchError(`Failed to load upcoming sessions: ${upcomingSessionsError.message}`);
+          return;
+        }
+
         setSessions(upcomingSessions ?? []);
 
-        // Recent learner activity
-        const { data: progressData } = await supabase
+        let progressQuery = supabase
           .from('learner_progress')
           .select(
             `
@@ -131,23 +175,35 @@ export default function TeacherDashboard() {
             progress_percent,
             updated_at,
             courses (title),
-            profiles (full_name)
+            learners (profiles (full_name))
           `
           )
           .order('updated_at', { ascending: false })
           .limit(8);
 
+        if (courseIds.length > 0) {
+          progressQuery = progressQuery.in('course_id', courseIds);
+        }
+
+        const { data: progressData, error: progressError } = await progressQuery;
+
+        if (progressError) {
+          setFetchError(`Failed to load learner activity: ${progressError.message}`);
+          return;
+        }
+
         const activityMapped: LearnerActivity[] = (progressData ?? []).map((p: any) => ({
           id: p.id,
-          learner_name: p.profiles?.full_name ?? 'Unknown',
+          learner_name: p.learners?.profiles?.full_name ?? 'Unknown',
           course_title: p.courses?.title ?? 'Unknown Course',
           progress_percent: p.progress_percent ?? 0,
-          last_activity: p.updated_at,
+          last_activity: p.updated_at ?? p.last_accessed ?? new Date().toISOString(),
         }));
 
         setActivity(activityMapped);
       } catch (err) {
         console.error('Dashboard fetch error:', err);
+        setFetchError('An unexpected error occurred while loading the dashboard.');
       } finally {
         setLoading(false);
       }
@@ -229,6 +285,18 @@ export default function TeacherDashboard() {
           </Button>
         </div>
       </div>
+
+      {fetchError && (
+        <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+          {fetchError}
+        </div>
+      )}
+
+      {profileSetupMissing && (
+        <div className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
+          Your teacher profile is not set up yet. Please contact an administrator or complete registration.
+        </div>
+      )}
 
       {/* Stat Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
