@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { GraduationCap, BookOpen, Users, ArrowLeft, ArrowRight, CheckCircle, AlertCircle, Eye, EyeOff } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { AUTH_RATE_LIMIT_MESSAGE, isAuthRateLimitError } from '@/lib/auth-errors';
 import { createClient } from '@/lib/supabase/client';
 import {
   getProvinces,
@@ -198,7 +199,7 @@ export default function RegisterPage() {
     setError(null);
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const validationError = validateStep2();
     if (validationError) {
@@ -226,7 +227,9 @@ export default function RegisterPage() {
       });
 
       if (signUpError) {
-        if (signUpError.message.includes('already registered')) {
+        if (isAuthRateLimitError(signUpError)) {
+          setError(AUTH_RATE_LIMIT_MESSAGE);
+        } else if (signUpError.message.includes('already registered')) {
           setError('Cette adresse e-mail est déjà utilisée. Veuillez vous connecter.');
         } else {
           setError(signUpError.message);
@@ -503,7 +506,7 @@ export default function RegisterPage() {
 
           {/* STEP 2 — Details Form */}
           {step === 2 && (
-            <form onSubmit={handleSubmit} className="space-y-5" noValidate>
+            <form method="post" onSubmit={handleSubmit} className="space-y-5" noValidate>
               {/* Back button */}
               <button
                 type="button"

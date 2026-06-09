@@ -6,6 +6,15 @@ import Link from 'next/link';
 import { GraduationCap, Eye, EyeOff, AlertCircle, Clock, ArrowRight } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { AUTH_RATE_LIMIT_MESSAGE, isAuthRateLimitError } from '@/lib/auth-errors';
+import { createClient } from '@/lib/supabase/client';
+
+const roleRedirects: Record<string, string> = {
+  admin: '/dashboard/admin',
+  school: '/dashboard/school',
+  teacher: '/dashboard/teacher',
+  learner: '/dashboard/learner',
+};
 
 export default function LoginPage() {
   const router = useRouter();
@@ -21,25 +30,72 @@ export default function LoginPage() {
     setIsPending(true);
 
     const formData = new FormData(e.currentTarget);
-    const email = formData.get('email') as string;
-    const password = formData.get('password') as string;
+    const email = String(formData.get('email') ?? '').trim().toLowerCase();
+    const password = String(formData.get('password') ?? '');
+
+    if (!email) {
+      setError('Veuillez saisir votre adresse e-mail.');
+      setIsPending(false);
+      return;
+    }
+
+    if (!password) {
+      setError('Veuillez saisir votre mot de passe.');
+      setIsPending(false);
+      return;
+    }
 
     try {
-      const res = await fetch('/api/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password }),
+      const supabase = createClient();
+
+      const { data, error: signInError } = await supabase.auth.signInWithPassword({
+        email,
+        password,
       });
 
-      const result = await res.json();
-
-      if (result.pending) {
-        setPending(true);
-      } else if (result.error) {
-        setError(result.error);
-      } else if (result.redirect) {
-        router.push(result.redirect);
+      if (signInError) {
+        if (isAuthRateLimitError(signInError)) {
+          setError(AUTH_RATE_LIMIT_MESSAGE);
+        } else if (signInError.message.includes('Invalid login credentials')) {
+          setError('Email ou mot de passe incorrect. Veuillez réessayer.');
+        } else {
+          setError(signInError.message);
+        }
+        return;
       }
+
+      if (!data.user) {
+        setError('Une erreur inattendue est survenue. Veuillez réessayer.');
+        return;
+      }
+
+      const { data: profile, error: profileError } = await supabase
+        .from('profiles')
+        .select('role, status')
+        .eq('id', data.user.id)
+        .maybeSingle();
+
+      if (profileError || !profile) {
+        console.error('Profile lookup error:', profileError);
+        await supabase.auth.signOut();
+        setError("Profil introuvable. Veuillez contacter l'administrateur.");
+        return;
+      }
+
+      if (profile.status === 'pending') {
+        await supabase.auth.signOut();
+        setPending(true);
+        return;
+      }
+
+      if (profile.status === 'suspended' || profile.status === 'rejected') {
+        await supabase.auth.signOut();
+        setError("Votre compte est inactif. Veuillez contacter l'administrateur.");
+        return;
+      }
+
+      router.replace(roleRedirects[profile.role] ?? '/dashboard');
+      router.refresh();
     } catch {
       setError('Une erreur réseau est survenue. Veuillez réessayer.');
     } finally {
@@ -134,7 +190,7 @@ export default function LoginPage() {
             </div>
           )}
 
-          <form onSubmit={handleSubmit} className="space-y-5" noValidate>
+          <form method="post" onSubmit={handleSubmit} className="space-y-5" noValidate>
             <div className="space-y-1.5">
               <Label htmlFor="email" className="text-sm font-medium text-gray-700">
                 Adresse e-mail
