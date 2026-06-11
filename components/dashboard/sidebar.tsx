@@ -7,7 +7,6 @@ import { createClient } from '@/lib/supabase/client'
 import {
   GraduationCap,
   LayoutDashboard,
-  Users,
   FileText,
   Calendar,
   DollarSign,
@@ -15,7 +14,6 @@ import {
   BookOpen,
   PenTool,
   Video,
-  UserCheck,
   MessageSquare,
   Award,
   Shield,
@@ -53,18 +51,14 @@ const navByRole: Record<Role, NavItem[]> = {
   ],
   school: [
     { label: 'Dashboard', href: '/dashboard/school', icon: LayoutDashboard },
-    { label: 'Students', href: '/dashboard/school/students', icon: Users },
-    { label: 'Exam Results', href: '/dashboard/school/results', icon: FileText },
-    { label: 'Certificates', href: '/dashboard/school/certificates', icon: Award },
-    { label: 'Messages', href: '/dashboard/school/messages', icon: MessageSquare },
+    { label: 'Messages', href: '/dashboard/messages', icon: MessageSquare },
   ],
   teacher: [
     { label: 'Dashboard', href: '/dashboard/teacher', icon: LayoutDashboard },
     { label: 'My Courses', href: '/dashboard/teacher/courses', icon: BookOpen },
     { label: 'Exercises', href: '/dashboard/teacher/exercises', icon: PenTool },
-    { label: 'Live Sessions', href: '/dashboard/teacher/live', icon: Video },
-    { label: 'Learners', href: '/dashboard/teacher/learners', icon: UserCheck },
-    { label: 'Messages', href: '/dashboard/teacher/messages', icon: MessageSquare },
+    { label: 'Live Sessions', href: '/dashboard/teacher/sessions', icon: Video },
+    { label: 'Messages', href: '/dashboard/messages', icon: MessageSquare },
   ],
   learner: [
     { label: 'Dashboard', href: '/dashboard/learner', icon: LayoutDashboard },
@@ -72,7 +66,7 @@ const navByRole: Record<Role, NavItem[]> = {
     { label: 'Exercises', href: '/dashboard/learner/exercises', icon: PenTool },
     { label: 'Exams', href: '/dashboard/learner/exams', icon: FileText },
     { label: 'Certificates', href: '/dashboard/learner/certificates', icon: Award },
-    { label: 'Messages', href: '/dashboard/learner/messages', icon: MessageSquare },
+    { label: 'Messages', href: '/dashboard/messages', icon: MessageSquare },
   ],
 }
 

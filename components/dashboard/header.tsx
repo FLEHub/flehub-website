@@ -7,7 +7,6 @@ import { createClient } from '@/lib/supabase/client'
 import {
   Bell,
   ChevronDown,
-  User,
   Settings,
   LogOut,
 } from 'lucide-react'
@@ -134,12 +133,7 @@ export function Header({ title, profile }: HeaderProps) {
     }
   }
 
-  const roleDashboardPath = {
-    admin: '/dashboard/admin',
-    school: '/dashboard/school',
-    teacher: '/dashboard/teacher',
-    learner: '/dashboard/learner',
-  }[profile.role] ?? '/dashboard'
+  const settingsPath = profile.role === 'admin' ? '/dashboard/admin/settings' : null
 
   return (
     <header className="fixed top-0 left-0 right-0 z-20 h-16 bg-white border-b border-gray-200 shadow-sm lg:left-60">
@@ -215,15 +209,6 @@ export function Header({ title, profile }: HeaderProps) {
                   )}
                 </div>
 
-                <div className="border-t border-gray-100 px-4 py-2">
-                  <Link
-                    href={`${roleDashboardPath}/notifications`}
-                    className="block text-center text-xs text-[#00A550] hover:underline py-1"
-                    onClick={() => setNotifOpen(false)}
-                  >
-                    View all notifications
-                  </Link>
-                </div>
               </div>
             )}
           </div>
@@ -269,24 +254,18 @@ export function Header({ title, profile }: HeaderProps) {
                   </Badge>
                 </div>
 
-                <div className="py-1">
-                  <Link
-                    href={`${roleDashboardPath}/profile`}
-                    className="flex items-center gap-2.5 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 hover:text-gray-900 transition-colors"
-                    onClick={() => setUserMenuOpen(false)}
-                  >
-                    <User className="w-4 h-4 text-gray-400" />
-                    Profile
-                  </Link>
-                  <Link
-                    href={`${roleDashboardPath}/settings`}
-                    className="flex items-center gap-2.5 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 hover:text-gray-900 transition-colors"
-                    onClick={() => setUserMenuOpen(false)}
-                  >
-                    <Settings className="w-4 h-4 text-gray-400" />
-                    Settings
-                  </Link>
-                </div>
+                {settingsPath && (
+                  <div className="py-1">
+                    <Link
+                      href={settingsPath}
+                      className="flex items-center gap-2.5 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 hover:text-gray-900 transition-colors"
+                      onClick={() => setUserMenuOpen(false)}
+                    >
+                      <Settings className="w-4 h-4 text-gray-400" />
+                      Settings
+                    </Link>
+                  </div>
+                )}
 
                 <div className="border-t border-gray-100 py-1">
                   <button
