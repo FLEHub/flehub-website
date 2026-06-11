@@ -1,11 +1,14 @@
 'use client';
 
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import Link from 'next/link';
 import { GraduationCap, BookOpen, Users, ArrowLeft, ArrowRight, CheckCircle, AlertCircle, Eye, EyeOff } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { createClient } from '@/lib/supabase/client';
+import {
+  MIN_BIO_LENGTH,
+  MIN_QUALIFICATIONS_LENGTH,
+} from '@/lib/register/validation';
 import {
   getProvinces,
   getDistrictsByProvince,
@@ -96,7 +99,9 @@ export default function RegisterPage() {
   const [showConfirm, setShowConfirm] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [fieldErrors, setFieldErrors] = useState<Partial<Record<keyof FormData, string>>>({});
   const [success, setSuccess] = useState(false);
+  const submittingRef = useRef(false);
 
   // Rwanda geo cascading state
   const [provinces] = useState<string[]>(getProvinces());
@@ -108,6 +113,12 @@ export default function RegisterPage() {
   const update = (field: keyof FormData, value: string) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
     setError(null);
+    setFieldErrors((prev) => {
+      if (!prev[field]) return prev;
+      const next = { ...prev };
+      delete next[field];
+      return next;
+    });
   };
 
   const handleProvince = (value: string) => {
@@ -160,32 +171,58 @@ export default function RegisterPage() {
   };
 
   const validateStep2 = (): string | null => {
-    if (!formData.full_name.trim()) return 'Le nom complet est requis.';
-    if (!formData.email.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email))
-      return 'Veuillez saisir une adresse e-mail valide.';
-    if (formData.password.length < 8) return 'Le mot de passe doit contenir au moins 8 caractères.';
-    if (formData.password !== formData.confirm_password)
-      return 'Les mots de passe ne correspondent pas.';
-    if (!formData.phone.trim()) return 'Le numéro de téléphone est requis.';
+    const nextFieldErrors: Partial<Record<keyof FormData, string>> = {};
 
-    if (selectedRole === 'learner' && !formData.cefr_level)
-      return 'Veuillez sélectionner votre niveau CECRL.';
+    if (!formData.full_name.trim()) {
+      nextFieldErrors.full_name = 'Le nom complet est requis.';
+    }
+    if (!formData.email.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
+      nextFieldErrors.email = 'Veuillez saisir une adresse e-mail valide.';
+    }
+    if (formData.password.length < 8) {
+      nextFieldErrors.password = 'Le mot de passe doit contenir au moins 8 caractères.';
+    }
+    if (formData.password !== formData.confirm_password) {
+      nextFieldErrors.confirm_password = 'Les mots de passe ne correspondent pas.';
+    }
+    if (!formData.phone.trim()) {
+      nextFieldErrors.phone = 'Le numéro de téléphone est requis.';
+    }
+
+    if (selectedRole === 'learner' && !formData.cefr_level) {
+      nextFieldErrors.cefr_level = 'Veuillez sélectionner votre niveau CECRL.';
+    }
 
     if (selectedRole === 'teacher') {
-      if (!formData.bio.trim()) return 'La biographie est requise.';
-      if (!formData.qualifications.trim()) return 'Les qualifications sont requises.';
+      if (!formData.bio.trim()) {
+        nextFieldErrors.bio = 'La biographie est requise.';
+      } else if (formData.bio.trim().length < MIN_BIO_LENGTH) {
+        nextFieldErrors.bio = `La biographie doit contenir au moins ${MIN_BIO_LENGTH} caractères.`;
+      }
+
+      if (!formData.qualifications.trim()) {
+        nextFieldErrors.qualifications = 'Les qualifications sont requises.';
+      } else if (formData.qualifications.trim().length < MIN_QUALIFICATIONS_LENGTH) {
+        nextFieldErrors.qualifications =
+          'Veuillez préciser vos qualifications (diplômes, certifications, etc.).';
+      }
     }
 
     if (selectedRole === 'school') {
-      if (!formData.school_name.trim()) return "Le nom de l'établissement est requis.";
-      if (!formData.province) return 'Veuillez sélectionner une province.';
-      if (!formData.district) return 'Veuillez sélectionner un district.';
-      if (!formData.sector) return 'Veuillez sélectionner un secteur.';
-      if (!formData.cell) return 'Veuillez sélectionner une cellule.';
-      if (!formData.village) return 'Veuillez sélectionner un village.';
+      if (!formData.school_name.trim()) {
+        nextFieldErrors.school_name = "Le nom de l'établissement est requis.";
+      }
+      if (!formData.province) nextFieldErrors.province = 'Veuillez sélectionner une province.';
+      if (!formData.district) nextFieldErrors.district = 'Veuillez sélectionner un district.';
+      if (!formData.sector) nextFieldErrors.sector = 'Veuillez sélectionner un secteur.';
+      if (!formData.cell) nextFieldErrors.cell = 'Veuillez sélectionner une cellule.';
+      if (!formData.village) nextFieldErrors.village = 'Veuillez sélectionner un village.';
     }
 
-    return null;
+    setFieldErrors(nextFieldErrors);
+
+    const firstError = Object.values(nextFieldErrors)[0];
+    return firstError ?? null;
   };
 
   const handleNext = () => {
@@ -196,95 +233,72 @@ export default function RegisterPage() {
   const handleBack = () => {
     setStep(1);
     setError(null);
+    setFieldErrors({});
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    if (loading || submittingRef.current) return;
+
+    if (!selectedRole) {
+      setError('Veuillez sélectionner un rôle pour continuer.');
+      setStep(1);
+      return;
+    }
+
     const validationError = validateStep2();
     if (validationError) {
       setError(validationError);
       return;
     }
 
+    submittingRef.current = true;
     setLoading(true);
     setError(null);
 
     try {
-      const supabase = createClient();
-
-      // Sign up with Supabase Auth
-      const { data: authData, error: signUpError } = await supabase.auth.signUp({
-        email: formData.email.trim().toLowerCase(),
-        password: formData.password,
-        options: {
-          data: {
-            full_name: formData.full_name.trim(),
-            role: selectedRole,
-            phone: formData.phone.trim(),
-          },
-        },
-      });
-
-      if (signUpError) {
-        if (signUpError.message.includes('already registered')) {
-          setError('Cette adresse e-mail est déjà utilisée. Veuillez vous connecter.');
-        } else {
-          setError(signUpError.message);
-        }
-        return;
-      }
-
-      if (!authData.user) {
-        setError("L'inscription a échoué. Veuillez réessayer.");
-        return;
-      }
-
-      const userId = authData.user.id;
-      const status = selectedRole === 'learner' ? 'approved' : 'pending';
-
-      // Insert into profiles table
-      const { error: profileError } = await supabase.from('profiles').insert({
-        id: userId,
-        full_name: formData.full_name.trim(),
-        email: formData.email.trim().toLowerCase(),
-        phone: formData.phone.trim(),
-        role: selectedRole,
-        status,
-      });
-
-      if (profileError) {
-        console.error('Profile insert error:', profileError);
-      }
-
-      // Insert into role-specific table
-      if (selectedRole === 'learner') {
-        await supabase.from('learners').insert({
-          profile_id: userId,
+      const res = await fetch('/api/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          role: selectedRole,
+          full_name: formData.full_name.trim(),
+          email: formData.email.trim().toLowerCase(),
+          password: formData.password,
+          phone: formData.phone.trim(),
           subtype: formData.subtype,
-          cefr_level: formData.cefr_level,
-        });
-      } else if (selectedRole === 'teacher') {
-        await supabase.from('teachers').insert({
-          profile_id: userId,
-          bio: formData.bio.trim(),
-          qualifications: formData.qualifications.trim(),
-        });
-      } else if (selectedRole === 'school') {
-        await supabase.from('schools').insert({
-          profile_id: userId,
-          school_name: formData.school_name.trim(),
-          province: formData.province,
-          district: formData.district,
-          sector: formData.sector,
-          cell: formData.cell,
-          village: formData.village || null,
-        });
+          cefr_level: formData.cefr_level || undefined,
+          bio: selectedRole === 'teacher' ? formData.bio.trim() : undefined,
+          qualifications:
+            selectedRole === 'teacher' ? formData.qualifications.trim() : undefined,
+          school_name: formData.school_name.trim() || undefined,
+          province: formData.province || undefined,
+          district: formData.district || undefined,
+          sector: formData.sector || undefined,
+          cell: formData.cell || undefined,
+          village: formData.village || undefined,
+        }),
+      });
+
+      let result: { error?: string; success?: boolean } = {};
+      try {
+        result = await res.json();
+      } catch {
+        setError("Réponse serveur invalide. Vérifiez que l'application est bien déployée.");
+        return;
+      }
+
+      if (!res.ok) {
+        setError(result.error ?? 'Une erreur est survenue.');
+        return;
       }
 
       setSuccess(true);
     } catch {
       setError('Une erreur réseau est survenue. Veuillez vérifier votre connexion.');
     } finally {
+      submittingRef.current = false;
       setLoading(false);
     }
   };
@@ -692,12 +706,25 @@ export default function RegisterPage() {
                     <textarea
                       id="bio"
                       rows={3}
+                      required
+                      minLength={MIN_BIO_LENGTH}
                       placeholder="Décrivez brièvement votre expérience en enseignement du français…"
                       value={formData.bio}
                       onChange={(e) => update('bio', e.target.value)}
                       disabled={loading}
-                      className="w-full px-3 py-2.5 rounded-xl border border-gray-300 text-sm text-gray-900 bg-white focus:outline-none focus:border-flehub-green focus:ring-2 focus:ring-flehub-green/20 resize-none"
+                      aria-invalid={Boolean(fieldErrors.bio)}
+                      className={`w-full px-3 py-2.5 rounded-xl border text-sm text-gray-900 bg-white focus:outline-none focus:ring-2 focus:ring-flehub-green/20 resize-none ${
+                        fieldErrors.bio
+                          ? 'border-red-400 focus:border-red-400'
+                          : 'border-gray-300 focus:border-flehub-green'
+                      }`}
                     />
+                    <p className="text-xs text-gray-400">
+                      Minimum {MIN_BIO_LENGTH} caractères ({formData.bio.trim().length}/{MIN_BIO_LENGTH})
+                    </p>
+                    {fieldErrors.bio && (
+                      <p className="text-xs text-red-600">{fieldErrors.bio}</p>
+                    )}
                   </div>
 
                   <div className="space-y-1.5">
@@ -707,12 +734,22 @@ export default function RegisterPage() {
                     <Input
                       id="qualifications"
                       type="text"
+                      required
+                      minLength={MIN_QUALIFICATIONS_LENGTH}
                       placeholder="Ex: DALF C2, Master FLE, CAPES…"
                       value={formData.qualifications}
                       onChange={(e) => update('qualifications', e.target.value)}
                       disabled={loading}
-                      className="h-10 border-gray-300 focus:border-flehub-green rounded-xl"
+                      aria-invalid={Boolean(fieldErrors.qualifications)}
+                      className={`h-10 rounded-xl ${
+                        fieldErrors.qualifications
+                          ? 'border-red-400 focus:border-red-400'
+                          : 'border-gray-300 focus:border-flehub-green'
+                      }`}
                     />
+                    {fieldErrors.qualifications && (
+                      <p className="text-xs text-red-600">{fieldErrors.qualifications}</p>
+                    )}
                     <p className="text-xs text-gray-400">
                       Votre compte sera examiné par un administrateur avant activation.
                     </p>
@@ -847,6 +884,7 @@ export default function RegisterPage() {
               <button
                 type="submit"
                 disabled={loading}
+                aria-busy={loading}
                 className="w-full h-11 flex items-center justify-center gap-2 bg-flehub-green text-white font-semibold rounded-xl hover:bg-flehub-green-dark transition-colors disabled:opacity-60 disabled:cursor-not-allowed shadow-sm mt-2"
               >
                 {loading ? (

@@ -7,6 +7,11 @@ const inter = Inter({ subsets: ['latin'] });
 export const metadata: Metadata = {
   title: 'FLEHub — French Language Examinations Rwanda',
   description: 'Online French Language (FLE) Examination and Learning Management System for Rwanda. CEFR-aligned certification for A1 to C2.',
+  icons: {
+    icon: [{ url: '/favicon.svg', type: 'image/svg+xml' }],
+    shortcut: '/favicon.svg',
+    apple: '/favicon.svg',
+  },
   openGraph: {
     title: 'FLEHub Rwanda',
     description: 'French Language Examinations & Learning Platform',

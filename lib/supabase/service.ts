@@ -15,3 +15,11 @@ export function createServiceClient() {
     },
   })
 }
+
+export function getServiceClient() {
+  try {
+    return createServiceClient()
+  } catch {
+    return null
+  }
+}

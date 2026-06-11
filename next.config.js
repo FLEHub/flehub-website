@@ -7,6 +7,14 @@ const nextConfig = {
   experimental: {
     serverActions: true,
   },
+  async rewrites() {
+    return [
+      {
+        source: '/favicon.ico',
+        destination: '/favicon.svg',
+      },
+    ];
+  },
   webpack: (config) => {
     config.parallelism = 1;
     return config;
