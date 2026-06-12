@@ -15,6 +15,7 @@ import {
   Calendar,
   ArrowRight,
   Clock,
+  Upload,
 } from 'lucide-react';
 
 interface TeacherStats {
@@ -444,7 +445,7 @@ export default function TeacherDashboard() {
           <CardTitle className="text-base font-semibold">Quick Actions</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
             <Button
               variant="outline"
               className="h-16 flex flex-col gap-1 text-flehub-green border-flehub-green hover:bg-flehub-green-light"
@@ -468,6 +469,14 @@ export default function TeacherDashboard() {
             >
               <Calendar className="w-5 h-5" />
               <span className="text-sm font-medium">Schedule Session</span>
+            </Button>
+            <Button
+              variant="outline"
+              className="h-16 flex flex-col gap-1 text-blue-600 border-blue-200 hover:bg-blue-50"
+              onClick={() => (window.location.href = '/dashboard/teacher/uploads')}
+            >
+              <Upload className="w-5 h-5" />
+              <span className="text-sm font-medium">Upload Resource</span>
             </Button>
           </div>
         </CardContent>

@@ -61,6 +61,7 @@ const navByRole: Record<Role, NavItem[]> = {
   teacher: [
     { label: 'Dashboard', href: '/dashboard/teacher', icon: LayoutDashboard },
     { label: 'My Courses', href: '/dashboard/teacher/courses', icon: BookOpen },
+    { label: 'Uploads', href: '/dashboard/teacher/uploads', icon: FileText },
     { label: 'Exercises', href: '/dashboard/teacher/exercises', icon: PenTool },
     { label: 'Live Sessions', href: '/dashboard/teacher/live', icon: Video },
     { label: 'Learners', href: '/dashboard/teacher/learners', icon: UserCheck },

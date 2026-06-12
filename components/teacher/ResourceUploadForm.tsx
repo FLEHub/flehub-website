@@ -36,6 +36,7 @@ const ACCEPTED_MIME: Record<string, ResourceType> = {
 };
 
 const MAX_FILE_SIZE = 50 * 1024 * 1024; // 50 MB
+const STORAGE_BUCKET = 'flehub-resources';
 
 const TYPE_LABELS: Record<ResourceType, string> = {
   pdf: 'PDF',
@@ -92,6 +93,18 @@ function getYouTubeEmbedUrl(url: string): string | null {
 function formatFileSize(bytes: number): string {
   if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(0)} KB`;
   return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+}
+
+function encodeStoragePath(path: string): string {
+  return path.split('/').map(encodeURIComponent).join('/');
+}
+
+function getSafeStorageFileName(fileName: string): string {
+  return fileName
+    .normalize('NFKD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^a-zA-Z0-9._-]+/g, '_')
+    .replace(/^_+|_+$/g, '') || 'resource';
 }
 
 // ─── Sub-components ───────────────────────────────────────────────────────────
@@ -171,10 +184,14 @@ export default function ResourceUploadForm({ onSuccess }: ResourceUploadFormProp
     setFileError('');
     const type = ACCEPTED_MIME[file.type];
     if (!type) {
+      setSelectedFile(null);
+      setDetectedType(null);
       setFileError('Type de fichier non accepté. Utilisez PDF, audio (MP3/WAV) ou image (JPG/PNG/WebP).');
       return;
     }
     if (file.size > MAX_FILE_SIZE) {
+      setSelectedFile(null);
+      setDetectedType(null);
       setFileError(`Fichier trop volumineux (${formatFileSize(file.size)}). Maximum : 50 MB.`);
       return;
     }
@@ -248,6 +265,7 @@ export default function ResourceUploadForm({ onSuccess }: ResourceUploadFormProp
       if (!user) throw new Error('Non authentifié. Veuillez vous reconnecter.');
 
       let filePath = '';
+      let storagePath: string | null = null;
       let fileSize: number | null = null;
       let fileName: string | null = null;
       let resourceType: ResourceType;
@@ -255,20 +273,30 @@ export default function ResourceUploadForm({ onSuccess }: ResourceUploadFormProp
       if (mode === 'file' && selectedFile && detectedType) {
         // XHR upload with progress tracking
         resourceType = detectedType;
-        const uniqueName = `${user.id}/${crypto.randomUUID()}-${selectedFile.name.replace(/\s+/g, '_')}`;
+        const uniqueName = `${user.id}/${crypto.randomUUID()}-${getSafeStorageFileName(selectedFile.name)}`;
+        storagePath = uniqueName;
         filePath = uniqueName;
         fileSize = selectedFile.size;
         fileName = selectedFile.name;
 
-        const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-        const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
-        const { data: { session } } = await supabase.auth.getSession();
-        const token = session?.access_token ?? anonKey;
+        const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+        const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+        if (!supabaseUrl || !anonKey) {
+          throw new Error('Configuration Supabase manquante.');
+        }
+
+        const {
+          data: { session },
+        } = await supabase.auth.getSession();
+        if (!session?.access_token) {
+          throw new Error('Session invalide. Veuillez vous reconnecter.');
+        }
 
         await new Promise<void>((resolve, reject) => {
           const xhr = new XMLHttpRequest();
-          xhr.open('POST', `${supabaseUrl}/storage/v1/object/flehub-resources/${uniqueName}`);
-          xhr.setRequestHeader('Authorization', `Bearer ${token}`);
+          xhr.open('POST', `${supabaseUrl}/storage/v1/object/${STORAGE_BUCKET}/${encodeStoragePath(uniqueName)}`);
+          xhr.setRequestHeader('Authorization', `Bearer ${session.access_token}`);
+          xhr.setRequestHeader('apikey', anonKey);
           xhr.setRequestHeader('x-upsert', 'false');
           xhr.setRequestHeader('Content-Type', selectedFile.type);
 
@@ -281,6 +309,7 @@ export default function ResourceUploadForm({ onSuccess }: ResourceUploadFormProp
 
           xhr.addEventListener('load', () => {
             if (xhr.status >= 200 && xhr.status < 300) {
+              setUploadState({ status: 'uploading', progress: 100, message: '' });
               resolve();
             } else {
               try {
@@ -296,16 +325,10 @@ export default function ResourceUploadForm({ onSuccess }: ResourceUploadFormProp
           xhr.send(selectedFile);
         });
 
-        // Get public URL
-        const { data: urlData } = supabase.storage
-          .from('flehub-resources')
-          .getPublicUrl(uniqueName);
-        filePath = urlData.publicUrl;
-
       } else {
         // Video URL mode
         resourceType = 'video';
-        filePath = videoUrl;
+        filePath = videoUrl.trim();
       }
 
       // Insert into DB
@@ -322,7 +345,12 @@ export default function ResourceUploadForm({ onSuccess }: ResourceUploadFormProp
         is_public: form.is_public,
       });
 
-      if (dbError) throw new Error(dbError.message);
+      if (dbError) {
+        if (storagePath) {
+          await supabase.storage.from(STORAGE_BUCKET).remove([storagePath]);
+        }
+        throw new Error(dbError.message);
+      }
 
       setUploadState({
         status: 'success',
