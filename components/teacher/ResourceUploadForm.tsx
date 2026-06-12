@@ -831,6 +831,8 @@ function SelectedFileRow({
     <div className="rounded-xl border border-gray-200 bg-white p-3">
       <div className="flex items-center gap-3">
         {resourceFile.previewUrl ? (
+          // Object URL previews cannot be optimized by next/image.
+          // eslint-disable-next-line @next/next/no-img-element
           <img
             src={resourceFile.previewUrl}
             alt=""
