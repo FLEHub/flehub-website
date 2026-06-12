@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { createClient } from '@/lib/supabase/client';
+import ResourceUploadForm from '@/components/teacher/ResourceUploadForm';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -230,7 +231,7 @@ export default function TeacherCoursesPage() {
           onClick={openCreate}
         >
           <Upload className="w-4 h-4 mr-2" />
-          Upload New Course
+          Upload Lesson Package
         </Button>
       </div>
 
@@ -294,7 +295,7 @@ export default function TeacherCoursesPage() {
         <div className="flex flex-col items-center justify-center py-20 text-gray-400">
           <BookOpen className="w-12 h-12 mb-3 opacity-40" />
           <p className="text-lg font-medium">No courses found</p>
-          <p className="text-sm">Upload your first course to get started</p>
+          <p className="text-sm">Upload your first lesson package to get started</p>
         </div>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
@@ -370,138 +371,144 @@ export default function TeacherCoursesPage() {
 
       {/* Create / Edit Dialog */}
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
+        <DialogContent className={`${editingCourse ? 'max-w-lg' : 'max-w-5xl'} max-h-[90vh] overflow-y-auto`}>
           <DialogHeader>
-            <DialogTitle>{editingCourse ? 'Edit Course' : 'Upload New Course'}</DialogTitle>
+            <DialogTitle>{editingCourse ? 'Edit Course' : 'Upload Lesson Package'}</DialogTitle>
           </DialogHeader>
 
-          <div className="space-y-4 py-2">
-            <div className="space-y-1">
-              <Label>Title <span className="text-red-500">*</span></Label>
-              <Input
-                placeholder="e.g. French Conversation B1"
-                value={form.title}
-                onChange={(e) => setForm({ ...form, title: e.target.value })}
-              />
-            </div>
+          {editingCourse ? (
+            <>
+              <div className="space-y-4 py-2">
+                <div className="space-y-1">
+                  <Label>Title <span className="text-red-500">*</span></Label>
+                  <Input
+                    placeholder="e.g. French Conversation B1"
+                    value={form.title}
+                    onChange={(e) => setForm({ ...form, title: e.target.value })}
+                  />
+                </div>
 
-            <div className="space-y-1">
-              <Label>Description</Label>
-              <Textarea
-                placeholder="Short description of this course..."
-                rows={3}
-                value={form.description}
-                onChange={(e) => setForm({ ...form, description: e.target.value })}
-              />
-            </div>
+                <div className="space-y-1">
+                  <Label>Description</Label>
+                  <Textarea
+                    placeholder="Short description of this course..."
+                    rows={3}
+                    value={form.description}
+                    onChange={(e) => setForm({ ...form, description: e.target.value })}
+                  />
+                </div>
 
-            <div className="grid grid-cols-2 gap-3">
-              <div className="space-y-1">
-                <Label>CEFR Level <span className="text-red-500">*</span></Label>
-                <Select
-                  value={form.cefr_level}
-                  onValueChange={(v) => setForm({ ...form, cefr_level: v as CEFR })}
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="space-y-1">
+                    <Label>CEFR Level <span className="text-red-500">*</span></Label>
+                    <Select
+                      value={form.cefr_level}
+                      onValueChange={(v) => setForm({ ...form, cefr_level: v as CEFR })}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select level" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {cefrLevels.map((l) => (
+                          <SelectItem key={l} value={l}>
+                            {l}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="space-y-1">
+                    <Label>Competency <span className="text-red-500">*</span></Label>
+                    <Select
+                      value={form.competency}
+                      onValueChange={(v) => setForm({ ...form, competency: v as Competency })}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select skill" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {competencies.map((c) => (
+                          <SelectItem key={c} value={c}>
+                            {c} - {competencyLabels[c]}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="space-y-1">
+                    <Label>Content Type <span className="text-red-500">*</span></Label>
+                    <Select
+                      value={form.content_type}
+                      onValueChange={(v) => setForm({ ...form, content_type: v as ContentType })}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select type" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {contentTypes.map((t) => (
+                          <SelectItem key={t} value={t}>
+                            {t.charAt(0).toUpperCase() + t.slice(1)}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="space-y-1">
+                    <Label>Duration (minutes)</Label>
+                    <Input
+                      type="number"
+                      min={0}
+                      placeholder="e.g. 45"
+                      value={form.duration_minutes || ''}
+                      onChange={(e) =>
+                        setForm({ ...form, duration_minutes: parseInt(e.target.value) || 0 })
+                      }
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-1">
+                  <Label>Content URL</Label>
+                  <Input
+                    placeholder="https://..."
+                    value={form.content_url}
+                    onChange={(e) => setForm({ ...form, content_url: e.target.value })}
+                  />
+                </div>
+
+                <div className="flex items-center gap-3 pt-1">
+                  <Switch
+                    checked={form.is_published}
+                    onCheckedChange={(v) => setForm({ ...form, is_published: v })}
+                    id="published-toggle"
+                  />
+                  <Label htmlFor="published-toggle" className="cursor-pointer">
+                    {form.is_published ? 'Published (visible to learners)' : 'Draft (hidden)'}
+                  </Label>
+                </div>
+              </div>
+
+              <DialogFooter>
+                <Button variant="outline" onClick={() => setDialogOpen(false)}>
+                  Cancel
+                </Button>
+                <Button
+                  className="bg-flehub-green hover:bg-flehub-green/90 text-white"
+                  onClick={handleSave}
+                  disabled={saving || !form.title || !form.cefr_level || !form.competency || !form.content_type}
                 >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select level" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {cefrLevels.map((l) => (
-                      <SelectItem key={l} value={l}>
-                        {l}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div className="space-y-1">
-                <Label>Competency <span className="text-red-500">*</span></Label>
-                <Select
-                  value={form.competency}
-                  onValueChange={(v) => setForm({ ...form, competency: v as Competency })}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select skill" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {competencies.map((c) => (
-                      <SelectItem key={c} value={c}>
-                        {c} – {competencyLabels[c]}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-2 gap-3">
-              <div className="space-y-1">
-                <Label>Content Type <span className="text-red-500">*</span></Label>
-                <Select
-                  value={form.content_type}
-                  onValueChange={(v) => setForm({ ...form, content_type: v as ContentType })}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select type" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {contentTypes.map((t) => (
-                      <SelectItem key={t} value={t}>
-                        {t.charAt(0).toUpperCase() + t.slice(1)}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div className="space-y-1">
-                <Label>Duration (minutes)</Label>
-                <Input
-                  type="number"
-                  min={0}
-                  placeholder="e.g. 45"
-                  value={form.duration_minutes || ''}
-                  onChange={(e) =>
-                    setForm({ ...form, duration_minutes: parseInt(e.target.value) || 0 })
-                  }
-                />
-              </div>
-            </div>
-
-            <div className="space-y-1">
-              <Label>Content URL</Label>
-              <Input
-                placeholder="https://..."
-                value={form.content_url}
-                onChange={(e) => setForm({ ...form, content_url: e.target.value })}
-              />
-            </div>
-
-            <div className="flex items-center gap-3 pt-1">
-              <Switch
-                checked={form.is_published}
-                onCheckedChange={(v) => setForm({ ...form, is_published: v })}
-                id="published-toggle"
-              />
-              <Label htmlFor="published-toggle" className="cursor-pointer">
-                {form.is_published ? 'Published (visible to learners)' : 'Draft (hidden)'}
-              </Label>
-            </div>
-          </div>
-
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setDialogOpen(false)}>
-              Cancel
-            </Button>
-            <Button
-              className="bg-flehub-green hover:bg-flehub-green/90 text-white"
-              onClick={handleSave}
-              disabled={saving || !form.title || !form.cefr_level || !form.competency || !form.content_type}
-            >
-              {saving ? 'Saving...' : editingCourse ? 'Save Changes' : 'Upload Course'}
-            </Button>
-          </DialogFooter>
+                  {saving ? 'Saving...' : 'Save Changes'}
+                </Button>
+              </DialogFooter>
+            </>
+          ) : (
+            <ResourceUploadForm teacherId={teacherId} onSuccess={() => void fetchData()} />
+          )}
         </DialogContent>
       </Dialog>
 
