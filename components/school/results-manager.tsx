@@ -121,7 +121,7 @@ export function ResultsManager({ students, sessions, enrollments, results, avera
               </Button>
             </div>
             <p className="text-xs text-gray-500">
-              Après soumission, les résultats sont verrouillés jusqu'à validation ou rejet par l'administration.
+              Après soumission, les résultats sont verrouillés jusqu&apos;à validation ou rejet par l&apos;administration.
             </p>
           </CardContent>
         </Card>

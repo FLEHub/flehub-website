@@ -63,7 +63,7 @@ export function CertificatesPanel({ certificates, eligibleResults }: Props) {
                 {eligibleResults.length === 0 && (
                   <tr>
                     <td colSpan={5} className="py-10 text-center text-gray-500">
-                      Aucun élève avec résultat réussi validé par l'administration.
+                      Aucun élève avec résultat réussi validé par l&apos;administration.
                     </td>
                   </tr>
                 )}
@@ -75,7 +75,7 @@ export function CertificatesPanel({ certificates, eligibleResults }: Props) {
 
       <Card className="bg-[#F5F5F5]">
         <CardContent className="p-5 text-sm text-gray-600">
-          Les certificats incluent le logo officiel FLEHub, le logo de l'école, la signature du directeur,
+          Les certificats incluent le logo officiel FLEHub, le logo de l&apos;école, la signature du directeur,
           les scores par compétence, un identifiant UUID et un QR code de vérification.
         </CardContent>
       </Card>

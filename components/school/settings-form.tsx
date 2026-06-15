@@ -96,7 +96,7 @@ export function SettingsForm({ school }: Props) {
           <CardContent>
             <form onSubmit={saveProfile} className="grid gap-4 sm:grid-cols-2">
               <div className="sm:col-span-2">
-                <Label>Nom de l'école</Label>
+                <Label>Nom de l&apos;école</Label>
                 <Input value={form.name} onChange={(e) => update('name', e.target.value)} required />
               </div>
               <div>
@@ -185,7 +185,7 @@ export function SettingsForm({ school }: Props) {
               </div>
             </div>
             <p className="mt-8 text-xs uppercase tracking-wider text-gray-500">Certificat de réussite</p>
-            <p className="mt-2 text-xl font-bold text-gray-900">Nom de l'élève</p>
+            <p className="mt-2 text-xl font-bold text-gray-900">Nom de l&apos;élève</p>
             <p className="text-sm text-gray-600">Niveau A2</p>
             <div className="mt-8 flex items-end justify-between text-left">
               <div>

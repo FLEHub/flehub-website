@@ -64,7 +64,7 @@ export default async function CertificateVerificationPage({
             <dd className="mt-1 font-semibold text-gray-900">{school?.name ?? school?.school_name}</dd>
           </div>
           <div className="rounded-2xl bg-[#F5F5F5] p-4">
-            <dt className="text-xs uppercase tracking-wide text-gray-500">Date d'émission</dt>
+            <dt className="text-xs uppercase tracking-wide text-gray-500">Date d&apos;émission</dt>
             <dd className="mt-1 font-semibold text-gray-900">
               {new Date(certificate.issue_date).toLocaleDateString('fr-FR')}
             </dd>

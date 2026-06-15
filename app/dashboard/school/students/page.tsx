@@ -15,7 +15,7 @@ export default async function SchoolStudentsPage() {
         <p className="text-sm font-semibold text-[#00A550]">Mes Élèves</p>
         <h1 className="text-2xl font-bold text-gray-900">Inscription des élèves</h1>
         <p className="mt-1 text-sm text-gray-600">
-          Les élèves sont inscrits par prénom et nom uniquement. Aucun e-mail élève n'est utilisé.
+          Les élèves sont inscrits par prénom et nom uniquement. Aucun e-mail élève n&apos;est utilisé.
         </p>
       </div>
       <StudentsManager students={data.students} sessions={activeSessions} />
