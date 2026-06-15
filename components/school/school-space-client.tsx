@@ -1,7 +1,6 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
-import * as XLSX from 'xlsx';
 import {
   Award,
   BarChart3,
@@ -281,6 +280,26 @@ function downloadBlob(content: BlobPart, filename: string, type: string) {
 function csvEscape(value: unknown) {
   const text = String(value ?? '');
   return `"${text.replace(/"/g, '""')}"`;
+}
+
+function xmlEscape(value: unknown) {
+  return String(value ?? '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&apos;');
+}
+
+function columnName(index: number) {
+  let name = '';
+  let current = index + 1;
+  while (current > 0) {
+    const remainder = (current - 1) % 26;
+    name = String.fromCharCode(65 + remainder) + name;
+    current = Math.floor((current - 1) / 26);
+  }
+  return name;
 }
 
 function parseCsv(text: string) {
@@ -600,11 +619,55 @@ export function SchoolSpaceClient({ section }: { section: Section }) {
     downloadBlob(csv, 'resultats-flehub.csv', 'text/csv;charset=utf-8');
   };
 
-  const exportXlsx = () => {
-    const worksheet = XLSX.utils.json_to_sheet(exportRows());
-    const workbook = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(workbook, worksheet, 'Résultats');
-    XLSX.writeFile(workbook, 'resultats-flehub.xlsx');
+  const exportXlsx = async () => {
+    const JSZip = (await import('jszip')).default;
+    const rows = exportRows();
+    const headers = Object.keys(rows[0] ?? { Élève: '', Classe: '', Niveau: '', Session: '' });
+    const tableRows = [headers, ...rows.map((row) => headers.map((header) => (row as any)[header]))];
+    const sheetData = tableRows
+      .map((row, rowIndex) => {
+        const cells = row
+          .map((value, columnIndex) => {
+            const ref = `${columnName(columnIndex)}${rowIndex + 1}`;
+            return `<c r="${ref}" t="inlineStr"><is><t>${xmlEscape(value)}</t></is></c>`;
+          })
+          .join('');
+        return `<row r="${rowIndex + 1}">${cells}</row>`;
+      })
+      .join('');
+
+    const zip = new JSZip();
+    zip.file(
+      '[Content_Types].xml',
+      '<?xml version="1.0" encoding="UTF-8"?><Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/><Override PartName="/xl/worksheets/sheet1.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/></Types>'
+    );
+    zip.folder('_rels')?.file(
+      '.rels',
+      '<?xml version="1.0" encoding="UTF-8"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/></Relationships>'
+    );
+    zip.folder('xl')?.file(
+      'workbook.xml',
+      '<?xml version="1.0" encoding="UTF-8"?><workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><sheets><sheet name="Résultats" sheetId="1" r:id="rId1"/></sheets></workbook>'
+    );
+    zip.folder('xl')?.folder('_rels')?.file(
+      'workbook.xml.rels',
+      '<?xml version="1.0" encoding="UTF-8"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet1.xml"/></Relationships>'
+    );
+    zip.folder('xl')?.folder('worksheets')?.file(
+      'sheet1.xml',
+      `<?xml version="1.0" encoding="UTF-8"?><worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><sheetData>${sheetData}</sheetData></worksheet>`
+    );
+
+    const blob = await zip.generateAsync({
+      type: 'blob',
+      mimeType: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    });
+    const url = URL.createObjectURL(blob);
+    const anchor = document.createElement('a');
+    anchor.href = url;
+    anchor.download = 'resultats-flehub.xlsx';
+    anchor.click();
+    URL.revokeObjectURL(url);
   };
 
   const exportPdf = () => {

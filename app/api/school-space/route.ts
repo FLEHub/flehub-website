@@ -599,7 +599,7 @@ export async function GET() {
 export async function POST(request: Request) {
   const context = await requireApprovedSchool();
   if ('error' in context) return context.error;
-  const { supabase, school, profile } = context;
+  const { supabase, school, user } = context;
 
   try {
     const contentType = request.headers.get('content-type') ?? '';
@@ -657,7 +657,7 @@ export async function POST(request: Request) {
           full_name: schoolPayload.director_name,
           phone: schoolPayload.phone,
         })
-        .eq('id', profile.id);
+        .eq('id', user.id);
 
       return NextResponse.json({ ok: true });
     }
