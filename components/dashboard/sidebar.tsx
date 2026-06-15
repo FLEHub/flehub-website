@@ -52,11 +52,12 @@ const navByRole: Record<Role, NavItem[]> = {
     { label: 'Settings', href: '/dashboard/admin/settings', icon: Settings },
   ],
   school: [
-    { label: 'Dashboard', href: '/dashboard/school', icon: LayoutDashboard },
-    { label: 'Students', href: '/dashboard/school/students', icon: Users },
-    { label: 'Exam Results', href: '/dashboard/school/results', icon: FileText },
-    { label: 'Certificates', href: '/dashboard/school/certificates', icon: Award },
-    { label: 'Messages', href: '/dashboard/school/messages', icon: MessageSquare },
+    { label: 'Accueil', href: '/dashboard/school', icon: LayoutDashboard },
+    { label: 'Mes Élèves', href: '/dashboard/school/students', icon: Users },
+    { label: 'Examens', href: '/dashboard/school/exams', icon: FileText },
+    { label: 'Résultats', href: '/dashboard/school/results', icon: PenTool },
+    { label: 'Certificats', href: '/dashboard/school/certificates', icon: Award },
+    { label: 'Paramètres', href: '/dashboard/school/settings', icon: Settings },
   ],
   teacher: [
     { label: 'Dashboard', href: '/dashboard/teacher', icon: LayoutDashboard },

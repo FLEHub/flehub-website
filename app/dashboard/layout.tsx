@@ -38,6 +38,10 @@ export default async function DashboardLayout({
     )
   }
 
+  if (profile.status === 'pending') {
+    redirect('/login?reason=account_pending')
+  }
+
   if (profile.status === 'suspended' || profile.status === 'rejected') {
     redirect('/login?reason=account_inactive')
   }

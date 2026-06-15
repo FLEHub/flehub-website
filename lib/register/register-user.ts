@@ -67,6 +67,13 @@ async function insertRoleRecord(
   return supabase.from('schools').insert({
     profile_id: userId,
     school_name: body.school_name!.trim(),
+    name: body.school_name!.trim(),
+    type: body.school_type,
+    director_name: body.director_name!.trim(),
+    address: body.address!.trim(),
+    email: body.email.trim().toLowerCase(),
+    phone: body.phone.trim(),
+    status: 'pending',
     province: body.province,
     district: body.district,
     sector: body.sector,

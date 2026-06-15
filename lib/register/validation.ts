@@ -11,6 +11,9 @@ export type RegisterPayload = {
   bio?: string;
   qualifications?: string;
   school_name?: string;
+  school_type?: 'primary' | 'secondary' | 'both';
+  director_name?: string;
+  address?: string;
   province?: string;
   district?: string;
   sector?: string;
@@ -66,6 +69,15 @@ export function validateRegisterPayload(payload: RegisterPayload): string | null
   if (payload.role === 'school') {
     if (!payload.school_name?.trim()) {
       return "Le nom de l'établissement est requis.";
+    }
+    if (!payload.school_type || !['primary', 'secondary', 'both'].includes(payload.school_type)) {
+      return "Veuillez sélectionner le type d'établissement.";
+    }
+    if (!payload.director_name?.trim()) {
+      return 'Le nom du directeur est requis.';
+    }
+    if (!payload.address?.trim()) {
+      return "L'adresse de l'établissement est requise.";
     }
     if (!payload.province) return 'Veuillez sélectionner une province.';
     if (!payload.district) return 'Veuillez sélectionner un district.';

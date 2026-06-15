@@ -36,6 +36,9 @@ interface FormData {
   qualifications: string;
   // School
   school_name: string;
+  school_type: 'primary' | 'secondary' | 'both' | '';
+  director_name: string;
+  address: string;
   province: string;
   district: string;
   sector: string;
@@ -84,6 +87,9 @@ const initialFormData: FormData = {
   bio: '',
   qualifications: '',
   school_name: '',
+  school_type: '',
+  director_name: '',
+  address: '',
   province: '',
   district: '',
   sector: '',
@@ -212,6 +218,9 @@ export default function RegisterPage() {
       if (!formData.school_name.trim()) {
         nextFieldErrors.school_name = "Le nom de l'établissement est requis.";
       }
+      if (!formData.school_type) nextFieldErrors.school_type = "Veuillez sélectionner le type d'établissement.";
+      if (!formData.director_name.trim()) nextFieldErrors.director_name = 'Le nom du directeur est requis.';
+      if (!formData.address.trim()) nextFieldErrors.address = "L'adresse de l'établissement est requise.";
       if (!formData.province) nextFieldErrors.province = 'Veuillez sélectionner une province.';
       if (!formData.district) nextFieldErrors.district = 'Veuillez sélectionner un district.';
       if (!formData.sector) nextFieldErrors.sector = 'Veuillez sélectionner un secteur.';
@@ -273,6 +282,9 @@ export default function RegisterPage() {
           qualifications:
             selectedRole === 'teacher' ? formData.qualifications.trim() : undefined,
           school_name: formData.school_name.trim() || undefined,
+          school_type: formData.school_type || undefined,
+          director_name: formData.director_name.trim() || undefined,
+          address: formData.address.trim() || undefined,
           province: formData.province || undefined,
           district: formData.district || undefined,
           sector: formData.sector || undefined,
@@ -777,6 +789,65 @@ export default function RegisterPage() {
                       disabled={loading}
                       className="h-10 border-gray-300 focus:border-flehub-green rounded-xl"
                     />
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div className="space-y-1.5">
+                      <Label htmlFor="school_type" className="text-sm font-medium text-gray-700">
+                        Type <span className="text-red-500">*</span>
+                      </Label>
+                      <select
+                        id="school_type"
+                        value={formData.school_type}
+                        onChange={(e) => update('school_type', e.target.value)}
+                        disabled={loading}
+                        className="w-full h-10 px-3 rounded-xl border border-gray-300 text-sm text-gray-900 bg-white focus:outline-none focus:border-flehub-green focus:ring-2 focus:ring-flehub-green/20"
+                      >
+                        <option value="">Sélectionner</option>
+                        <option value="primary">Primaire</option>
+                        <option value="secondary">Secondaire</option>
+                        <option value="both">Primaire et secondaire</option>
+                      </select>
+                      {fieldErrors.school_type && (
+                        <p className="text-xs text-red-600">{fieldErrors.school_type}</p>
+                      )}
+                    </div>
+
+                    <div className="space-y-1.5">
+                      <Label htmlFor="director_name" className="text-sm font-medium text-gray-700">
+                        Directeur <span className="text-red-500">*</span>
+                      </Label>
+                      <Input
+                        id="director_name"
+                        type="text"
+                        placeholder="Nom complet du directeur"
+                        value={formData.director_name}
+                        onChange={(e) => update('director_name', e.target.value)}
+                        disabled={loading}
+                        className="h-10 border-gray-300 focus:border-flehub-green rounded-xl"
+                      />
+                      {fieldErrors.director_name && (
+                        <p className="text-xs text-red-600">{fieldErrors.director_name}</p>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="space-y-1.5">
+                    <Label htmlFor="address" className="text-sm font-medium text-gray-700">
+                      Adresse officielle <span className="text-red-500">*</span>
+                    </Label>
+                    <Input
+                      id="address"
+                      type="text"
+                      placeholder="Adresse physique de l'établissement"
+                      value={formData.address}
+                      onChange={(e) => update('address', e.target.value)}
+                      disabled={loading}
+                      className="h-10 border-gray-300 focus:border-flehub-green rounded-xl"
+                    />
+                    {fieldErrors.address && (
+                      <p className="text-xs text-red-600">{fieldErrors.address}</p>
+                    )}
                   </div>
 
                   {/* Province */}
