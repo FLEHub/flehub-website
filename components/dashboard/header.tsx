@@ -140,6 +140,7 @@ export function Header({ title, profile }: HeaderProps) {
     teacher: '/dashboard/teacher',
     learner: '/dashboard/learner',
   }[profile.role] ?? '/dashboard'
+  const isSchool = profile.role === 'school'
 
   return (
     <header className="fixed top-0 left-0 right-0 z-20 h-16 bg-white border-b border-gray-200 shadow-sm lg:left-60">
@@ -178,7 +179,7 @@ export function Header({ title, profile }: HeaderProps) {
                       onClick={markAllRead}
                       className="text-xs text-[#00A550] hover:underline font-medium"
                     >
-                      Mark all read
+                      {isSchool ? 'Tout marquer comme lu' : 'Mark all read'}
                     </button>
                   )}
                 </div>
@@ -186,7 +187,7 @@ export function Header({ title, profile }: HeaderProps) {
                 <div className="max-h-72 overflow-y-auto divide-y divide-gray-50">
                   {notifications.length === 0 ? (
                     <div className="px-4 py-8 text-center text-sm text-gray-500">
-                      No new notifications
+                      {isSchool ? 'Aucune nouvelle notification' : 'No new notifications'}
                     </div>
                   ) : (
                     notifications.map((n) => (
@@ -221,7 +222,7 @@ export function Header({ title, profile }: HeaderProps) {
                     className="block text-center text-xs text-[#00A550] hover:underline py-1"
                     onClick={() => setNotifOpen(false)}
                   >
-                    View all notifications
+                    {isSchool ? 'Voir toutes les notifications' : 'View all notifications'}
                   </Link>
                 </div>
               </div>
@@ -276,7 +277,7 @@ export function Header({ title, profile }: HeaderProps) {
                     onClick={() => setUserMenuOpen(false)}
                   >
                     <User className="w-4 h-4 text-gray-400" />
-                    Profile
+                    {isSchool ? 'Profil' : 'Profile'}
                   </Link>
                   <Link
                     href={`${roleDashboardPath}/settings`}
@@ -284,7 +285,7 @@ export function Header({ title, profile }: HeaderProps) {
                     onClick={() => setUserMenuOpen(false)}
                   >
                     <Settings className="w-4 h-4 text-gray-400" />
-                    Settings
+                    {isSchool ? 'Paramètres' : 'Settings'}
                   </Link>
                 </div>
 
@@ -295,7 +296,13 @@ export function Header({ title, profile }: HeaderProps) {
                     className="flex w-full items-center gap-2.5 px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors disabled:opacity-50"
                   >
                     <LogOut className="w-4 h-4" />
-                    {signingOut ? 'Signing out…' : 'Sign Out'}
+                    {signingOut
+                      ? isSchool
+                        ? 'Déconnexion…'
+                        : 'Signing out…'
+                      : isSchool
+                      ? 'Se déconnecter'
+                      : 'Sign Out'}
                   </button>
                 </div>
               </div>

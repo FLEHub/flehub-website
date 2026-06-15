@@ -6,6 +6,7 @@ import { getProfileForUser } from '@/lib/supabase/get-profile'
 import { Sidebar } from '@/components/dashboard/sidebar'
 import { DashboardHeader } from '@/components/dashboard/dashboard-header'
 import { ProfileSetupError } from '@/components/dashboard/profile-setup-error'
+import { Toaster } from '@/components/ui/toaster'
 
 export default async function DashboardLayout({
   children,
@@ -38,6 +39,10 @@ export default async function DashboardLayout({
     )
   }
 
+  if (profile.status === 'pending') {
+    redirect('/login?pending=true')
+  }
+
   if (profile.status === 'suspended' || profile.status === 'rejected') {
     redirect('/login?reason=account_inactive')
   }
@@ -55,6 +60,7 @@ export default async function DashboardLayout({
         <DashboardHeader profile={safeProfile} />
         <main className="flex-1 pt-16">{children}</main>
       </div>
+      <Toaster />
     </div>
   )
 }

@@ -66,12 +66,20 @@ async function insertRoleRecord(
 
   return supabase.from('schools').insert({
     profile_id: userId,
+    name: body.school_name!.trim(),
     school_name: body.school_name!.trim(),
+    type: body.school_type ?? 'both',
+    director_name: body.director_name!.trim(),
+    address: body.address!.trim(),
+    email: body.official_email!.trim().toLowerCase(),
+    phone: body.phone.trim(),
+    status: 'pending',
     province: body.province,
     district: body.district,
     sector: body.sector,
     cell: body.cell,
     village: body.village || null,
+    contact_person: body.director_name!.trim(),
   });
 }
 

@@ -2,7 +2,9 @@ export type Role = 'admin' | 'school' | 'teacher' | 'learner';
 export type Status = 'pending' | 'approved' | 'rejected' | 'suspended';
 export type CefrLevel = 'A1' | 'A2' | 'B1' | 'B2' | 'C1' | 'C2';
 export type Competency = 'EO' | 'EE' | 'CO' | 'CE' | 'EL';
+export type StudentCompetency = 'EO' | 'EE' | 'CO' | 'CE' | 'LANGUE';
 export type LearnerSubtype = 'independent' | 'pupil';
+export type SchoolType = 'primary' | 'secondary' | 'both';
 export type PaymentMethod = 'mtn_momo' | 'airtel_money' | 'bank_transfer' | 'cash';
 export type ExerciseType = 'qcm' | 'matching' | 'fill_blank' | 'short_answer';
 export type ContentType = 'video' | 'audio' | 'pdf' | 'text';
@@ -22,14 +24,46 @@ export interface Profile {
 export interface School {
   id: string;
   profile_id: string;
+  name?: string;
   school_name: string;
+  type?: SchoolType;
   address?: string;
   district?: string;
   province?: string;
+  sector?: string;
+  cell?: string;
+  village?: string;
   logo_url?: string;
+  signature_url?: string;
   registration_number?: string;
   contact_person?: string;
+  director_name?: string;
+  email?: string;
+  phone?: string;
+  status?: Status;
   created_at: string;
+  updated_at?: string;
+}
+
+export interface Student {
+  id: string;
+  school_id: string;
+  first_name: string;
+  last_name: string;
+  date_of_birth: string;
+  gender: 'M' | 'F';
+  grade: string;
+  created_at: string;
+  updated_at?: string;
+}
+
+export interface StudentEnrollment {
+  id: string;
+  student_id: string;
+  exam_session_id: string;
+  cefr_level: CefrLevel;
+  active: boolean;
+  enrolled_at: string;
 }
 
 export interface Teacher {
@@ -100,14 +134,18 @@ export interface ExamResult {
 
 export interface Certificate {
   id: string;
-  learner_id: string;
+  learner_id?: string;
+  student_id?: string;
   exam_result_id?: string;
-  certificate_number: string;
-  cefr_level: CefrLevel;
+  certificate_number?: string;
+  cefr_level?: CefrLevel;
+  level?: CefrLevel;
   issue_date: string;
   school_id?: string;
-  verification_code: string;
+  verification_code?: string;
+  certificate_uuid?: string;
   pdf_url?: string;
+  verified_url?: string;
 }
 
 export interface Message {
@@ -153,6 +191,14 @@ export const COMPETENCIES: { key: Competency; label: string }[] = [
   { key: 'CO', label: 'Compréhension Orale' },
   { key: 'CE', label: 'Compréhension Écrite' },
   { key: 'EL', label: 'Étude de la Langue' },
+];
+
+export const STUDENT_COMPETENCIES: { key: StudentCompetency; label: string }[] = [
+  { key: 'EO', label: 'Expression Orale' },
+  { key: 'EE', label: 'Expression Écrite' },
+  { key: 'CO', label: 'Compréhension Orale' },
+  { key: 'CE', label: 'Compréhension Écrite' },
+  { key: 'LANGUE', label: 'Étude de la Langue' },
 ];
 
 export const LEVEL_PRICES: Record<CefrLevel, number> = {

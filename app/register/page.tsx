@@ -20,6 +20,7 @@ import {
 type Role = 'learner' | 'teacher' | 'school';
 type LearnerSubtype = 'independent' | 'pupil';
 type CEFRLevel = 'A1' | 'A2' | 'B1' | 'B2' | 'C1' | 'C2';
+type SchoolType = 'primary' | 'secondary' | 'both';
 
 interface FormData {
   // Common
@@ -36,6 +37,10 @@ interface FormData {
   qualifications: string;
   // School
   school_name: string;
+  school_type: SchoolType | '';
+  director_name: string;
+  address: string;
+  official_email: string;
   province: string;
   district: string;
   sector: string;
@@ -84,6 +89,10 @@ const initialFormData: FormData = {
   bio: '',
   qualifications: '',
   school_name: '',
+  school_type: '',
+  director_name: '',
+  address: '',
+  official_email: '',
   province: '',
   district: '',
   sector: '',
@@ -212,6 +221,22 @@ export default function RegisterPage() {
       if (!formData.school_name.trim()) {
         nextFieldErrors.school_name = "Le nom de l'établissement est requis.";
       }
+      if (!formData.school_type) {
+        nextFieldErrors.school_type = "Veuillez sélectionner le type d'établissement.";
+      }
+      if (!formData.director_name.trim()) {
+        nextFieldErrors.director_name = 'Le nom du/de la directeur/directrice est requis.';
+      }
+      if (!formData.address.trim()) {
+        nextFieldErrors.address = "L'adresse de l'établissement est requise.";
+      }
+      if (
+        !formData.official_email.trim() ||
+        !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.official_email)
+      ) {
+        nextFieldErrors.official_email =
+          "Veuillez saisir l'adresse e-mail officielle de l'établissement.";
+      }
       if (!formData.province) nextFieldErrors.province = 'Veuillez sélectionner une province.';
       if (!formData.district) nextFieldErrors.district = 'Veuillez sélectionner un district.';
       if (!formData.sector) nextFieldErrors.sector = 'Veuillez sélectionner un secteur.';
@@ -273,6 +298,10 @@ export default function RegisterPage() {
           qualifications:
             selectedRole === 'teacher' ? formData.qualifications.trim() : undefined,
           school_name: formData.school_name.trim() || undefined,
+          school_type: formData.school_type || undefined,
+          director_name: formData.director_name.trim() || undefined,
+          address: formData.address.trim() || undefined,
+          official_email: formData.official_email.trim().toLowerCase() || undefined,
           province: formData.province || undefined,
           district: formData.district || undefined,
           sector: formData.sector || undefined,
@@ -777,6 +806,86 @@ export default function RegisterPage() {
                       disabled={loading}
                       className="h-10 border-gray-300 focus:border-flehub-green rounded-xl"
                     />
+                    {fieldErrors.school_name && (
+                      <p className="text-xs text-red-600">{fieldErrors.school_name}</p>
+                    )}
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    <div className="space-y-1.5">
+                      <Label htmlFor="school_type" className="text-sm font-medium text-gray-700">
+                        Type d&apos;établissement <span className="text-red-500">*</span>
+                      </Label>
+                      <select
+                        id="school_type"
+                        value={formData.school_type}
+                        onChange={(e) => update('school_type', e.target.value)}
+                        disabled={loading}
+                        className="w-full h-10 px-3 rounded-xl border border-gray-300 text-sm text-gray-900 bg-white focus:outline-none focus:border-flehub-green focus:ring-2 focus:ring-flehub-green/20"
+                      >
+                        <option value="">Sélectionner un type</option>
+                        <option value="primary">Primaire</option>
+                        <option value="secondary">Secondaire</option>
+                        <option value="both">Primaire et secondaire</option>
+                      </select>
+                      {fieldErrors.school_type && (
+                        <p className="text-xs text-red-600">{fieldErrors.school_type}</p>
+                      )}
+                    </div>
+
+                    <div className="space-y-1.5">
+                      <Label htmlFor="official_email" className="text-sm font-medium text-gray-700">
+                        E-mail officiel <span className="text-red-500">*</span>
+                      </Label>
+                      <Input
+                        id="official_email"
+                        type="email"
+                        placeholder="contact@ecole.rw"
+                        value={formData.official_email}
+                        onChange={(e) => update('official_email', e.target.value)}
+                        disabled={loading}
+                        className="h-10 border-gray-300 focus:border-flehub-green rounded-xl"
+                      />
+                      {fieldErrors.official_email && (
+                        <p className="text-xs text-red-600">{fieldErrors.official_email}</p>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="space-y-1.5">
+                    <Label htmlFor="director_name" className="text-sm font-medium text-gray-700">
+                      Nom du/de la directeur/directrice <span className="text-red-500">*</span>
+                    </Label>
+                    <Input
+                      id="director_name"
+                      type="text"
+                      placeholder="Ex: Marie Mukamana"
+                      value={formData.director_name}
+                      onChange={(e) => update('director_name', e.target.value)}
+                      disabled={loading}
+                      className="h-10 border-gray-300 focus:border-flehub-green rounded-xl"
+                    />
+                    {fieldErrors.director_name && (
+                      <p className="text-xs text-red-600">{fieldErrors.director_name}</p>
+                    )}
+                  </div>
+
+                  <div className="space-y-1.5">
+                    <Label htmlFor="address" className="text-sm font-medium text-gray-700">
+                      Adresse physique <span className="text-red-500">*</span>
+                    </Label>
+                    <Input
+                      id="address"
+                      type="text"
+                      placeholder="Rue, quartier, boîte postale..."
+                      value={formData.address}
+                      onChange={(e) => update('address', e.target.value)}
+                      disabled={loading}
+                      className="h-10 border-gray-300 focus:border-flehub-green rounded-xl"
+                    />
+                    {fieldErrors.address && (
+                      <p className="text-xs text-red-600">{fieldErrors.address}</p>
+                    )}
                   </div>
 
                   {/* Province */}
