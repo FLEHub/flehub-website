@@ -2,6 +2,7 @@ import { createClient } from '@/lib/supabase/server'
 import { createServiceClient } from '@/lib/supabase/service'
 
 export type DashboardProfile = {
+  id: string
   full_name: string
   email: string
   role: 'admin' | 'school' | 'teacher' | 'learner'
@@ -16,7 +17,7 @@ export async function getProfileForUser(userId: string): Promise<{
 
   const { data: profile, error } = await supabase
     .from('profiles')
-    .select('full_name, email, role, status')
+    .select('id, full_name, email, role, status')
     .eq('id', userId)
     .maybeSingle()
 
@@ -35,7 +36,7 @@ export async function getProfileForUser(userId: string): Promise<{
     const service = createServiceClient()
     const { data: serviceProfile, error: serviceError } = await service
       .from('profiles')
-      .select('full_name, email, role, status')
+      .select('id, full_name, email, role, status')
       .eq('id', userId)
       .maybeSingle()
 
