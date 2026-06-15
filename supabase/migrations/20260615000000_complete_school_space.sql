@@ -25,6 +25,41 @@ $$;
 
 GRANT EXECUTE ON FUNCTION public.current_school_id() TO authenticated;
 
+CREATE OR REPLACE FUNCTION public.student_belongs_to_school(student_uuid uuid, school_uuid uuid)
+RETURNS boolean
+LANGUAGE sql
+STABLE
+SECURITY DEFINER
+SET search_path = public
+AS $$
+  SELECT EXISTS (
+    SELECT 1
+    FROM public.students s
+    WHERE s.id = student_uuid
+      AND s.school_id = school_uuid
+  );
+$$;
+
+CREATE OR REPLACE FUNCTION public.school_has_active_exam_enrollment(school_uuid uuid, exam_uuid uuid)
+RETURNS boolean
+LANGUAGE sql
+STABLE
+SECURITY DEFINER
+SET search_path = public
+AS $$
+  SELECT EXISTS (
+    SELECT 1
+    FROM public.student_enrollments se
+    JOIN public.students s ON s.id = se.student_id
+    WHERE s.school_id = school_uuid
+      AND se.exam_session_id = exam_uuid
+      AND se.active = true
+  );
+$$;
+
+GRANT EXECUTE ON FUNCTION public.student_belongs_to_school(uuid, uuid) TO authenticated;
+GRANT EXECUTE ON FUNCTION public.school_has_active_exam_enrollment(uuid, uuid) TO authenticated;
+
 -- ---------------------------------------------------------------------------
 -- School institutional profile
 -- ---------------------------------------------------------------------------
@@ -273,7 +308,13 @@ CREATE POLICY "Schools can read own exam downloads"
 DROP POLICY IF EXISTS "Schools can insert own exam downloads" ON public.exam_downloads;
 CREATE POLICY "Schools can insert own exam downloads"
   ON public.exam_downloads FOR INSERT TO authenticated
-  WITH CHECK (school_id = public.current_school_id() OR public.is_admin());
+  WITH CHECK (
+    public.is_admin()
+    OR (
+      school_id = public.current_school_id()
+      AND public.school_has_active_exam_enrollment(school_id, exam_id)
+    )
+  );
 
 -- ---------------------------------------------------------------------------
 -- Result drafts, submission, and admin validation
@@ -310,12 +351,31 @@ CREATE INDEX IF NOT EXISTS idx_student_results_school_exam ON public.student_res
 DROP POLICY IF EXISTS "Schools can read own student results" ON public.student_results;
 CREATE POLICY "Schools can read own student results"
   ON public.student_results FOR SELECT TO authenticated
-  USING (school_id = public.current_school_id() OR public.is_admin());
+  USING (
+    public.is_admin()
+    OR (
+      school_id = public.current_school_id()
+      AND public.student_belongs_to_school(student_id, school_id)
+    )
+  );
 
 DROP POLICY IF EXISTS "Schools can insert own student results" ON public.student_results;
 CREATE POLICY "Schools can insert own student results"
   ON public.student_results FOR INSERT TO authenticated
-  WITH CHECK (school_id = public.current_school_id() OR public.is_admin());
+  WITH CHECK (
+    public.is_admin()
+    OR (
+      school_id = public.current_school_id()
+      AND public.student_belongs_to_school(student_id, school_id)
+      AND EXISTS (
+        SELECT 1
+        FROM public.student_enrollments se
+        WHERE se.student_id = student_results.student_id
+          AND se.exam_session_id = student_results.exam_session_id
+          AND se.active = true
+      )
+    )
+  );
 
 DROP POLICY IF EXISTS "Schools can update own unlocked student results" ON public.student_results;
 CREATE POLICY "Schools can update own unlocked student results"
@@ -324,6 +384,7 @@ CREATE POLICY "Schools can update own unlocked student results"
     public.is_admin()
     OR (
       school_id = public.current_school_id()
+      AND public.student_belongs_to_school(student_id, school_id)
       AND (submitted = false OR validation_status = 'rejected')
     )
   )
@@ -331,6 +392,7 @@ CREATE POLICY "Schools can update own unlocked student results"
     public.is_admin()
     OR (
       school_id = public.current_school_id()
+      AND public.student_belongs_to_school(student_id, school_id)
       AND validation_status IN ('draft', 'submitted')
     )
   );
@@ -368,6 +430,25 @@ ALTER TABLE public.certificates
   ADD COLUMN IF NOT EXISTS certificate_uuid uuid DEFAULT gen_random_uuid(),
   ADD COLUMN IF NOT EXISTS verified_url text;
 
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_constraint WHERE conname = 'certificates_level_check'
+  ) THEN
+    ALTER TABLE public.certificates
+      ADD CONSTRAINT certificates_level_check
+      CHECK (level IS NULL OR level IN ('A1', 'A2', 'B1', 'B2', 'C1', 'C2'));
+  END IF;
+END $$;
+
+CREATE UNIQUE INDEX IF NOT EXISTS idx_certificates_certificate_uuid
+  ON public.certificates(certificate_uuid)
+  WHERE certificate_uuid IS NOT NULL;
+
+CREATE UNIQUE INDEX IF NOT EXISTS idx_certificates_student_school_level
+  ON public.certificates(student_id, school_id, level)
+  WHERE student_id IS NOT NULL AND school_id IS NOT NULL AND level IS NOT NULL;
+
 ALTER TABLE public.certificates ALTER COLUMN learner_id DROP NOT NULL;
 ALTER TABLE public.certificates ALTER COLUMN certificate_number DROP NOT NULL;
 ALTER TABLE public.certificates ALTER COLUMN verification_code DROP NOT NULL;
@@ -377,7 +458,13 @@ CREATE POLICY "Admins and schools can manage certificates"
   ON public.certificates FOR SELECT TO authenticated
   USING (
     public.is_admin()
-    OR school_id = public.current_school_id()
+    OR (
+      school_id = public.current_school_id()
+      AND (
+        student_id IS NULL
+        OR public.student_belongs_to_school(student_id, school_id)
+      )
+    )
     OR EXISTS (
       SELECT 1 FROM public.learners l
       WHERE l.id = learner_id AND l.profile_id = auth.uid()
@@ -387,13 +474,36 @@ CREATE POLICY "Admins and schools can manage certificates"
 DROP POLICY IF EXISTS "Admins can insert certificates" ON public.certificates;
 CREATE POLICY "Admins can insert certificates"
   ON public.certificates FOR INSERT TO authenticated
-  WITH CHECK (public.is_admin() OR school_id = public.current_school_id());
+  WITH CHECK (
+    public.is_admin()
+    OR (
+      school_id = public.current_school_id()
+      AND student_id IS NOT NULL
+      AND public.student_belongs_to_school(student_id, school_id)
+    )
+  );
 
 DROP POLICY IF EXISTS "Schools can update own certificates" ON public.certificates;
 CREATE POLICY "Schools can update own certificates"
   ON public.certificates FOR UPDATE TO authenticated
-  USING (public.is_admin() OR school_id = public.current_school_id())
-  WITH CHECK (public.is_admin() OR school_id = public.current_school_id());
+  USING (
+    public.is_admin()
+    OR (
+      school_id = public.current_school_id()
+      AND (
+        student_id IS NULL
+        OR public.student_belongs_to_school(student_id, school_id)
+      )
+    )
+  )
+  WITH CHECK (
+    public.is_admin()
+    OR (
+      school_id = public.current_school_id()
+      AND student_id IS NOT NULL
+      AND public.student_belongs_to_school(student_id, school_id)
+    )
+  );
 
 -- ---------------------------------------------------------------------------
 -- Storage buckets and object policies
