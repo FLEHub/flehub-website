@@ -17,6 +17,10 @@ const COMPETENCY_LABELS: Record<Competency, string> = {
   LANGUE: 'Étude de la Langue',
 };
 
+const STUDENT_COLUMNS =
+  'id, school_id, first_name, last_name, date_of_birth, gender, grade, created_at, updated_at';
+const SCHOOL_STUDENT_COLUMNS = 'id, school_id, first_name, last_name, created_at, updated_at';
+
 type SchoolRecord = {
   id: string;
   profile_id: string;
@@ -48,6 +52,7 @@ type StudentRecord = {
   gender: 'M' | 'F';
   grade: string;
   created_at: string;
+  updated_at: string;
 };
 
 type SchoolStudentRecord = {
@@ -56,6 +61,7 @@ type SchoolStudentRecord = {
   first_name: string;
   last_name: string;
   created_at: string;
+  updated_at: string;
 };
 
 type ExamSessionRecord = {
@@ -125,6 +131,18 @@ async function requireApprovedSchool() {
 
 function jsonError(message: string, status = 400) {
   return NextResponse.json({ error: message }, { status });
+}
+
+function rowsOrEmpty<T>(
+  label: string,
+  response: { data: T[] | null; error: { message: string; code?: string } | null }
+) {
+  if (response.error) {
+    console.error(`[school-space] ${label} query failed`, response.error);
+    return [];
+  }
+
+  return response.data ?? [];
 }
 
 function toNumber(value: unknown) {
@@ -206,15 +224,16 @@ async function getOverview(context: Awaited<ReturnType<typeof requireApprovedSch
   ] = await Promise.all([
     supabase
       .from('school_students')
-      .select('id, school_id, first_name, last_name, created_at')
+      .select(SCHOOL_STUDENT_COLUMNS)
       .eq('school_id', school.id)
       .order('last_name', { ascending: true })
       .order('first_name', { ascending: true }),
     supabase
       .from('students')
-      .select('id, school_id, first_name, last_name, date_of_birth, gender, grade, created_at')
+      .select(STUDENT_COLUMNS)
       .eq('school_id', school.id)
-      .order('last_name', { ascending: true }),
+      .order('last_name', { ascending: true })
+      .order('first_name', { ascending: true }),
     supabase
       .from('student_enrollments')
       .select('id, student_id, exam_session_id, cefr_level, active, enrolled_at')
@@ -248,26 +267,17 @@ async function getOverview(context: Awaited<ReturnType<typeof requireApprovedSch
       .order('created_at', { ascending: false }),
   ]);
 
-  for (const response of [
-    schoolStudentsRes,
-    studentsRes,
-    enrollmentsRes,
-    sessionsRes,
-    papersRes,
-    downloadsRes,
-    resultsRes,
-    certificatesRes,
-  ]) {
-    if (response.error) throw response.error;
-  }
-
-  const schoolStudents = (schoolStudentsRes.data ?? []) as SchoolStudentRecord[];
-  const students = (studentsRes.data ?? []) as StudentRecord[];
-  const enrollments = enrollmentsRes.data ?? [];
-  const sessions = (sessionsRes.data ?? []) as ExamSessionRecord[];
-  const results = resultsRes.data ?? [];
+  const schoolStudents = rowsOrEmpty<SchoolStudentRecord>('school_students', schoolStudentsRes);
+  const students = rowsOrEmpty<StudentRecord>('students', studentsRes);
+  const enrollments = rowsOrEmpty<any>('student_enrollments', enrollmentsRes);
+  const sessions = rowsOrEmpty<ExamSessionRecord>('exam_sessions', sessionsRes);
+  const examPapers = rowsOrEmpty<any>('exam_papers', papersRes);
+  const downloads = rowsOrEmpty<any>('exam_downloads', downloadsRes);
+  const results = rowsOrEmpty<any>('student_results', resultsRes);
+  const certificates = rowsOrEmpty<any>('certificates', certificatesRes);
 
   const enrolledSessionIds = new Set(enrollments.map((e: any) => e.exam_session_id));
+  const validatedResults = results.filter((r: any) => r.validated_by_admin);
   const validatedPassResults = results.filter(
     (r: any) => r.validated_by_admin && r.overall_pass
   ).length;
@@ -283,23 +293,20 @@ async function getOverview(context: Awaited<ReturnType<typeof requireApprovedSch
     students,
     enrollments,
     sessions,
-    examPapers: papersRes.data ?? [],
-    downloads: downloadsRes.data ?? [],
+    examPapers,
+    downloads,
     results,
-    certificates: certificatesRes.data ?? [],
+    certificates,
     stats: {
       students: schoolStudents.length,
       activeEnrollments: enrollments.length,
       activeSessions: sessions.filter((s) => enrolledSessionIds.has(s.id)).length,
       submittedResults: results.filter((r: any) => r.submitted).length,
       validatedPassResults,
-      certificates: certificatesRes.data?.length ?? 0,
+      certificates: certificates.length,
       passRate:
-        results.length > 0
-          ? Math.round(
-              (results.filter((r: any) => r.validated_by_admin && r.overall_pass).length /
-                results.filter((r: any) => r.validated_by_admin).length || 0) * 100
-            )
+        validatedResults.length > 0
+          ? Math.round((validatedPassResults / validatedResults.length) * 100)
           : 0,
     },
   };
@@ -648,7 +655,7 @@ export async function POST(request: Request) {
       const { data: student, error } = await supabase
         .from('school_students')
         .insert(studentPayload)
-        .select()
+        .select(SCHOOL_STUDENT_COLUMNS)
         .maybeSingle();
       if (error) throw error;
 
