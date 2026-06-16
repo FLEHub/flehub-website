@@ -50,6 +50,14 @@ type StudentRecord = {
   created_at: string;
 };
 
+type SchoolStudentRecord = {
+  id: string;
+  school_id: string;
+  first_name: string;
+  last_name: string;
+  created_at: string;
+};
+
 type ExamSessionRecord = {
   id: string;
   title: string;
@@ -148,60 +156,6 @@ async function signedAssetUrl(
   return data?.signedUrl ?? null;
 }
 
-async function resolveExamSession(
-  supabase: Awaited<ReturnType<typeof createClient>>,
-  cefrLevel?: CefrLevel,
-  examSessionId?: string
-) {
-  if (examSessionId) return examSessionId;
-  if (!cefrLevel) return null;
-
-  const { data } = await supabase
-    .from('exam_sessions')
-    .select('id')
-    .eq('cefr_level', cefrLevel)
-    .in('status', ['upcoming', 'ongoing'])
-    .order('exam_date', { ascending: true })
-    .limit(1)
-    .maybeSingle();
-
-  return data?.id ?? null;
-}
-
-async function enrollStudent(
-  supabase: Awaited<ReturnType<typeof createClient>>,
-  studentId: string,
-  cefrLevel?: CefrLevel,
-  examSessionId?: string
-) {
-  const resolvedExamId = await resolveExamSession(supabase, cefrLevel, examSessionId);
-  if (!resolvedExamId || !cefrLevel) return null;
-
-  await supabase
-    .from('student_enrollments')
-    .update({ active: false })
-    .eq('student_id', studentId)
-    .eq('cefr_level', cefrLevel)
-    .eq('active', true);
-
-  const { data, error } = await supabase
-    .from('student_enrollments')
-    .upsert(
-      {
-        student_id: studentId,
-        exam_session_id: resolvedExamId,
-        cefr_level: cefrLevel,
-        active: true,
-      },
-      { onConflict: 'student_id,exam_session_id' }
-    )
-    .select()
-    .maybeSingle();
-
-  if (error) throw error;
-  return data;
-}
-
 function fileExtension(file: File, fallback: string) {
   const namePart = file.name.split('.').pop()?.toLowerCase();
   if (namePart) return namePart;
@@ -241,6 +195,7 @@ async function getOverview(context: Awaited<ReturnType<typeof requireApprovedSch
   const { supabase, school } = context;
 
   const [
+    schoolStudentsRes,
     studentsRes,
     enrollmentsRes,
     sessionsRes,
@@ -249,6 +204,12 @@ async function getOverview(context: Awaited<ReturnType<typeof requireApprovedSch
     resultsRes,
     certificatesRes,
   ] = await Promise.all([
+    supabase
+      .from('school_students')
+      .select('id, school_id, first_name, last_name, created_at')
+      .eq('school_id', school.id)
+      .order('last_name', { ascending: true })
+      .order('first_name', { ascending: true }),
     supabase
       .from('students')
       .select('id, school_id, first_name, last_name, date_of_birth, gender, grade, created_at')
@@ -288,6 +249,7 @@ async function getOverview(context: Awaited<ReturnType<typeof requireApprovedSch
   ]);
 
   for (const response of [
+    schoolStudentsRes,
     studentsRes,
     enrollmentsRes,
     sessionsRes,
@@ -299,6 +261,7 @@ async function getOverview(context: Awaited<ReturnType<typeof requireApprovedSch
     if (response.error) throw response.error;
   }
 
+  const schoolStudents = (schoolStudentsRes.data ?? []) as SchoolStudentRecord[];
   const students = (studentsRes.data ?? []) as StudentRecord[];
   const enrollments = enrollmentsRes.data ?? [];
   const sessions = (sessionsRes.data ?? []) as ExamSessionRecord[];
@@ -316,6 +279,7 @@ async function getOverview(context: Awaited<ReturnType<typeof requireApprovedSch
       logo_signed_url: await signedAssetUrl(supabase, school.logo_url),
       signature_signed_url: await signedAssetUrl(supabase, school.signature_url),
     },
+    schoolStudents,
     students,
     enrollments,
     sessions,
@@ -324,7 +288,7 @@ async function getOverview(context: Awaited<ReturnType<typeof requireApprovedSch
     results,
     certificates: certificatesRes.data ?? [],
     stats: {
-      students: students.length,
+      students: schoolStudents.length,
       activeEnrollments: enrollments.length,
       activeSessions: sessions.filter((s) => enrolledSessionIds.has(s.id)).length,
       submittedResults: results.filter((r: any) => r.submitted).length,
@@ -671,84 +635,34 @@ export async function POST(request: Request) {
       return NextResponse.json({ ok: true });
     }
 
-    if (action === 'createStudent') {
+    if (action === 'createStudent' || action === 'createSchoolStudent') {
       const studentPayload = {
         school_id: school.id,
         first_name: String(payload.first_name ?? '').trim(),
         last_name: String(payload.last_name ?? '').trim(),
-        date_of_birth: payload.date_of_birth,
-        gender: payload.gender,
-        grade: String(payload.grade ?? '').trim(),
       };
-      if (!studentPayload.first_name || !studentPayload.last_name || !studentPayload.date_of_birth) {
-        return jsonError('Prénom, nom et date de naissance sont requis.');
+      if (!studentPayload.first_name || !studentPayload.last_name) {
+        return jsonError('Prénom et nom sont requis.');
       }
 
       const { data: student, error } = await supabase
-        .from('students')
+        .from('school_students')
         .insert(studentPayload)
         .select()
         .maybeSingle();
       if (error) throw error;
 
-      await enrollStudent(supabase, student.id, payload.cefr_level, payload.exam_session_id);
       return NextResponse.json({ ok: true, student });
     }
 
-    if (action === 'updateStudent') {
-      const { student_id } = payload;
-      const updates = {
-        first_name: String(payload.first_name ?? '').trim(),
-        last_name: String(payload.last_name ?? '').trim(),
-        date_of_birth: payload.date_of_birth,
-        gender: payload.gender,
-        grade: String(payload.grade ?? '').trim(),
-      };
+    if (action === 'deleteStudent' || action === 'deleteSchoolStudent') {
       const { error } = await supabase
-        .from('students')
-        .update(updates)
-        .eq('id', student_id)
-        .eq('school_id', school.id);
-      if (error) throw error;
-
-      await enrollStudent(supabase, student_id, payload.cefr_level, payload.exam_session_id);
-      return NextResponse.json({ ok: true });
-    }
-
-    if (action === 'deleteStudent') {
-      const { error } = await supabase
-        .from('students')
+        .from('school_students')
         .delete()
         .eq('id', payload.student_id)
         .eq('school_id', school.id);
       if (error) throw error;
       return NextResponse.json({ ok: true });
-    }
-
-    if (action === 'bulkCreateStudents') {
-      const rows = Array.isArray(payload.rows) ? payload.rows : [];
-      let created = 0;
-      for (const row of rows) {
-        if (!row.first_name || !row.last_name || !row.date_of_birth) continue;
-        const { data: student, error } = await supabase
-          .from('students')
-          .insert({
-            school_id: school.id,
-            first_name: String(row.first_name).trim(),
-            last_name: String(row.last_name).trim(),
-            date_of_birth: row.date_of_birth,
-            gender: row.gender === 'F' ? 'F' : 'M',
-            grade: String(row.grade ?? '').trim(),
-          })
-          .select('id')
-          .maybeSingle();
-        if (error) throw error;
-        if (student) {
-          created += 1;
-          await enrollStudent(supabase, student.id, row.cefr_level, row.exam_session_id);
-        }
-      }
-      return NextResponse.json({ ok: true, created });
     }
 
     if (action === 'saveResult' || action === 'submitResult') {

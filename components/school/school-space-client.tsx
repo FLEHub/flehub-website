@@ -10,14 +10,12 @@ import {
   FileText,
   GraduationCap,
   Loader2,
-  Pencil,
   Plus,
   RefreshCw,
   Save,
   Send,
   Settings,
   Trash2,
-  Upload,
   Users,
 } from 'lucide-react';
 import {
@@ -102,6 +100,14 @@ interface StudentRecord {
   created_at: string;
 }
 
+interface SchoolStudentRecord {
+  id: string;
+  school_id: string;
+  first_name: string;
+  last_name: string;
+  created_at: string;
+}
+
 interface EnrollmentRecord {
   id: string;
   student_id: string;
@@ -159,6 +165,7 @@ interface CertificateRecord {
 
 interface SchoolSpaceData {
   school: SchoolRecord;
+  schoolStudents: SchoolStudentRecord[];
   students: StudentRecord[];
   enrollments: EnrollmentRecord[];
   sessions: ExamSessionRecord[];
@@ -178,14 +185,8 @@ interface SchoolSpaceData {
 }
 
 interface StudentForm {
-  id?: string;
   first_name: string;
   last_name: string;
-  date_of_birth: string;
-  gender: Gender;
-  grade: string;
-  cefr_level: CefrLevel | '';
-  exam_session_id: string;
 }
 
 interface ResultForm {
@@ -212,11 +213,6 @@ interface ProfileForm {
 const emptyStudentForm: StudentForm = {
   first_name: '',
   last_name: '',
-  date_of_birth: '',
-  gender: 'M',
-  grade: '',
-  cefr_level: '',
-  exam_session_id: '',
 };
 
 const emptyResultForm: ResultForm = {
@@ -238,7 +234,7 @@ function formatDate(value?: string | null) {
   });
 }
 
-function fullName(student?: StudentRecord) {
+function fullName(student?: { first_name: string; last_name: string }) {
   return student ? `${student.first_name} ${student.last_name}` : 'Élève inconnu';
 }
 
@@ -300,20 +296,6 @@ function columnName(index: number) {
     current = Math.floor((current - 1) / 26);
   }
   return name;
-}
-
-function parseCsv(text: string) {
-  const [headerLine, ...lines] = text.trim().split(/\r?\n/);
-  const headers = headerLine.split(',').map((h) => h.trim());
-  return lines
-    .map((line) => {
-      const values = line.split(',').map((v) => v.trim());
-      return headers.reduce<Record<string, string>>((acc, header, index) => {
-        acc[header] = values[index] ?? '';
-        return acc;
-      }, {});
-    })
-    .filter((row) => row.first_name && row.last_name);
 }
 
 export function SchoolSpaceClient({ section }: { section: Section }) {
@@ -427,30 +409,15 @@ export function SchoolSpaceClient({ section }: { section: Section }) {
     setStudentOpen(true);
   };
 
-  const openEditStudent = (student: StudentRecord) => {
-    const enrollment = enrollmentByStudent.get(student.id);
-    setStudentForm({
-      id: student.id,
-      first_name: student.first_name,
-      last_name: student.last_name,
-      date_of_birth: student.date_of_birth,
-      gender: student.gender,
-      grade: student.grade,
-      cefr_level: enrollment?.cefr_level ?? '',
-      exam_session_id: enrollment?.exam_session_id ?? '',
-    });
-    setStudentOpen(true);
-  };
-
   const saveStudent = async () => {
     setSaving(true);
     try {
       await apiPost({
-        action: studentForm.id ? 'updateStudent' : 'createStudent',
-        student_id: studentForm.id,
-        ...studentForm,
+        action: 'createSchoolStudent',
+        first_name: studentForm.first_name,
+        last_name: studentForm.last_name,
       });
-      toast({ title: 'Élève enregistré', description: 'Les informations ont été mises à jour.' });
+      toast({ title: 'Élève ajouté', description: 'Le registre de votre école a été mis à jour.' });
       setStudentOpen(false);
       await load();
     } catch (err) {
@@ -461,32 +428,14 @@ export function SchoolSpaceClient({ section }: { section: Section }) {
   };
 
   const deleteStudent = async (studentId: string) => {
-    if (!confirm('Supprimer cet élève et ses inscriptions ?')) return;
+    if (!confirm('Supprimer cet élève de la liste ?')) return;
     setSaving(true);
     try {
-      await apiPost({ action: 'deleteStudent', student_id: studentId });
+      await apiPost({ action: 'deleteSchoolStudent', student_id: studentId });
       toast({ title: 'Élève supprimé' });
       await load();
     } catch (err) {
       toast({ title: 'Erreur', description: err instanceof Error ? err.message : 'Suppression impossible.' });
-    } finally {
-      setSaving(false);
-    }
-  };
-
-  const uploadCsv = async (file: File) => {
-    const rows = parseCsv(await file.text());
-    if (rows.length === 0) {
-      toast({ title: 'CSV vide', description: 'Vérifiez les colonnes attendues.' });
-      return;
-    }
-    setSaving(true);
-    try {
-      await apiPost({ action: 'bulkCreateStudents', rows });
-      toast({ title: 'Import terminé', description: `${rows.length} ligne(s) traitée(s).` });
-      await load();
-    } catch (err) {
-      toast({ title: 'Erreur import', description: err instanceof Error ? err.message : 'Import impossible.' });
     } finally {
       setSaving(false);
     }
@@ -786,28 +735,14 @@ export function SchoolSpaceClient({ section }: { section: Section }) {
           <div className="flex flex-col sm:flex-row gap-2 sm:items-center justify-between">
             <div>
               <h2 className="text-xl font-semibold">Mes élèves</h2>
-              <p className="text-sm text-gray-500">Inscription par prénom et nom uniquement — aucun email élève.</p>
+              <p className="text-sm text-gray-500">
+                Inscription par prénom et nom uniquement — aucun email ni mot de passe élève.
+              </p>
             </div>
-            <div className="flex flex-wrap gap-2">
-              <label className="inline-flex items-center gap-2 rounded-md border px-3 py-2 text-sm cursor-pointer hover:bg-gray-50">
-                <Upload className="w-4 h-4" />
-                Import CSV
-                <input
-                  type="file"
-                  accept=".csv,text/csv"
-                  className="hidden"
-                  onChange={(event) => {
-                    const file = event.target.files?.[0];
-                    if (file) uploadCsv(file);
-                    event.currentTarget.value = '';
-                  }}
-                />
-              </label>
-              <Button onClick={openCreateStudent} className="bg-[#00A550] hover:bg-[#008040] text-white">
-                <Plus className="w-4 h-4 mr-2" />
-                Ajouter un élève
-              </Button>
-            </div>
+            <Button onClick={openCreateStudent} className="bg-[#00A550] hover:bg-[#008040] text-white">
+              <Plus className="w-4 h-4 mr-2" />
+              Ajouter un élève
+            </Button>
           </div>
 
           <Card>
@@ -815,45 +750,33 @@ export function SchoolSpaceClient({ section }: { section: Section }) {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Nom complet</TableHead>
-                    <TableHead>Naissance</TableHead>
-                    <TableHead>Genre</TableHead>
-                    <TableHead>Classe</TableHead>
-                    <TableHead>Niveau / session</TableHead>
+                    <TableHead>Prénom</TableHead>
+                    <TableHead>Nom</TableHead>
+                    <TableHead>Date d&apos;ajout</TableHead>
                     <TableHead className="text-right">Actions</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {data.students.map((student) => {
-                    const enrollment = enrollmentByStudent.get(student.id);
-                    const session = enrollment ? sessionById.get(enrollment.exam_session_id) : undefined;
-                    return (
+                  {data.schoolStudents.length === 0 ? (
+                    <TableRow>
+                      <TableCell colSpan={4} className="py-8 text-center text-sm text-gray-500">
+                        Aucun élève inscrit pour le moment.
+                      </TableCell>
+                    </TableRow>
+                  ) : (
+                    data.schoolStudents.map((student) => (
                       <TableRow key={student.id}>
-                        <TableCell className="font-medium">{fullName(student)}</TableCell>
-                        <TableCell>{formatDate(student.date_of_birth)}</TableCell>
-                        <TableCell>{student.gender}</TableCell>
-                        <TableCell>{student.grade}</TableCell>
-                        <TableCell>
-                          {enrollment ? (
-                            <span>
-                              <Badge variant="secondary">{enrollment.cefr_level}</Badge>{' '}
-                              <span className="text-xs text-gray-500">{session?.title}</span>
-                            </span>
-                          ) : (
-                            <span className="text-gray-400">Non inscrit</span>
-                          )}
-                        </TableCell>
-                        <TableCell className="text-right space-x-1">
-                          <Button size="sm" variant="outline" onClick={() => openEditStudent(student)}>
-                            <Pencil className="w-3.5 h-3.5" />
-                          </Button>
+                        <TableCell className="font-medium">{student.first_name}</TableCell>
+                        <TableCell>{student.last_name}</TableCell>
+                        <TableCell>{formatDate(student.created_at)}</TableCell>
+                        <TableCell className="text-right">
                           <Button size="sm" variant="outline" onClick={() => deleteStudent(student.id)}>
                             <Trash2 className="w-3.5 h-3.5 text-red-600" />
                           </Button>
                         </TableCell>
                       </TableRow>
-                    );
-                  })}
+                    ))
+                  )}
                 </TableBody>
               </Table>
             </CardContent>
@@ -1236,42 +1159,24 @@ export function SchoolSpaceClient({ section }: { section: Section }) {
       <Dialog open={studentOpen} onOpenChange={setStudentOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>{studentForm.id ? 'Modifier un élève' : 'Ajouter un élève'}</DialogTitle>
+            <DialogTitle>Ajouter un élève</DialogTitle>
           </DialogHeader>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
             <div><Label>Prénom</Label><Input value={studentForm.first_name} onChange={(e) => setStudentForm((p) => ({ ...p, first_name: e.target.value }))} /></div>
             <div><Label>Nom</Label><Input value={studentForm.last_name} onChange={(e) => setStudentForm((p) => ({ ...p, last_name: e.target.value }))} /></div>
-            <div><Label>Date de naissance</Label><Input type="date" value={studentForm.date_of_birth} onChange={(e) => setStudentForm((p) => ({ ...p, date_of_birth: e.target.value }))} /></div>
-            <div>
-              <Label>Genre</Label>
-              <Select value={studentForm.gender} onValueChange={(value) => setStudentForm((p) => ({ ...p, gender: value as Gender }))}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent><SelectItem value="M">M</SelectItem><SelectItem value="F">F</SelectItem></SelectContent>
-              </Select>
-            </div>
-            <div><Label>Classe / Grade</Label><Input value={studentForm.grade} onChange={(e) => setStudentForm((p) => ({ ...p, grade: e.target.value }))} /></div>
-            <div>
-              <Label>Niveau CECRL</Label>
-              <Select value={studentForm.cefr_level} onValueChange={(value) => setStudentForm((p) => ({ ...p, cefr_level: value as CefrLevel }))}>
-                <SelectTrigger><SelectValue placeholder="Niveau" /></SelectTrigger>
-                <SelectContent>{CEFR_LEVELS.map((level) => <SelectItem key={level} value={level}>{level}</SelectItem>)}</SelectContent>
-              </Select>
-            </div>
-            <div className="md:col-span-2">
-              <Label>Session d&apos;examen active</Label>
-              <Select value={studentForm.exam_session_id} onValueChange={(value) => setStudentForm((p) => ({ ...p, exam_session_id: value }))}>
-                <SelectTrigger><SelectValue placeholder="Sélectionner une session" /></SelectTrigger>
-                <SelectContent>
-                  {data.sessions
-                    .filter((session) => !studentForm.cefr_level || session.cefr_level === studentForm.cefr_level)
-                    .map((session) => <SelectItem key={session.id} value={session.id}>{session.title} — {session.cefr_level}</SelectItem>)}
-                </SelectContent>
-              </Select>
-            </div>
+            <p className="md:col-span-2 text-sm text-gray-500">
+              Aucun compte élève ne sera créé, donc aucun email ni mot de passe n&apos;est requis.
+            </p>
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setStudentOpen(false)}>Annuler</Button>
-            <Button onClick={saveStudent} disabled={saving} className="bg-[#00A550] hover:bg-[#008040] text-white">Enregistrer</Button>
+            <Button
+              onClick={saveStudent}
+              disabled={saving || !studentForm.first_name.trim() || !studentForm.last_name.trim()}
+              className="bg-[#00A550] hover:bg-[#008040] text-white"
+            >
+              Enregistrer
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
