@@ -84,11 +84,11 @@ export default function AdminExamPapersPage() {
         setFile(null);
         await load();
       }
-    } catch {
+    } catch (err) {
       setMessage('Erreur inattendue.');
+    } finally {
+      setUploading(false);
     }
-
-    setUploading(false);
   };
 
   return (
