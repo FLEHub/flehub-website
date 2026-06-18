@@ -29,7 +29,6 @@ export async function GET() {
   return NextResponse.json({ sessions: sessions.data ?? [], papers: papers.data ?? [] });
 }
 
-// Nouvelle version POST — reçoit juste les métadonnées, pas le fichier
 export async function POST(request: Request) {
   const context = await requireAdmin();
   if ('error' in context) return context.error;
