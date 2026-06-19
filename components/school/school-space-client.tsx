@@ -187,6 +187,8 @@ interface SchoolSpaceData {
 interface StudentForm {
   first_name: string;
   last_name: string;
+  cefr_level: CefrLevel | '';
+  exam_session_id: string;
 }
 
 interface ResultForm {
@@ -213,6 +215,8 @@ interface ProfileForm {
 const emptyStudentForm: StudentForm = {
   first_name: '',
   last_name: '',
+  cefr_level: '',
+  exam_session_id: '',
 };
 
 const emptyResultForm: ResultForm = {
@@ -368,12 +372,6 @@ export function SchoolSpaceClient({ section }: { section: Section }) {
     return map;
   }, [data?.enrollments]);
 
-  const resultsByStudentSession = useMemo(() => {
-    const map = new Map<string, ResultRecord>();
-    data?.results.forEach((result) => map.set(`${result.student_id}:${result.exam_session_id}`, result));
-    return map;
-  }, [data?.results]);
-
   const filteredResults = useMemo(() => {
     if (!data) return [];
     return data.results.filter((result) => {
@@ -416,6 +414,8 @@ export function SchoolSpaceClient({ section }: { section: Section }) {
         action: 'createSchoolStudent',
         first_name: studentForm.first_name,
         last_name: studentForm.last_name,
+        cefr_level: studentForm.cefr_level || undefined,
+        exam_session_id: studentForm.exam_session_id || undefined,
       });
       toast({ title: 'Élève ajouté', description: 'Le registre de votre école a été mis à jour.' });
       setStudentOpen(false);
@@ -586,31 +586,13 @@ export function SchoolSpaceClient({ section }: { section: Section }) {
       .join('');
 
     const zip = new JSZip();
-    zip.file(
-      '[Content_Types].xml',
-      '<?xml version="1.0" encoding="UTF-8"?><Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/><Override PartName="/xl/worksheets/sheet1.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/></Types>'
-    );
-    zip.folder('_rels')?.file(
-      '.rels',
-      '<?xml version="1.0" encoding="UTF-8"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/></Relationships>'
-    );
-    zip.folder('xl')?.file(
-      'workbook.xml',
-      '<?xml version="1.0" encoding="UTF-8"?><workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><sheets><sheet name="Résultats" sheetId="1" r:id="rId1"/></sheets></workbook>'
-    );
-    zip.folder('xl')?.folder('_rels')?.file(
-      'workbook.xml.rels',
-      '<?xml version="1.0" encoding="UTF-8"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet1.xml"/></Relationships>'
-    );
-    zip.folder('xl')?.folder('worksheets')?.file(
-      'sheet1.xml',
-      `<?xml version="1.0" encoding="UTF-8"?><worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><sheetData>${sheetData}</sheetData></worksheet>`
-    );
+    zip.file('[Content_Types].xml', '<?xml version="1.0" encoding="UTF-8"?><Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/><Override PartName="/xl/worksheets/sheet1.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/></Types>');
+    zip.folder('_rels')?.file('.rels', '<?xml version="1.0" encoding="UTF-8"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/></Relationships>');
+    zip.folder('xl')?.file('workbook.xml', '<?xml version="1.0" encoding="UTF-8"?><workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><sheets><sheet name="Résultats" sheetId="1" r:id="rId1"/></sheets></workbook>');
+    zip.folder('xl')?.folder('_rels')?.file('workbook.xml.rels', '<?xml version="1.0" encoding="UTF-8"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet1.xml"/></Relationships>');
+    zip.folder('xl')?.folder('worksheets')?.file('sheet1.xml', `<?xml version="1.0" encoding="UTF-8"?><worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><sheetData>${sheetData}</sheetData></worksheet>`);
 
-    const blob = await zip.generateAsync({
-      type: 'blob',
-      mimeType: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-    });
+    const blob = await zip.generateAsync({ type: 'blob', mimeType: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
     const url = URL.createObjectURL(blob);
     const anchor = document.createElement('a');
     anchor.href = url;
@@ -621,12 +603,7 @@ export function SchoolSpaceClient({ section }: { section: Section }) {
 
   const exportPdf = () => {
     const rows = exportRows();
-    const html = `
-      <html><head><title>Résultats FLEHub</title>
-      <style>body{font-family:Arial;padding:24px}table{border-collapse:collapse;width:100%}th,td{border:1px solid #ddd;padding:6px;font-size:12px}th{background:#00A550;color:white}</style>
-      </head><body><h1>Résultats FLEHub</h1><table><thead><tr>${Object.keys(rows[0] ?? {}).map((h) => `<th>${h}</th>`).join('')}</tr></thead><tbody>${rows
-        .map((row) => `<tr>${Object.values(row).map((v) => `<td>${v}</td>`).join('')}</tr>`)
-        .join('')}</tbody></table><script>window.print()</script></body></html>`;
+    const html = `<html><head><title>Résultats FLEHub</title><style>body{font-family:Arial;padding:24px}table{border-collapse:collapse;width:100%}th,td{border:1px solid #ddd;padding:6px;font-size:12px}th{background:#00A550;color:white}</style></head><body><h1>Résultats FLEHub</h1><table><thead><tr>${Object.keys(rows[0] ?? {}).map((h) => `<th>${h}</th>`).join('')}</tr></thead><tbody>${rows.map((row) => `<tr>${Object.values(row).map((v) => `<td>${v}</td>`).join('')}</tr>`).join('')}</tbody></table><script>window.print()</script></body></html>`;
     const win = window.open('', '_blank');
     win?.document.write(html);
     win?.document.close();
@@ -752,6 +729,7 @@ export function SchoolSpaceClient({ section }: { section: Section }) {
                   <TableRow>
                     <TableHead>Prénom</TableHead>
                     <TableHead>Nom</TableHead>
+                    <TableHead>Niveau / Session</TableHead>
                     <TableHead>Date d&apos;ajout</TableHead>
                     <TableHead className="text-right">Actions</TableHead>
                   </TableRow>
@@ -759,23 +737,37 @@ export function SchoolSpaceClient({ section }: { section: Section }) {
                 <TableBody>
                   {data.schoolStudents.length === 0 ? (
                     <TableRow>
-                      <TableCell colSpan={4} className="py-8 text-center text-sm text-gray-500">
+                      <TableCell colSpan={5} className="py-8 text-center text-sm text-gray-500">
                         Aucun élève inscrit pour le moment.
                       </TableCell>
                     </TableRow>
                   ) : (
-                    data.schoolStudents.map((student) => (
-                      <TableRow key={student.id}>
-                        <TableCell className="font-medium">{student.first_name}</TableCell>
-                        <TableCell>{student.last_name}</TableCell>
-                        <TableCell>{formatDate(student.created_at)}</TableCell>
-                        <TableCell className="text-right">
-                          <Button size="sm" variant="outline" onClick={() => deleteStudent(student.id)}>
-                            <Trash2 className="w-3.5 h-3.5 text-red-600" />
-                          </Button>
-                        </TableCell>
-                      </TableRow>
-                    ))
+                    data.schoolStudents.map((student) => {
+                      const enrollment = enrollmentByStudent.get(student.id);
+                      const session = enrollment ? sessionById.get(enrollment.exam_session_id) : undefined;
+                      return (
+                        <TableRow key={student.id}>
+                          <TableCell className="font-medium">{student.first_name}</TableCell>
+                          <TableCell>{student.last_name}</TableCell>
+                          <TableCell>
+                            {enrollment ? (
+                              <span className="flex items-center gap-1">
+                                <Badge variant="secondary">{enrollment.cefr_level}</Badge>
+                                <span className="text-xs text-gray-500">{session?.title}</span>
+                              </span>
+                            ) : (
+                              <span className="text-xs text-gray-400">Non inscrit à une session</span>
+                            )}
+                          </TableCell>
+                          <TableCell>{formatDate(student.created_at)}</TableCell>
+                          <TableCell className="text-right">
+                            <Button size="sm" variant="outline" onClick={() => deleteStudent(student.id)}>
+                              <Trash2 className="w-3.5 h-3.5 text-red-600" />
+                            </Button>
+                          </TableCell>
+                        </TableRow>
+                      );
+                    })
                   )}
                 </TableBody>
               </Table>
@@ -1100,7 +1092,6 @@ export function SchoolSpaceClient({ section }: { section: Section }) {
                 {saving ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Save className="w-4 h-4 mr-2" />}
                 Enregistrer le profil
               </Button>
-
               <div className="border-t pt-4 space-y-2">
                 <Label>Nouveau mot de passe</Label>
                 <div className="flex gap-2">
@@ -1112,20 +1103,14 @@ export function SchoolSpaceClient({ section }: { section: Section }) {
           </Card>
 
           <Card>
-            <CardHeader>
-              <CardTitle>Aperçu certificat</CardTitle>
-            </CardHeader>
+            <CardHeader><CardTitle>Aperçu certificat</CardTitle></CardHeader>
             <CardContent>
               <div className="rounded-xl border bg-white p-4 aspect-[1.35] flex flex-col justify-between">
                 <div className="flex items-start justify-between">
                   <div className="font-bold text-[#00A550] text-xl">FLEHub</div>
                   <div className="w-24 h-16 border rounded bg-[#F5F5F5] flex items-center justify-center overflow-hidden">
                     {(logoFile || data.school.logo_signed_url) ? (
-                      <img
-                        alt="Logo école"
-                        src={logoFile ? URL.createObjectURL(logoFile) : data.school.logo_signed_url ?? ''}
-                        className="max-w-full max-h-full object-contain"
-                      />
+                      <img alt="Logo école" src={logoFile ? URL.createObjectURL(logoFile) : data.school.logo_signed_url ?? ''} className="max-w-full max-h-full object-contain" />
                     ) : (
                       <span className="text-xs text-gray-400">Logo</span>
                     )}
@@ -1139,11 +1124,7 @@ export function SchoolSpaceClient({ section }: { section: Section }) {
                 <div className="text-center">
                   <div className="mx-auto w-32 h-12 border rounded bg-[#F5F5F5] flex items-center justify-center overflow-hidden">
                     {(signatureFile || data.school.signature_signed_url) ? (
-                      <img
-                        alt="Signature directeur"
-                        src={signatureFile ? URL.createObjectURL(signatureFile) : data.school.signature_signed_url ?? ''}
-                        className="max-w-full max-h-full object-contain"
-                      />
+                      <img alt="Signature directeur" src={signatureFile ? URL.createObjectURL(signatureFile) : data.school.signature_signed_url ?? ''} className="max-w-full max-h-full object-contain" />
                     ) : (
                       <span className="text-xs text-gray-400">Signature</span>
                     )}
@@ -1162,10 +1143,36 @@ export function SchoolSpaceClient({ section }: { section: Section }) {
             <DialogTitle>Ajouter un élève</DialogTitle>
           </DialogHeader>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-            <div><Label>Prénom</Label><Input value={studentForm.first_name} onChange={(e) => setStudentForm((p) => ({ ...p, first_name: e.target.value }))} /></div>
-            <div><Label>Nom</Label><Input value={studentForm.last_name} onChange={(e) => setStudentForm((p) => ({ ...p, last_name: e.target.value }))} /></div>
+            <div>
+              <Label>Prénom</Label>
+              <Input value={studentForm.first_name} onChange={(e) => setStudentForm((p) => ({ ...p, first_name: e.target.value }))} />
+            </div>
+            <div>
+              <Label>Nom</Label>
+              <Input value={studentForm.last_name} onChange={(e) => setStudentForm((p) => ({ ...p, last_name: e.target.value }))} />
+            </div>
+            <div>
+              <Label>Niveau CECRL</Label>
+              <Select value={studentForm.cefr_level} onValueChange={(value) => setStudentForm((p) => ({ ...p, cefr_level: value as CefrLevel, exam_session_id: '' }))}>
+                <SelectTrigger><SelectValue placeholder="Choisir un niveau" /></SelectTrigger>
+                <SelectContent>
+                  {CEFR_LEVELS.map((level) => <SelectItem key={level} value={level}>{level}</SelectItem>)}
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <Label>Session d&apos;examen</Label>
+              <Select value={studentForm.exam_session_id} onValueChange={(value) => setStudentForm((p) => ({ ...p, exam_session_id: value }))}>
+                <SelectTrigger><SelectValue placeholder="Choisir une session" /></SelectTrigger>
+                <SelectContent>
+                  {data.sessions
+                    .filter((s) => !studentForm.cefr_level || s.cefr_level === studentForm.cefr_level)
+                    .map((s) => <SelectItem key={s.id} value={s.id}>{s.title} — {s.cefr_level}</SelectItem>)}
+                </SelectContent>
+              </Select>
+            </div>
             <p className="md:col-span-2 text-sm text-gray-500">
-              Aucun compte élève ne sera créé, donc aucun email ni mot de passe n&apos;est requis.
+              Aucun compte élève ne sera créé — aucun email ni mot de passe requis.
             </p>
           </div>
           <DialogFooter>
