@@ -309,6 +309,7 @@ export function SchoolSpaceClient({ section }: { section: Section }) {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [studentOpen, setStudentOpen] = useState(false);
+  const [editingStudentId, setEditingStudentId] = useState<string | null>(null);
   const [studentForm, setStudentForm] = useState<StudentForm>(emptyStudentForm);
   const [resultForm, setResultForm] = useState<ResultForm>(emptyResultForm);
   const [filters, setFilters] = useState({ level: 'all', session: 'all', grade: 'all' });
@@ -403,22 +404,48 @@ export function SchoolSpaceClient({ section }: { section: Section }) {
   }, [data?.students]);
 
   const openCreateStudent = () => {
+    setEditingStudentId(null);
     setStudentForm(emptyStudentForm);
+    setStudentOpen(true);
+  };
+
+  const openEditStudent = (student: SchoolStudentRecord) => {
+    const enrollment = enrollmentByStudent.get(student.id);
+    setEditingStudentId(student.id);
+    setStudentForm({
+      first_name: student.first_name,
+      last_name: student.last_name,
+      cefr_level: enrollment?.cefr_level ?? '',
+      exam_session_id: enrollment?.exam_session_id ?? '',
+    });
     setStudentOpen(true);
   };
 
   const saveStudent = async () => {
     setSaving(true);
     try {
-      await apiPost({
-        action: 'createSchoolStudent',
-        first_name: studentForm.first_name,
-        last_name: studentForm.last_name,
-        cefr_level: studentForm.cefr_level || undefined,
-        exam_session_id: studentForm.exam_session_id || undefined,
-      });
-      toast({ title: 'Élève ajouté', description: 'Le registre de votre école a été mis à jour.' });
+      if (editingStudentId) {
+        await apiPost({
+          action: 'updateSchoolStudent',
+          student_id: editingStudentId,
+          first_name: studentForm.first_name,
+          last_name: studentForm.last_name,
+          cefr_level: studentForm.cefr_level || undefined,
+          exam_session_id: studentForm.exam_session_id || undefined,
+        });
+        toast({ title: 'Élève modifié', description: 'Les informations ont été mises à jour.' });
+      } else {
+        await apiPost({
+          action: 'createSchoolStudent',
+          first_name: studentForm.first_name,
+          last_name: studentForm.last_name,
+          cefr_level: studentForm.cefr_level || undefined,
+          exam_session_id: studentForm.exam_session_id || undefined,
+        });
+        toast({ title: 'Élève ajouté', description: 'Le registre de votre école a été mis à jour.' });
+      }
       setStudentOpen(false);
+      setEditingStudentId(null);
       await load();
     } catch (err) {
       toast({ title: 'Erreur', description: err instanceof Error ? err.message : 'Action impossible.' });
@@ -760,7 +787,10 @@ export function SchoolSpaceClient({ section }: { section: Section }) {
                             )}
                           </TableCell>
                           <TableCell>{formatDate(student.created_at)}</TableCell>
-                          <TableCell className="text-right">
+                          <TableCell className="text-right space-x-2">
+                            <Button size="sm" variant="outline" onClick={() => openEditStudent(student)}>
+                              <Settings className="w-3.5 h-3.5 text-gray-600" />
+                            </Button>
                             <Button size="sm" variant="outline" onClick={() => deleteStudent(student.id)}>
                               <Trash2 className="w-3.5 h-3.5 text-red-600" />
                             </Button>
@@ -1137,10 +1167,16 @@ export function SchoolSpaceClient({ section }: { section: Section }) {
         </div>
       )}
 
-      <Dialog open={studentOpen} onOpenChange={setStudentOpen}>
+      <Dialog
+        open={studentOpen}
+        onOpenChange={(open) => {
+          setStudentOpen(open);
+          if (!open) setEditingStudentId(null);
+        }}
+      >
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Ajouter un élève</DialogTitle>
+            <DialogTitle>{editingStudentId ? "Modifier l'élève" : 'Ajouter un élève'}</DialogTitle>
           </DialogHeader>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
             <div>
@@ -1182,7 +1218,7 @@ export function SchoolSpaceClient({ section }: { section: Section }) {
               disabled={saving || !studentForm.first_name.trim() || !studentForm.last_name.trim()}
               className="bg-[#00A550] hover:bg-[#008040] text-white"
             >
-              Enregistrer
+              {editingStudentId ? 'Mettre à jour' : 'Enregistrer'}
             </Button>
           </DialogFooter>
         </DialogContent>
