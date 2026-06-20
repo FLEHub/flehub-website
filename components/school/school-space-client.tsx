@@ -10,6 +10,7 @@ import {
   FileText,
   GraduationCap,
   Loader2,
+  Pencil,
   Plus,
   RefreshCw,
   Save,
@@ -789,7 +790,7 @@ export function SchoolSpaceClient({ section }: { section: Section }) {
                           <TableCell>{formatDate(student.created_at)}</TableCell>
                           <TableCell className="text-right space-x-2">
                             <Button size="sm" variant="outline" onClick={() => openEditStudent(student)}>
-                              <Settings className="w-3.5 h-3.5 text-gray-600" />
+                              <Pencil className="w-3.5 h-3.5 text-gray-600" />
                             </Button>
                             <Button size="sm" variant="outline" onClick={() => deleteStudent(student.id)}>
                               <Trash2 className="w-3.5 h-3.5 text-red-600" />
