@@ -6,6 +6,10 @@ import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import { Switch } from '@/components/ui/switch';
 import {
   Dialog,
   DialogContent,
@@ -13,8 +17,16 @@ import {
   DialogTitle,
   DialogFooter,
 } from '@/components/ui/dialog';
-import ResourceUploadForm from '@/components/teacher/ResourceUploadForm';
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import {
+  Plus,
+  Pencil,
   Trash2,
   BookOpen,
   Video,
@@ -44,6 +56,7 @@ interface Course {
 
 const cefrLevels: CEFR[] = ['A1', 'A2', 'B1', 'B2', 'C1', 'C2'];
 const competencies: Competency[] = ['EO', 'EE', 'CO', 'CE', 'EL'];
+const contentTypes: ContentType[] = ['video', 'audio', 'pdf', 'text'];
 
 const competencyLabels: Record<Competency, string> = {
   EO: 'Expression Orale',
@@ -77,13 +90,28 @@ const cefrColors: Record<CEFR, string> = {
   C2: 'bg-rose-100 text-rose-700',
 };
 
+const emptyForm = {
+  title: '',
+  description: '',
+  cefr_level: '' as CEFR | '',
+  competency: '' as Competency | '',
+  content_type: '' as ContentType | '',
+  content_url: '',
+  duration_minutes: 0,
+  is_published: false,
+};
+
 export default function TeacherCoursesPage() {
   const supabase = createClient();
 
   const [courses, setCourses] = useState<Course[]>([]);
+  const [teacherId, setTeacherId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
 
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [editingCourse, setEditingCourse] = useState<Course | null>(null);
+  const [form, setForm] = useState({ ...emptyForm });
 
   const [filterCefr, setFilterCefr] = useState<CEFR | 'all'>('all');
   const [filterCompetency, setFilterCompetency] = useState<Competency | 'all'>('all');
@@ -107,6 +135,7 @@ export default function TeacherCoursesPage() {
         .maybeSingle();
 
       if (!teacher) return;
+      setTeacherId(teacher.id);
 
       const { data } = await supabase
         .from('courses')
@@ -123,12 +152,57 @@ export default function TeacherCoursesPage() {
   }
 
   function openCreate() {
+    setEditingCourse(null);
+    setForm({ ...emptyForm });
     setDialogOpen(true);
   }
 
-  async function handleUploadSuccess() {
-    setDialogOpen(false);
-    await fetchData();
+  function openEdit(course: Course) {
+    setEditingCourse(course);
+    setForm({
+      title: course.title,
+      description: course.description,
+      cefr_level: course.cefr_level,
+      competency: course.competency,
+      content_type: course.content_type,
+      content_url: course.content_url,
+      duration_minutes: course.duration_minutes,
+      is_published: course.is_published,
+    });
+    setDialogOpen(true);
+  }
+
+  async function handleSave() {
+    if (!teacherId) return;
+    if (!form.title || !form.cefr_level || !form.competency || !form.content_type) return;
+
+    setSaving(true);
+    try {
+      const payload = {
+        title: form.title,
+        description: form.description,
+        cefr_level: form.cefr_level,
+        competency: form.competency,
+        content_type: form.content_type,
+        content_url: form.content_url,
+        duration_minutes: Number(form.duration_minutes),
+        is_published: form.is_published,
+        teacher_id: teacherId,
+      };
+
+      if (editingCourse) {
+        await supabase.from('courses').update(payload).eq('id', editingCourse.id);
+      } else {
+        await supabase.from('courses').insert(payload);
+      }
+
+      setDialogOpen(false);
+      await fetchData();
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setSaving(false);
+    }
   }
 
   async function handleDelete(id: string) {
@@ -271,6 +345,15 @@ export default function TeacherCoursesPage() {
                     <Button
                       variant="ghost"
                       size="sm"
+                      className="flex-1 text-flehub-green hover:bg-flehub-green-light"
+                      onClick={() => openEdit(course)}
+                    >
+                      <Pencil className="w-3.5 h-3.5 mr-1" />
+                      Edit
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
                       className="flex-1 text-red-500 hover:bg-red-50"
                       onClick={() => setDeleteConfirmId(course.id)}
                     >
@@ -285,14 +368,140 @@ export default function TeacherCoursesPage() {
         </div>
       )}
 
-      {/* Upload Dialog */}
+      {/* Create / Edit Dialog */}
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>Upload New Course</DialogTitle>
+            <DialogTitle>{editingCourse ? 'Edit Course' : 'Upload New Course'}</DialogTitle>
           </DialogHeader>
 
-          <ResourceUploadForm onSuccess={handleUploadSuccess} />
+          <div className="space-y-4 py-2">
+            <div className="space-y-1">
+              <Label>Title <span className="text-red-500">*</span></Label>
+              <Input
+                placeholder="e.g. French Conversation B1"
+                value={form.title}
+                onChange={(e) => setForm({ ...form, title: e.target.value })}
+              />
+            </div>
+
+            <div className="space-y-1">
+              <Label>Description</Label>
+              <Textarea
+                placeholder="Short description of this course..."
+                rows={3}
+                value={form.description}
+                onChange={(e) => setForm({ ...form, description: e.target.value })}
+              />
+            </div>
+
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1">
+                <Label>CEFR Level <span className="text-red-500">*</span></Label>
+                <Select
+                  value={form.cefr_level}
+                  onValueChange={(v) => setForm({ ...form, cefr_level: v as CEFR })}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select level" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {cefrLevels.map((l) => (
+                      <SelectItem key={l} value={l}>
+                        {l}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-1">
+                <Label>Competency <span className="text-red-500">*</span></Label>
+                <Select
+                  value={form.competency}
+                  onValueChange={(v) => setForm({ ...form, competency: v as Competency })}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select skill" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {competencies.map((c) => (
+                      <SelectItem key={c} value={c}>
+                        {c} – {competencyLabels[c]}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1">
+                <Label>Content Type <span className="text-red-500">*</span></Label>
+                <Select
+                  value={form.content_type}
+                  onValueChange={(v) => setForm({ ...form, content_type: v as ContentType })}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select type" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {contentTypes.map((t) => (
+                      <SelectItem key={t} value={t}>
+                        {t.charAt(0).toUpperCase() + t.slice(1)}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-1">
+                <Label>Duration (minutes)</Label>
+                <Input
+                  type="number"
+                  min={0}
+                  placeholder="e.g. 45"
+                  value={form.duration_minutes || ''}
+                  onChange={(e) =>
+                    setForm({ ...form, duration_minutes: parseInt(e.target.value) || 0 })
+                  }
+                />
+              </div>
+            </div>
+
+            <div className="space-y-1">
+              <Label>Content URL</Label>
+              <Input
+                placeholder="https://..."
+                value={form.content_url}
+                onChange={(e) => setForm({ ...form, content_url: e.target.value })}
+              />
+            </div>
+
+            <div className="flex items-center gap-3 pt-1">
+              <Switch
+                checked={form.is_published}
+                onCheckedChange={(v) => setForm({ ...form, is_published: v })}
+                id="published-toggle"
+              />
+              <Label htmlFor="published-toggle" className="cursor-pointer">
+                {form.is_published ? 'Published (visible to learners)' : 'Draft (hidden)'}
+              </Label>
+            </div>
+          </div>
+
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setDialogOpen(false)}>
+              Cancel
+            </Button>
+            <Button
+              className="bg-flehub-green hover:bg-flehub-green/90 text-white"
+              onClick={handleSave}
+              disabled={saving || !form.title || !form.cefr_level || !form.competency || !form.content_type}
+            >
+              {saving ? 'Saving...' : editingCourse ? 'Save Changes' : 'Upload Course'}
+            </Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
 

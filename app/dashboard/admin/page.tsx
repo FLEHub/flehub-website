@@ -1,8 +1,6 @@
 import { redirect } from 'next/navigation'
 import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
-import { getProfileForUser } from '@/lib/supabase/get-profile'
-import { createServiceClient } from '@/lib/supabase/service'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -27,46 +25,21 @@ import {
   CalendarDays,
   ArrowRight,
   ShieldAlert,
-  GraduationCap,
 } from 'lucide-react'
 import Link from 'next/link'
 
 // ─── Server Actions ────────────────────────────────────────────────────────────
-
-async function verifyAdmin() {
-  const authClient = await createClient()
-  const {
-    data: { user },
-  } = await authClient.auth.getUser()
-  if (!user) return null
-
-  const { profile } = await getProfileForUser(user.id)
-  if (profile?.role !== 'admin') return null
-
-  try {
-    return createServiceClient()
-  } catch {
-    return authClient
-  }
-}
 
 async function approveUser(formData: FormData) {
   'use server'
   const userId = formData.get('userId') as string
   if (!userId) return
 
-  const supabase = await verifyAdmin()
-  if (!supabase) return
-
-  const { error } = await supabase
+  const supabase = await createClient()
+  await supabase
     .from('profiles')
     .update({ status: 'approved' })
     .eq('id', userId)
-
-  if (error) {
-    console.error('approveUser error:', error.message)
-    return
-  }
 
   revalidatePath('/dashboard/admin')
 }
@@ -76,18 +49,11 @@ async function rejectUser(formData: FormData) {
   const userId = formData.get('userId') as string
   if (!userId) return
 
-  const supabase = await verifyAdmin()
-  if (!supabase) return
-
-  const { error } = await supabase
+  const supabase = await createClient()
+  await supabase
     .from('profiles')
     .update({ status: 'rejected' })
     .eq('id', userId)
-
-  if (error) {
-    console.error('rejectUser error:', error.message)
-    return
-  }
 
   revalidatePath('/dashboard/admin')
 }
@@ -159,143 +125,77 @@ function roleBadgeColor(role: string) {
 // ─── Page ──────────────────────────────────────────────────────────────────────
 
 export default async function AdminDashboardPage() {
-  const authClient = await createClient()
+  const supabase = await createClient()
 
+  // Auth guard
   const {
     data: { user },
-  } = await authClient.auth.getUser()
+  } = await supabase.auth.getUser()
   if (!user) redirect('/login')
 
-  const { profile } = await getProfileForUser(user.id)
-  if (profile?.role !== 'admin') redirect('/dashboard')
-
-  let adminDb
-  try {
-    adminDb = createServiceClient()
-  } catch {
-    adminDb = authClient
-  }
-
-  const errors: string[] = []
+  const { data: adminProfile } = await supabase
+    .from('profiles')
+    .select('role')
+    .eq('id', user.id)
+    .maybeSingle()
+  if (adminProfile?.role !== 'admin') redirect('/dashboard')
 
   // ── Fetch stats ────────────────────────────────────────────────────────────
 
   const [
-    totalUsersResult,
-    pendingCountResult,
-    activeSchoolsResult,
-    activeTeachersResult,
-    activeLearnersResult,
+    { count: totalUsers },
+    { count: pendingCount },
+    { count: activeSchools },
+    { count: activeTeachers },
   ] = await Promise.all([
-    adminDb.from('profiles').select('*', { count: 'exact', head: true }),
-    adminDb
+    supabase.from('profiles').select('*', { count: 'exact', head: true }),
+    supabase
       .from('profiles')
       .select('*', { count: 'exact', head: true })
       .eq('status', 'pending'),
-    adminDb
+    supabase
       .from('profiles')
       .select('*', { count: 'exact', head: true })
       .eq('role', 'school')
       .eq('status', 'approved'),
-    adminDb
+    supabase
       .from('profiles')
       .select('*', { count: 'exact', head: true })
       .eq('role', 'teacher')
       .eq('status', 'approved'),
-    adminDb
-      .from('profiles')
-      .select('*', { count: 'exact', head: true })
-      .eq('role', 'learner')
-      .eq('status', 'approved'),
   ])
-
-  const statResults = [
-    { label: 'total users', result: totalUsersResult },
-    { label: 'pending approvals', result: pendingCountResult },
-    { label: 'active schools', result: activeSchoolsResult },
-    { label: 'active teachers', result: activeTeachersResult },
-    { label: 'active learners', result: activeLearnersResult },
-  ]
-
-  for (const { label, result } of statResults) {
-    if (result.error) errors.push(`Failed to load ${label}: ${result.error.message}`)
-  }
-
-  const totalUsers = totalUsersResult.count
-  const pendingCount = pendingCountResult.count
-  const activeSchools = activeSchoolsResult.count
-  const activeTeachers = activeTeachersResult.count
-  const activeLearners = activeLearnersResult.count
 
   // ── Pending approvals ──────────────────────────────────────────────────────
 
-  const { data: pendingUsers, error: pendingUsersError } = await adminDb
+  const { data: pendingUsers } = await supabase
     .from('profiles')
     .select('id, full_name, email, role, created_at')
     .eq('status', 'pending')
     .order('created_at', { ascending: false })
     .limit(10)
 
-  if (pendingUsersError) {
-    errors.push(`Failed to load pending users: ${pendingUsersError.message}`)
-  }
-
   // ── Recent exam sessions ───────────────────────────────────────────────────
 
-  const { data: examSessions, error: examSessionsError } = await adminDb
+  const { data: examSessions } = await supabase
     .from('exam_sessions')
     .select('id, title, cefr_level, exam_date, venue, status')
     .order('exam_date', { ascending: false })
     .limit(5)
 
-  if (examSessionsError) {
-    errors.push(`Failed to load exam sessions: ${examSessionsError.message}`)
-  }
-
   // ── Recent payments ────────────────────────────────────────────────────────
 
-  type PaymentRow = {
-    id: string
-    amount_rwf: number | null
-    status: string | null
-    created_at: string
-    learners?: { profiles?: { full_name?: string; email?: string } } | null
-  }
-
-  let payments: PaymentRow[] | null = null
-
-  const { data: paymentsWithJoin, error: paymentsJoinError } = await adminDb
+  const { data: payments } = await supabase
     .from('payments')
     .select('id, amount_rwf, status, created_at, learners(profiles(full_name, email))')
     .order('created_at', { ascending: false })
     .limit(5)
 
-  if (paymentsJoinError) {
-    const { data: paymentsPlain, error: paymentsPlainError } = await adminDb
-      .from('payments')
-      .select('id, amount_rwf, status, created_at')
-      .order('created_at', { ascending: false })
-      .limit(5)
-
-    if (paymentsPlainError) {
-      errors.push(`Failed to load payments: ${paymentsPlainError.message}`)
-    } else {
-      payments = paymentsPlain
-    }
-  } else {
-    payments = paymentsWithJoin as PaymentRow[]
-  }
-
   // ── Total revenue (completed payments) ────────────────────────────────────
 
-  const { data: revenueData, error: revenueError } = await adminDb
+  const { data: revenueData } = await supabase
     .from('payments')
     .select('amount_rwf')
     .eq('status', 'completed')
-
-  if (revenueError) {
-    errors.push(`Failed to load revenue: ${revenueError.message}`)
-  }
 
   const totalRevenue = (revenueData ?? []).reduce(
     (sum, p) => sum + (p.amount_rwf ?? 0),
@@ -308,23 +208,12 @@ export default async function AdminDashboardPage() {
       <div>
         <h1 className="text-2xl font-bold text-gray-900">Admin Dashboard</h1>
         <p className="text-sm text-gray-500 mt-1">
-          Welcome back — here&apos;s what&apos;s happening on FLEHub today.
+          Welcome back — here's what's happening on FLEHub today.
         </p>
       </div>
 
-      {errors.length > 0 && (
-        <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
-          <p className="font-medium">Some dashboard data could not be loaded:</p>
-          <ul className="mt-1 list-disc pl-5 space-y-0.5">
-            {errors.map((message) => (
-              <li key={message}>{message}</li>
-            ))}
-          </ul>
-        </div>
-      )}
-
       {/* Stat cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-5 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
         <StatCard
           title="Total Users"
           value={totalUsers ?? 0}
@@ -352,13 +241,6 @@ export default async function AdminDashboardPage() {
           icon={UserCheck}
           iconColor="text-teal-600"
           iconBg="bg-teal-50"
-        />
-        <StatCard
-          title="Active Learners"
-          value={activeLearners ?? 0}
-          icon={GraduationCap}
-          iconColor="text-indigo-600"
-          iconBg="bg-indigo-50"
         />
       </div>
 

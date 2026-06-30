@@ -4,13 +4,8 @@ const nextConfig = {
     ignoreDuringBuilds: true,
   },
   images: { unoptimized: true },
-  async rewrites() {
-    return [
-      {
-        source: '/favicon.ico',
-        destination: '/favicon.svg',
-      },
-    ];
+  experimental: {
+    serverActions: true,
   },
   webpack: (config) => {
     config.parallelism = 1;

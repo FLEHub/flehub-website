@@ -1,14 +1,11 @@
 'use client';
 
-import { useRef, useState } from 'react';
+import { useState } from 'react';
 import Link from 'next/link';
 import { GraduationCap, BookOpen, Users, ArrowLeft, ArrowRight, CheckCircle, AlertCircle, Eye, EyeOff } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import {
-  MIN_BIO_LENGTH,
-  MIN_QUALIFICATIONS_LENGTH,
-} from '@/lib/register/validation';
+import { createClient } from '@/lib/supabase/client';
 import {
   getProvinces,
   getDistrictsByProvince,
@@ -20,7 +17,6 @@ import {
 type Role = 'learner' | 'teacher' | 'school';
 type LearnerSubtype = 'independent' | 'pupil';
 type CEFRLevel = 'A1' | 'A2' | 'B1' | 'B2' | 'C1' | 'C2';
-type SchoolType = 'primary' | 'secondary' | 'both';
 
 interface FormData {
   // Common
@@ -37,10 +33,6 @@ interface FormData {
   qualifications: string;
   // School
   school_name: string;
-  school_type: SchoolType | '';
-  director_name: string;
-  address: string;
-  official_email: string;
   province: string;
   district: string;
   sector: string;
@@ -89,10 +81,6 @@ const initialFormData: FormData = {
   bio: '',
   qualifications: '',
   school_name: '',
-  school_type: '',
-  director_name: '',
-  address: '',
-  official_email: '',
   province: '',
   district: '',
   sector: '',
@@ -108,9 +96,7 @@ export default function RegisterPage() {
   const [showConfirm, setShowConfirm] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [fieldErrors, setFieldErrors] = useState<Partial<Record<keyof FormData, string>>>({});
   const [success, setSuccess] = useState(false);
-  const submittingRef = useRef(false);
 
   // Rwanda geo cascading state
   const [provinces] = useState<string[]>(getProvinces());
@@ -122,12 +108,6 @@ export default function RegisterPage() {
   const update = (field: keyof FormData, value: string) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
     setError(null);
-    setFieldErrors((prev) => {
-      if (!prev[field]) return prev;
-      const next = { ...prev };
-      delete next[field];
-      return next;
-    });
   };
 
   const handleProvince = (value: string) => {
@@ -180,74 +160,32 @@ export default function RegisterPage() {
   };
 
   const validateStep2 = (): string | null => {
-    const nextFieldErrors: Partial<Record<keyof FormData, string>> = {};
+    if (!formData.full_name.trim()) return 'Le nom complet est requis.';
+    if (!formData.email.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email))
+      return 'Veuillez saisir une adresse e-mail valide.';
+    if (formData.password.length < 8) return 'Le mot de passe doit contenir au moins 8 caractères.';
+    if (formData.password !== formData.confirm_password)
+      return 'Les mots de passe ne correspondent pas.';
+    if (!formData.phone.trim()) return 'Le numéro de téléphone est requis.';
 
-    if (!formData.full_name.trim()) {
-      nextFieldErrors.full_name = 'Le nom complet est requis.';
-    }
-    if (!formData.email.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
-      nextFieldErrors.email = 'Veuillez saisir une adresse e-mail valide.';
-    }
-    if (formData.password.length < 8) {
-      nextFieldErrors.password = 'Le mot de passe doit contenir au moins 8 caractères.';
-    }
-    if (formData.password !== formData.confirm_password) {
-      nextFieldErrors.confirm_password = 'Les mots de passe ne correspondent pas.';
-    }
-    if (!formData.phone.trim()) {
-      nextFieldErrors.phone = 'Le numéro de téléphone est requis.';
-    }
-
-    if (selectedRole === 'learner' && !formData.cefr_level) {
-      nextFieldErrors.cefr_level = 'Veuillez sélectionner votre niveau CECRL.';
-    }
+    if (selectedRole === 'learner' && !formData.cefr_level)
+      return 'Veuillez sélectionner votre niveau CECRL.';
 
     if (selectedRole === 'teacher') {
-      if (!formData.bio.trim()) {
-        nextFieldErrors.bio = 'La biographie est requise.';
-      } else if (formData.bio.trim().length < MIN_BIO_LENGTH) {
-        nextFieldErrors.bio = `La biographie doit contenir au moins ${MIN_BIO_LENGTH} caractères.`;
-      }
-
-      if (!formData.qualifications.trim()) {
-        nextFieldErrors.qualifications = 'Les qualifications sont requises.';
-      } else if (formData.qualifications.trim().length < MIN_QUALIFICATIONS_LENGTH) {
-        nextFieldErrors.qualifications =
-          'Veuillez préciser vos qualifications (diplômes, certifications, etc.).';
-      }
+      if (!formData.bio.trim()) return 'La biographie est requise.';
+      if (!formData.qualifications.trim()) return 'Les qualifications sont requises.';
     }
 
     if (selectedRole === 'school') {
-      if (!formData.school_name.trim()) {
-        nextFieldErrors.school_name = "Le nom de l'établissement est requis.";
-      }
-      if (!formData.school_type) {
-        nextFieldErrors.school_type = "Veuillez sélectionner le type d'établissement.";
-      }
-      if (!formData.director_name.trim()) {
-        nextFieldErrors.director_name = 'Le nom du/de la directeur/directrice est requis.';
-      }
-      if (!formData.address.trim()) {
-        nextFieldErrors.address = "L'adresse de l'établissement est requise.";
-      }
-      if (
-        !formData.official_email.trim() ||
-        !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.official_email)
-      ) {
-        nextFieldErrors.official_email =
-          "Veuillez saisir l'adresse e-mail officielle de l'établissement.";
-      }
-      if (!formData.province) nextFieldErrors.province = 'Veuillez sélectionner une province.';
-      if (!formData.district) nextFieldErrors.district = 'Veuillez sélectionner un district.';
-      if (!formData.sector) nextFieldErrors.sector = 'Veuillez sélectionner un secteur.';
-      if (!formData.cell) nextFieldErrors.cell = 'Veuillez sélectionner une cellule.';
-      if (!formData.village) nextFieldErrors.village = 'Veuillez sélectionner un village.';
+      if (!formData.school_name.trim()) return "Le nom de l'établissement est requis.";
+      if (!formData.province) return 'Veuillez sélectionner une province.';
+      if (!formData.district) return 'Veuillez sélectionner un district.';
+      if (!formData.sector) return 'Veuillez sélectionner un secteur.';
+      if (!formData.cell) return 'Veuillez sélectionner une cellule.';
+      if (!formData.village) return 'Veuillez sélectionner un village.';
     }
 
-    setFieldErrors(nextFieldErrors);
-
-    const firstError = Object.values(nextFieldErrors)[0];
-    return firstError ?? null;
+    return null;
   };
 
   const handleNext = () => {
@@ -258,76 +196,95 @@ export default function RegisterPage() {
   const handleBack = () => {
     setStep(1);
     setError(null);
-    setFieldErrors({});
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-
-    if (loading || submittingRef.current) return;
-
-    if (!selectedRole) {
-      setError('Veuillez sélectionner un rôle pour continuer.');
-      setStep(1);
-      return;
-    }
-
     const validationError = validateStep2();
     if (validationError) {
       setError(validationError);
       return;
     }
 
-    submittingRef.current = true;
     setLoading(true);
     setError(null);
 
     try {
-      const res = await fetch('/api/register', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          role: selectedRole,
-          full_name: formData.full_name.trim(),
-          email: formData.email.trim().toLowerCase(),
-          password: formData.password,
-          phone: formData.phone.trim(),
-          subtype: formData.subtype,
-          cefr_level: formData.cefr_level || undefined,
-          bio: selectedRole === 'teacher' ? formData.bio.trim() : undefined,
-          qualifications:
-            selectedRole === 'teacher' ? formData.qualifications.trim() : undefined,
-          school_name: formData.school_name.trim() || undefined,
-          school_type: formData.school_type || undefined,
-          director_name: formData.director_name.trim() || undefined,
-          address: formData.address.trim() || undefined,
-          official_email: formData.official_email.trim().toLowerCase() || undefined,
-          province: formData.province || undefined,
-          district: formData.district || undefined,
-          sector: formData.sector || undefined,
-          cell: formData.cell || undefined,
-          village: formData.village || undefined,
-        }),
+      const supabase = createClient();
+
+      // Sign up with Supabase Auth
+      const { data: authData, error: signUpError } = await supabase.auth.signUp({
+        email: formData.email.trim().toLowerCase(),
+        password: formData.password,
+        options: {
+          data: {
+            full_name: formData.full_name.trim(),
+            role: selectedRole,
+            phone: formData.phone.trim(),
+          },
+        },
       });
 
-      let result: { error?: string; success?: boolean } = {};
-      try {
-        result = await res.json();
-      } catch {
-        setError("Réponse serveur invalide. Vérifiez que l'application est bien déployée.");
+      if (signUpError) {
+        if (signUpError.message.includes('already registered')) {
+          setError('Cette adresse e-mail est déjà utilisée. Veuillez vous connecter.');
+        } else {
+          setError(signUpError.message);
+        }
         return;
       }
 
-      if (!res.ok) {
-        setError(result.error ?? 'Une erreur est survenue.');
+      if (!authData.user) {
+        setError("L'inscription a échoué. Veuillez réessayer.");
         return;
+      }
+
+      const userId = authData.user.id;
+      const status = selectedRole === 'learner' ? 'approved' : 'pending';
+
+      // Insert into profiles table
+      const { error: profileError } = await supabase.from('profiles').insert({
+        id: userId,
+        full_name: formData.full_name.trim(),
+        email: formData.email.trim().toLowerCase(),
+        phone: formData.phone.trim(),
+        role: selectedRole,
+        status,
+      });
+
+      if (profileError) {
+        console.error('Profile insert error:', profileError);
+      }
+
+      // Insert into role-specific table
+      if (selectedRole === 'learner') {
+        await supabase.from('learners').insert({
+          id: userId,
+          subtype: formData.subtype,
+          cefr_level: formData.cefr_level,
+        });
+      } else if (selectedRole === 'teacher') {
+        await supabase.from('teachers').insert({
+          id: userId,
+          bio: formData.bio.trim(),
+          qualifications: formData.qualifications.trim(),
+        });
+      } else if (selectedRole === 'school') {
+        await supabase.from('schools').insert({
+          id: userId,
+          school_name: formData.school_name.trim(),
+          province: formData.province,
+          district: formData.district,
+          sector: formData.sector,
+          cell: formData.cell,
+          village: formData.village || null,
+        });
       }
 
       setSuccess(true);
     } catch {
       setError('Une erreur réseau est survenue. Veuillez vérifier votre connexion.');
     } finally {
-      submittingRef.current = false;
       setLoading(false);
     }
   };
@@ -735,25 +692,12 @@ export default function RegisterPage() {
                     <textarea
                       id="bio"
                       rows={3}
-                      required
-                      minLength={MIN_BIO_LENGTH}
                       placeholder="Décrivez brièvement votre expérience en enseignement du français…"
                       value={formData.bio}
                       onChange={(e) => update('bio', e.target.value)}
                       disabled={loading}
-                      aria-invalid={Boolean(fieldErrors.bio)}
-                      className={`w-full px-3 py-2.5 rounded-xl border text-sm text-gray-900 bg-white focus:outline-none focus:ring-2 focus:ring-flehub-green/20 resize-none ${
-                        fieldErrors.bio
-                          ? 'border-red-400 focus:border-red-400'
-                          : 'border-gray-300 focus:border-flehub-green'
-                      }`}
+                      className="w-full px-3 py-2.5 rounded-xl border border-gray-300 text-sm text-gray-900 bg-white focus:outline-none focus:border-flehub-green focus:ring-2 focus:ring-flehub-green/20 resize-none"
                     />
-                    <p className="text-xs text-gray-400">
-                      Minimum {MIN_BIO_LENGTH} caractères ({formData.bio.trim().length}/{MIN_BIO_LENGTH})
-                    </p>
-                    {fieldErrors.bio && (
-                      <p className="text-xs text-red-600">{fieldErrors.bio}</p>
-                    )}
                   </div>
 
                   <div className="space-y-1.5">
@@ -763,22 +707,12 @@ export default function RegisterPage() {
                     <Input
                       id="qualifications"
                       type="text"
-                      required
-                      minLength={MIN_QUALIFICATIONS_LENGTH}
                       placeholder="Ex: DALF C2, Master FLE, CAPES…"
                       value={formData.qualifications}
                       onChange={(e) => update('qualifications', e.target.value)}
                       disabled={loading}
-                      aria-invalid={Boolean(fieldErrors.qualifications)}
-                      className={`h-10 rounded-xl ${
-                        fieldErrors.qualifications
-                          ? 'border-red-400 focus:border-red-400'
-                          : 'border-gray-300 focus:border-flehub-green'
-                      }`}
+                      className="h-10 border-gray-300 focus:border-flehub-green rounded-xl"
                     />
-                    {fieldErrors.qualifications && (
-                      <p className="text-xs text-red-600">{fieldErrors.qualifications}</p>
-                    )}
                     <p className="text-xs text-gray-400">
                       Votre compte sera examiné par un administrateur avant activation.
                     </p>
@@ -806,86 +740,6 @@ export default function RegisterPage() {
                       disabled={loading}
                       className="h-10 border-gray-300 focus:border-flehub-green rounded-xl"
                     />
-                    {fieldErrors.school_name && (
-                      <p className="text-xs text-red-600">{fieldErrors.school_name}</p>
-                    )}
-                  </div>
-
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                    <div className="space-y-1.5">
-                      <Label htmlFor="school_type" className="text-sm font-medium text-gray-700">
-                        Type d&apos;établissement <span className="text-red-500">*</span>
-                      </Label>
-                      <select
-                        id="school_type"
-                        value={formData.school_type}
-                        onChange={(e) => update('school_type', e.target.value)}
-                        disabled={loading}
-                        className="w-full h-10 px-3 rounded-xl border border-gray-300 text-sm text-gray-900 bg-white focus:outline-none focus:border-flehub-green focus:ring-2 focus:ring-flehub-green/20"
-                      >
-                        <option value="">Sélectionner un type</option>
-                        <option value="primary">Primaire</option>
-                        <option value="secondary">Secondaire</option>
-                        <option value="both">Primaire et secondaire</option>
-                      </select>
-                      {fieldErrors.school_type && (
-                        <p className="text-xs text-red-600">{fieldErrors.school_type}</p>
-                      )}
-                    </div>
-
-                    <div className="space-y-1.5">
-                      <Label htmlFor="official_email" className="text-sm font-medium text-gray-700">
-                        E-mail officiel <span className="text-red-500">*</span>
-                      </Label>
-                      <Input
-                        id="official_email"
-                        type="email"
-                        placeholder="contact@ecole.rw"
-                        value={formData.official_email}
-                        onChange={(e) => update('official_email', e.target.value)}
-                        disabled={loading}
-                        className="h-10 border-gray-300 focus:border-flehub-green rounded-xl"
-                      />
-                      {fieldErrors.official_email && (
-                        <p className="text-xs text-red-600">{fieldErrors.official_email}</p>
-                      )}
-                    </div>
-                  </div>
-
-                  <div className="space-y-1.5">
-                    <Label htmlFor="director_name" className="text-sm font-medium text-gray-700">
-                      Nom du/de la directeur/directrice <span className="text-red-500">*</span>
-                    </Label>
-                    <Input
-                      id="director_name"
-                      type="text"
-                      placeholder="Ex: Marie Mukamana"
-                      value={formData.director_name}
-                      onChange={(e) => update('director_name', e.target.value)}
-                      disabled={loading}
-                      className="h-10 border-gray-300 focus:border-flehub-green rounded-xl"
-                    />
-                    {fieldErrors.director_name && (
-                      <p className="text-xs text-red-600">{fieldErrors.director_name}</p>
-                    )}
-                  </div>
-
-                  <div className="space-y-1.5">
-                    <Label htmlFor="address" className="text-sm font-medium text-gray-700">
-                      Adresse physique <span className="text-red-500">*</span>
-                    </Label>
-                    <Input
-                      id="address"
-                      type="text"
-                      placeholder="Rue, quartier, boîte postale..."
-                      value={formData.address}
-                      onChange={(e) => update('address', e.target.value)}
-                      disabled={loading}
-                      className="h-10 border-gray-300 focus:border-flehub-green rounded-xl"
-                    />
-                    {fieldErrors.address && (
-                      <p className="text-xs text-red-600">{fieldErrors.address}</p>
-                    )}
                   </div>
 
                   {/* Province */}
@@ -993,7 +847,6 @@ export default function RegisterPage() {
               <button
                 type="submit"
                 disabled={loading}
-                aria-busy={loading}
                 className="w-full h-11 flex items-center justify-center gap-2 bg-flehub-green text-white font-semibold rounded-xl hover:bg-flehub-green-dark transition-colors disabled:opacity-60 disabled:cursor-not-allowed shadow-sm mt-2"
               >
                 {loading ? (

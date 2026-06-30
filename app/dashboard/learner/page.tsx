@@ -103,8 +103,6 @@ export default function LearnerDashboard() {
   const [competencyProgress, setCompetencyProgress] = useState<CompetencyProgress[]>([]);
   const [certificates, setCertificates] = useState<Certificate[]>([]);
   const [loading, setLoading] = useState(true);
-  const [fetchError, setFetchError] = useState<string | null>(null);
-  const [profileSetupMissing, setProfileSetupMissing] = useState(false);
 
   // Payment modal
   const [payModalOpen, setPayModalOpen] = useState(false);
@@ -118,61 +116,37 @@ export default function LearnerDashboard() {
   }, []);
 
   async function fetchData() {
-    setFetchError(null);
-    setProfileSetupMissing(false);
-
     try {
       const {
         data: { user },
       } = await supabase.auth.getUser();
-      if (!user) {
-        setFetchError('You must be signed in to view this dashboard.');
-        return;
-      }
+      if (!user) return;
 
-      const { data: profile, error: profileError } = await supabase
+      const { data: profile } = await supabase
         .from('profiles')
         .select('full_name')
         .eq('id', user.id)
         .maybeSingle();
 
-      if (profileError) {
-        setFetchError(`Failed to load profile: ${profileError.message}`);
-        return;
-      }
-
       setFullName(profile?.full_name ?? '');
 
-      const { data: learner, error: learnerError } = await supabase
+      const { data: learner } = await supabase
         .from('learners')
         .select('id, cefr_level')
         .eq('profile_id', user.id)
         .maybeSingle();
 
-      if (learnerError) {
-        setFetchError(`Failed to load learner profile: ${learnerError.message}`);
-        return;
-      }
-
-      if (!learner) {
-        setProfileSetupMissing(true);
-        return;
-      }
-
+      if (!learner) return;
       setLearnerId(learner.id);
       setCefrLevel(learner.cefr_level);
 
-      const { data: coursesData, error: coursesError } = await supabase
+      // Fetch courses assigned (published courses matching learner's level)
+      const { data: coursesData } = await supabase
         .from('courses')
         .select('id, title, cefr_level, competency, content_type, duration_minutes')
         .eq('is_published', true)
         .eq('cefr_level', learner.cefr_level ?? 'A1')
         .limit(6);
-
-      if (coursesError) {
-        setFetchError(`Failed to load courses: ${coursesError.message}`);
-        return;
-      }
 
       // Get progress for each course
       const coursesWithProgress: CourseCard[] = await Promise.all(
@@ -188,46 +162,27 @@ export default function LearnerDashboard() {
       );
       setCourses(coursesWithProgress);
 
-      const { count: inProgressCount, error: progressCountError } = await supabase
+      // Stats
+      const { count: inProgressCount } = await supabase
         .from('learner_progress')
         .select('*', { count: 'exact', head: true })
         .eq('learner_id', learner.id)
         .lt('progress_percent', 100);
 
-      if (progressCountError) {
-        setFetchError(`Failed to load progress stats: ${progressCountError.message}`);
-        return;
-      }
-
-      const { count: exCompleted, error: attemptsError } = await supabase
+      const { count: exCompleted } = await supabase
         .from('learner_exercise_attempts')
         .select('*', { count: 'exact', head: true })
         .eq('learner_id', learner.id);
 
-      if (attemptsError) {
-        setFetchError(`Failed to load exercise stats: ${attemptsError.message}`);
-        return;
-      }
-
-      const { count: examsTaken, error: examsError } = await supabase
+      const { count: examsTaken } = await supabase
         .from('exam_results')
         .select('*', { count: 'exact', head: true })
         .eq('learner_id', learner.id);
 
-      if (examsError) {
-        setFetchError(`Failed to load exam stats: ${examsError.message}`);
-        return;
-      }
-
-      const { count: certCount, error: certCountError } = await supabase
+      const { count: certCount } = await supabase
         .from('certificates')
         .select('*', { count: 'exact', head: true })
         .eq('learner_id', learner.id);
-
-      if (certCountError) {
-        setFetchError(`Failed to load certificate stats: ${certCountError.message}`);
-        return;
-      }
 
       setStats({
         coursesInProgress: inProgressCount ?? 0,
@@ -236,18 +191,14 @@ export default function LearnerDashboard() {
         certificates: certCount ?? 0,
       });
 
+      // Upcoming exam sessions
       const now = new Date().toISOString();
-      const { data: examData, error: examDataError } = await supabase
+      const { data: examData } = await supabase
         .from('exam_sessions')
         .select('id, title, cefr_level, exam_date, registration_deadline, venue, price_rwf')
         .gte('exam_date', now)
         .order('exam_date', { ascending: true })
         .limit(4);
-
-      if (examDataError) {
-        setFetchError(`Failed to load upcoming exams: ${examDataError.message}`);
-        return;
-      }
 
       setUpcomingExams(examData ?? []);
 
@@ -285,7 +236,6 @@ export default function LearnerDashboard() {
       setCertificates(certsMapped);
     } catch (err) {
       console.error(err);
-      setFetchError('An unexpected error occurred while loading the dashboard.');
     } finally {
       setLoading(false);
     }
@@ -371,18 +321,6 @@ export default function LearnerDashboard() {
           Register for Next Exam
         </Button>
       </div>
-
-      {fetchError && (
-        <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
-          {fetchError}
-        </div>
-      )}
-
-      {profileSetupMissing && (
-        <div className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
-          Your learner profile is not set up yet. Please contact an administrator or complete registration.
-        </div>
-      )}
 
       {/* Stat Cards */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
