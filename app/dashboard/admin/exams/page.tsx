@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import {
   Plus,
@@ -13,6 +13,12 @@ import {
   Users,
   X,
   AlertTriangle,
+  Upload,
+  CheckCircle2,
+  Music,
+  ChevronDown,
+  ChevronUp,
+  FilePlus2,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -86,6 +92,26 @@ const EMPTY_FORM: SessionFormData = {
 
 const CEFR_LEVELS: CefrLevel[] = ['A1', 'A2', 'B1', 'B2', 'C1', 'C2']
 
+// ─── Exam Papers Types ─────────────────────────────────────────────────────────
+
+type Competency = 'EO' | 'EE' | 'CO' | 'CE' | 'LANGUE'
+
+interface ExamPaper {
+  id: string
+  exam_session_id: string
+  competency: Competency
+  file_path: string | null
+  audio_path: string | null
+}
+
+const COMPETENCIES: { key: Competency; label: string; hasAudio: boolean }[] = [
+  { key: 'EO', label: 'Expression Orale', hasAudio: false },
+  { key: 'EE', label: 'Expression Écrite', hasAudio: false },
+  { key: 'CO', label: 'Compréhension Orale', hasAudio: true },
+  { key: 'CE', label: 'Compréhension Écrite', hasAudio: true },
+  { key: 'LANGUE', label: 'Étude de la Langue', hasAudio: false },
+]
+
 const STATUS_CONFIG: Record<
   SessionStatus,
   { label: string; className: string }
@@ -143,6 +169,290 @@ function validateForm(data: SessionFormData): Partial<Record<keyof SessionFormDa
   }
 
   return errors
+}
+
+// ─── Exam Papers Section ───────────────────────────────────────────────────────
+
+function ExamPapersSection({
+  sessions,
+}: {
+  sessions: ExamSession[]
+}) {
+  const supabase = createClient()
+  const [papers, setPapers] = useState<Record<string, ExamPaper[]>>({})
+  const [loadingPapers, setLoadingPapers] = useState(false)
+  const [uploadingKey, setUploadingKey] = useState<string | null>(null)
+  const [expandedSession, setExpandedSession] = useState<string | null>(null)
+  const [paperError, setPaperError] = useState<string | null>(null)
+  const fileInputRef = useRef<HTMLInputElement>(null)
+  const pendingUpload = useRef<{ sessionId: string; competency: Competency; type: 'pdf' | 'mp3' } | null>(null)
+
+  const fetchPapers = useCallback(async () => {
+    if (sessions.length === 0) return
+    setLoadingPapers(true)
+    const ids = sessions.map((s) => s.id)
+    const { data, error } = await supabase
+      .from('exam_papers')
+      .select('id, exam_session_id, competency, file_path, audio_path')
+      .in('exam_session_id', ids)
+    if (!error && data) {
+      const grouped: Record<string, ExamPaper[]> = {}
+      for (const p of data) {
+        if (!grouped[p.exam_session_id]) grouped[p.exam_session_id] = []
+        grouped[p.exam_session_id].push(p as ExamPaper)
+      }
+      setPapers(grouped)
+    }
+    setLoadingPapers(false)
+  }, [sessions, supabase])
+
+  useEffect(() => {
+    fetchPapers()
+  }, [fetchPapers])
+
+  const getPaper = (sessionId: string, competency: Competency): ExamPaper | undefined =>
+    papers[sessionId]?.find((p) => p.competency === competency)
+
+  const triggerUpload = (sessionId: string, competency: Competency, type: 'pdf' | 'mp3') => {
+    pendingUpload.current = { sessionId, competency, type }
+    if (fileInputRef.current) {
+      fileInputRef.current.accept = type === 'pdf' ? 'application/pdf' : 'audio/mpeg,audio/mp3'
+      fileInputRef.current.value = ''
+      fileInputRef.current.click()
+    }
+  }
+
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    const meta = pendingUpload.current
+    if (!file || !meta) return
+    setPaperError(null)
+
+    const { sessionId, competency, type } = meta
+    const key = `${sessionId}-${competency}-${type}`
+    setUploadingKey(key)
+
+    try {
+      let uploadPath: string
+      let bucket: string
+      let fieldCol: 'file_path' | 'audio_path'
+
+      if (type === 'pdf') {
+        bucket = 'exam-papers'
+        uploadPath = `${sessionId}/${competency}.pdf`
+        fieldCol = 'file_path'
+      } else {
+        bucket = 'exam-audio'
+        uploadPath = `${sessionId}/${competency}.mp3`
+        fieldCol = 'audio_path'
+      }
+
+      const { error: uploadError } = await supabase.storage
+        .from(bucket)
+        .upload(uploadPath, file, { upsert: true })
+      if (uploadError) throw uploadError
+
+      const existing = getPaper(sessionId, competency)
+      if (existing) {
+        const { error: updErr } = await supabase
+          .from('exam_papers')
+          .update({ [fieldCol]: uploadPath, updated_at: new Date().toISOString() })
+          .eq('id', existing.id)
+        if (updErr) throw updErr
+        setPapers((prev) => ({
+          ...prev,
+          [sessionId]: (prev[sessionId] ?? []).map((p) =>
+            p.id === existing.id ? { ...p, [fieldCol]: uploadPath } : p
+          ),
+        }))
+      } else {
+        const { data: inserted, error: insErr } = await supabase
+          .from('exam_papers')
+          .upsert(
+            { exam_session_id: sessionId, competency, [fieldCol]: uploadPath },
+            { onConflict: 'exam_session_id,competency' }
+          )
+          .select()
+          .maybeSingle()
+        if (insErr) throw insErr
+        if (inserted) {
+          setPapers((prev) => ({
+            ...prev,
+            [sessionId]: [...(prev[sessionId] ?? []), inserted as ExamPaper],
+          }))
+        }
+      }
+    } catch (err) {
+      setPaperError(`Upload failed: ${(err as Error).message}`)
+    } finally {
+      setUploadingKey(null)
+      pendingUpload.current = null
+    }
+  }
+
+  if (sessions.length === 0) return null
+
+  return (
+    <div className="space-y-4">
+      <div className="flex items-center gap-2">
+        <div className="w-8 h-8 rounded-lg bg-[#E6F5EE] flex items-center justify-center">
+          <FilePlus2 className="w-4 h-4 text-[#00A550]" />
+        </div>
+        <div>
+          <h2 className="text-lg font-semibold text-gray-900">Exam Papers</h2>
+          <p className="text-xs text-gray-500">Upload PDFs and audio files per competency for each session.</p>
+        </div>
+        {loadingPapers && <RefreshCw className="w-4 h-4 text-gray-400 animate-spin ml-2" />}
+      </div>
+
+      {paperError && (
+        <div className="flex items-center gap-2 rounded-lg bg-red-50 border border-red-200 px-4 py-3 text-sm text-red-700">
+          <AlertTriangle className="w-4 h-4 flex-shrink-0" />
+          {paperError}
+          <button onClick={() => setPaperError(null)} className="ml-auto text-red-400 hover:text-red-600">
+            <X className="w-4 h-4" />
+          </button>
+        </div>
+      )}
+
+      {/* hidden file input shared across all upload buttons */}
+      <input ref={fileInputRef} type="file" className="hidden" onChange={handleFileChange} />
+
+      <div className="space-y-3">
+        {sessions.map((session) => {
+          const isOpen = expandedSession === session.id
+          const sessionPapers = papers[session.id] ?? []
+          const pdfCount = sessionPapers.filter((p) => p.file_path).length
+          const audioCount = sessionPapers.filter((p) => p.audio_path).length
+          const totalExpected = COMPETENCIES.length
+          const audioExpected = COMPETENCIES.filter((c) => c.hasAudio).length
+
+          return (
+            <Card key={session.id} className="border-0 shadow-sm overflow-hidden">
+              {/* Session header row — click to expand */}
+              <button
+                type="button"
+                onClick={() => setExpandedSession(isOpen ? null : session.id)}
+                className="w-full flex items-center justify-between px-5 py-4 text-left hover:bg-gray-50/70 transition-colors"
+              >
+                <div className="flex items-center gap-3 min-w-0">
+                  <div className="flex-shrink-0">
+                    <span className={`text-xs px-2.5 py-1 rounded font-bold ${CEFR_COLORS[session.cefr_level] ?? 'bg-gray-100 text-gray-600'}`}>
+                      {session.cefr_level}
+                    </span>
+                  </div>
+                  <div className="min-w-0">
+                    <p className="text-sm font-semibold text-gray-900 truncate">{session.title}</p>
+                    <p className="text-xs text-gray-400 mt-0.5">
+                      {new Date(session.exam_date).toLocaleDateString('en-RW', { day: 'numeric', month: 'short', year: 'numeric' })}
+                    </p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-3 flex-shrink-0 ml-4">
+                  <div className="hidden sm:flex items-center gap-2 text-xs">
+                    <span className={`flex items-center gap-1 px-2 py-0.5 rounded-full font-medium ${pdfCount === totalExpected ? 'bg-[#E6F5EE] text-[#00A550]' : 'bg-gray-100 text-gray-500'}`}>
+                      <FileText className="w-3 h-3" />
+                      {pdfCount}/{totalExpected} PDFs
+                    </span>
+                    <span className={`flex items-center gap-1 px-2 py-0.5 rounded-full font-medium ${audioCount === audioExpected ? 'bg-[#E6F5EE] text-[#00A550]' : 'bg-gray-100 text-gray-500'}`}>
+                      <Music className="w-3 h-3" />
+                      {audioCount}/{audioExpected} Audio
+                    </span>
+                  </div>
+                  {isOpen ? (
+                    <ChevronUp className="w-4 h-4 text-gray-400" />
+                  ) : (
+                    <ChevronDown className="w-4 h-4 text-gray-400" />
+                  )}
+                </div>
+              </button>
+
+              {/* Competency rows */}
+              {isOpen && (
+                <div className="border-t border-gray-100">
+                  <div className="divide-y divide-gray-50">
+                    {COMPETENCIES.map((comp) => {
+                      const paper = getPaper(session.id, comp.key)
+                      const hasPdf = Boolean(paper?.file_path)
+                      const hasAudio = Boolean(paper?.audio_path)
+                      const pdfKey = `${session.id}-${comp.key}-pdf`
+                      const audioKey = `${session.id}-${comp.key}-mp3`
+                      const uploadingPdf = uploadingKey === pdfKey
+                      const uploadingAudio = uploadingKey === audioKey
+
+                      return (
+                        <div
+                          key={comp.key}
+                          className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 px-5 py-3.5 hover:bg-gray-50/50 transition-colors"
+                        >
+                          {/* Competency label */}
+                          <div className="flex items-center gap-2.5 min-w-0">
+                            <span className="text-xs font-bold bg-gray-100 text-gray-600 px-2 py-0.5 rounded flex-shrink-0">
+                              {comp.key}
+                            </span>
+                            <span className="text-sm text-gray-700">{comp.label}</span>
+                          </div>
+
+                          {/* Upload controls */}
+                          <div className="flex items-center gap-2 flex-shrink-0 flex-wrap">
+                            {/* PDF upload */}
+                            <button
+                              type="button"
+                              onClick={() => triggerUpload(session.id, comp.key, 'pdf')}
+                              disabled={uploadingPdf}
+                              className={`flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg font-medium transition-colors border ${
+                                hasPdf
+                                  ? 'bg-[#E6F5EE] text-[#00A550] border-green-200 hover:bg-green-100'
+                                  : 'bg-white text-gray-600 border-gray-200 hover:border-[#00A550] hover:text-[#00A550]'
+                              }`}
+                            >
+                              {uploadingPdf ? (
+                                <RefreshCw className="w-3 h-3 animate-spin" />
+                              ) : hasPdf ? (
+                                <CheckCircle2 className="w-3 h-3" />
+                              ) : (
+                                <Upload className="w-3 h-3" />
+                              )}
+                              {uploadingPdf ? 'Uploading…' : hasPdf ? 'Disponible' : 'Manquant'}
+                              <FileText className="w-3 h-3 opacity-60" />
+                            </button>
+
+                            {/* Audio upload — CO and CE only */}
+                            {comp.hasAudio && (
+                              <button
+                                type="button"
+                                onClick={() => triggerUpload(session.id, comp.key, 'mp3')}
+                                disabled={uploadingAudio}
+                                className={`flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg font-medium transition-colors border ${
+                                  hasAudio
+                                    ? 'bg-[#E6F5EE] text-[#00A550] border-green-200 hover:bg-green-100'
+                                    : 'bg-white text-gray-600 border-gray-200 hover:border-[#00A550] hover:text-[#00A550]'
+                                }`}
+                              >
+                                {uploadingAudio ? (
+                                  <RefreshCw className="w-3 h-3 animate-spin" />
+                                ) : hasAudio ? (
+                                  <CheckCircle2 className="w-3 h-3" />
+                                ) : (
+                                  <Upload className="w-3 h-3" />
+                                )}
+                                {uploadingAudio ? 'Uploading…' : hasAudio ? 'Disponible' : 'Manquant'}
+                                <Music className="w-3 h-3 opacity-60" />
+                              </button>
+                            )}
+                          </div>
+                        </div>
+                      )
+                    })}
+                  </div>
+                </div>
+              )}
+            </Card>
+          )
+        })}
+      </div>
+    </div>
+  )
 }
 
 // ─── Page Component ─────────────────────────────────────────────────────────────
@@ -565,6 +875,9 @@ export default function AdminExamsPage() {
           </Table>
         </CardContent>
       </Card>
+
+      {/* ── Exam Papers Section ──────────────────────────────────────────────── */}
+      {sessions.length > 0 && <ExamPapersSection sessions={sessions} />}
 
       {/* ── Create / Edit Dialog ─────────────────────────────────────────────── */}
       <Dialog open={formOpen} onOpenChange={setFormOpen}>
