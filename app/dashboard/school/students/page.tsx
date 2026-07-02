@@ -39,6 +39,9 @@ import {
   AlertTriangle,
   X,
   RefreshCw,
+  CalendarDays,
+  UserMinus,
+  CheckCircle2,
 } from 'lucide-react'
 
 type CEFR = 'A1' | 'A2' | 'B1' | 'B2' | 'C1' | 'C2'
@@ -71,6 +74,21 @@ interface FormData {
 
 const EMPTY_FORM: FormData = { first_name: '', last_name: '', date_of_birth: '', cefr_level: '' }
 
+interface ExamSession {
+  id: string
+  title: string
+  cefr_level: string
+  exam_date: string
+}
+
+interface StudentEnrollment {
+  id: string
+  exam_session_id: string
+  active: boolean
+  cefr_level: string | null
+  session: ExamSession | null
+}
+
 export default function SchoolStudentsPage() {
   const supabase = createClient()
 
@@ -85,6 +103,13 @@ export default function SchoolStudentsPage() {
   const [deleting, setDeleting] = useState<Student | null>(null)
   const [form, setForm] = useState<FormData>(EMPTY_FORM)
   const [saving, setSaving] = useState(false)
+
+  // Enrollment section state
+  const [allSessions, setAllSessions] = useState<ExamSession[]>([])
+  const [enrollments, setEnrollments] = useState<StudentEnrollment[]>([])
+  const [selectedSessionId, setSelectedSessionId] = useState('')
+  const [enrolling, setEnrolling] = useState(false)
+  const [unenrollingId, setUnenrollingId] = useState<string | null>(null)
 
   const getSchoolId = useCallback(async () => {
     const { data: { user } } = await supabase.auth.getUser()
@@ -121,10 +146,85 @@ export default function SchoolStudentsPage() {
   useEffect(() => { loadAll() }, [loadAll])
 
   const openCreate = () => { setEditing(null); setForm(EMPTY_FORM); setFormOpen(true) }
-  const openEdit = (s: Student) => {
+  const openEdit = async (s: Student) => {
     setEditing(s)
     setForm({ first_name: s.first_name, last_name: s.last_name, date_of_birth: s.date_of_birth ?? '', cefr_level: s.cefr_level ?? '' })
+    setSelectedSessionId('')
+    setEnrollments([])
+    setAllSessions([])
     setFormOpen(true)
+
+    // Load exam sessions and student enrollments in parallel
+    const [sessRes, enrollRes] = await Promise.all([
+      supabase
+        .from('exam_sessions')
+        .select('id, title, cefr_level, exam_date')
+        .in('status', ['upcoming', 'ongoing'])
+        .order('exam_date', { ascending: true }),
+      supabase
+        .from('student_enrollments')
+        .select('id, exam_session_id, active, cefr_level')
+        .eq('student_id', s.id),
+    ])
+    const sessions = sessRes.data ?? []
+    const rawEnrolls = enrollRes.data ?? []
+
+    setAllSessions(sessions)
+    setEnrollments(
+      rawEnrolls.map((e: any) => ({
+        ...e,
+        session: sessions.find((ses) => ses.id === e.exam_session_id) ?? null,
+      }))
+    )
+  }
+
+  const handleEnrollInSession = async () => {
+    if (!editing || !selectedSessionId) return
+    const alreadyActive = enrollments.some(
+      (e) => e.exam_session_id === selectedSessionId && e.active
+    )
+    if (alreadyActive) return
+    setEnrolling(true)
+    try {
+      const existing = enrollments.find((e) => e.exam_session_id === selectedSessionId)
+      if (existing) {
+        // Re-activate
+        await supabase.from('student_enrollments').update({ active: true }).eq('id', existing.id)
+      } else {
+        await supabase.from('student_enrollments').insert({
+          student_id: editing.id,
+          exam_session_id: selectedSessionId,
+          active: true,
+          cefr_level: form.cefr_level || editing.cefr_level || null,
+        })
+      }
+      // Refresh enrollments
+      const { data } = await supabase
+        .from('student_enrollments')
+        .select('id, exam_session_id, active, cefr_level')
+        .eq('student_id', editing.id)
+      setEnrollments(
+        (data ?? []).map((e: any) => ({
+          ...e,
+          session: allSessions.find((s) => s.id === e.exam_session_id) ?? null,
+        }))
+      )
+      setSelectedSessionId('')
+    } finally {
+      setEnrolling(false)
+    }
+  }
+
+  const handleUnenroll = async (enrollmentId: string) => {
+    setUnenrollingId(enrollmentId)
+    try {
+      await supabase.from('student_enrollments').update({ active: false }).eq('id', enrollmentId)
+      setEnrollments((prev) =>
+        prev.map((e) => (e.id === enrollmentId ? { ...e, active: false } : e))
+      )
+    } finally {
+      setUnenrollingId(null)
+    }
   }
 
   const handleSave = async () => {
@@ -279,7 +379,7 @@ export default function SchoolStudentsPage() {
 
       {/* Add / Edit Dialog */}
       <Dialog open={formOpen} onOpenChange={setFormOpen}>
-        <DialogContent className="sm:max-w-md">
+        <DialogContent className={editing ? 'sm:max-w-lg' : 'sm:max-w-md'}>
           <DialogHeader>
             <DialogTitle>{editing ? 'Edit Student' : 'Add New Student'}</DialogTitle>
             <DialogDescription className="text-sm text-gray-500">
@@ -318,6 +418,97 @@ export default function SchoolStudentsPage() {
                 </Select>
               </div>
             </div>
+
+            {/* ── Exam Session Enrollment ── only shown when editing */}
+            {editing && (
+              <div className="border-t border-gray-100 pt-4 space-y-3">
+                <div className="flex items-center gap-2">
+                  <div className="w-6 h-6 rounded bg-[#E6F5EE] flex items-center justify-center flex-shrink-0">
+                    <CalendarDays className="w-3.5 h-3.5 text-[#00A550]" />
+                  </div>
+                  <p className="text-sm font-semibold text-gray-800">Exam Session Enrollment</p>
+                </div>
+
+                {/* Enroll row */}
+                <div className="flex gap-2 items-end">
+                  <div className="flex-1 space-y-1.5">
+                    <Label className="text-xs text-gray-600">Available Sessions</Label>
+                    <Select value={selectedSessionId} onValueChange={setSelectedSessionId}>
+                      <SelectTrigger className="border-gray-200 text-sm">
+                        <SelectValue placeholder={allSessions.length ? 'Select a session…' : 'No sessions available'} />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {allSessions.map((s) => {
+                          const isActive = enrollments.some(
+                            (e) => e.exam_session_id === s.id && e.active
+                          )
+                          return (
+                            <SelectItem key={s.id} value={s.id} disabled={isActive}>
+                              <span className="flex items-center gap-2">
+                                {s.title} —{' '}
+                                {new Date(s.exam_date).toLocaleDateString('en-RW', { day: 'numeric', month: 'short', year: 'numeric' })}
+                                {isActive && (
+                                  <span className="text-[10px] text-[#00A550] font-medium bg-[#E6F5EE] px-1.5 py-0.5 rounded">enrolled</span>
+                                )}
+                              </span>
+                            </SelectItem>
+                          )
+                        })}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <Button
+                    size="sm"
+                    disabled={
+                      !selectedSessionId ||
+                      enrolling ||
+                      enrollments.some((e) => e.exam_session_id === selectedSessionId && e.active)
+                    }
+                    onClick={handleEnrollInSession}
+                    className="bg-[#00A550] hover:bg-[#008040] text-white h-9 px-3 text-xs flex-shrink-0"
+                  >
+                    {enrolling ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : 'Enroll in this session'}
+                  </Button>
+                </div>
+
+                {/* Current enrollments list */}
+                {enrollments.filter((e) => e.active).length > 0 ? (
+                  <div className="space-y-1.5">
+                    <p className="text-xs font-medium text-gray-500">Currently enrolled:</p>
+                    <div className="space-y-1">
+                      {enrollments
+                        .filter((e) => e.active)
+                        .map((e) => (
+                          <div key={e.id}
+                            className="flex items-center justify-between px-3 py-2 rounded-lg bg-[#E6F5EE]/60 border border-green-100">
+                            <div className="flex items-center gap-2 min-w-0">
+                              <CheckCircle2 className="w-3.5 h-3.5 text-[#00A550] flex-shrink-0" />
+                              <span className="text-xs text-gray-700 truncate">
+                                {e.session
+                                  ? `${e.session.title} — ${new Date(e.session.exam_date).toLocaleDateString('en-RW', { day: 'numeric', month: 'short', year: 'numeric' })}`
+                                  : e.exam_session_id}
+                              </span>
+                            </div>
+                            <button
+                              type="button"
+                              disabled={unenrollingId === e.id}
+                              onClick={() => handleUnenroll(e.id)}
+                              className="flex items-center gap-1 text-xs text-red-500 hover:text-red-700 ml-2 flex-shrink-0 disabled:opacity-50"
+                            >
+                              {unenrollingId === e.id
+                                ? <RefreshCw className="w-3 h-3 animate-spin" />
+                                : <UserMinus className="w-3 h-3" />}
+                              Unenroll
+                            </button>
+                          </div>
+                        ))}
+                    </div>
+                  </div>
+                ) : (
+                  <p className="text-xs text-gray-400 italic">Not enrolled in any session yet.</p>
+                )}
+              </div>
+            )}
           </div>
           <DialogFooter className="gap-2">
             <Button variant="outline" onClick={() => setFormOpen(false)} disabled={saving} className="border-gray-200">Cancel</Button>
