@@ -1,49 +1,58 @@
-'use client';
+'use client'
 
-import { useEffect, useState } from 'react';
-import { createClient } from '@/lib/supabase/client';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Skeleton } from '@/components/ui/skeleton';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
+import { useState, useEffect, useCallback } from 'react'
+import { createClient } from '@/lib/supabase/client'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Button } from '@/components/ui/button'
+import { Badge } from '@/components/ui/badge'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
   DialogFooter,
-} from '@/components/ui/dialog';
-import {
-  Users,
-  UserPlus,
-  Search,
-  GraduationCap,
-  FileEdit,
-  AlertTriangle,
-} from 'lucide-react';
+  DialogDescription,
+} from '@/components/ui/dialog'
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select';
+} from '@/components/ui/select'
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table'
+import {
+  Users,
+  UserPlus,
+  Pencil,
+  Trash2,
+  GraduationCap,
+  AlertTriangle,
+  X,
+  RefreshCw,
+} from 'lucide-react'
 
-type CEFR = 'A1' | 'A2' | 'B1' | 'B2' | 'C1' | 'C2';
+type CEFR = 'A1' | 'A2' | 'B1' | 'B2' | 'C1' | 'C2'
 
 interface Student {
-  id: string;
-  profile_id: string;
-  full_name: string;
-  email: string;
-  cefr_level: CEFR | null;
-  enrolled_at: string;
-  last_exam_result: number | null;
-  last_exam_passed: boolean | null;
+  id: string
+  first_name: string
+  last_name: string
+  date_of_birth: string | null
+  cefr_level: CEFR | null
+  created_at: string
 }
 
+const CEFR_LEVELS: CEFR[] = ['A1', 'A2', 'B1', 'B2', 'C1', 'C2']
 const CEFR_COLORS: Record<CEFR, string> = {
   A1: 'bg-slate-100 text-slate-600',
   A2: 'bg-blue-50 text-blue-600',
@@ -51,179 +60,132 @@ const CEFR_COLORS: Record<CEFR, string> = {
   B2: 'bg-[#E6F5EE] text-[#00A550]',
   C1: 'bg-orange-50 text-orange-600',
   C2: 'bg-purple-50 text-purple-700',
-};
+}
 
-const COMPETENCIES = ['EO', 'EE', 'CO', 'CE', 'EL'] as const;
-type CompKey = (typeof COMPETENCIES)[number];
+interface FormData {
+  first_name: string
+  last_name: string
+  date_of_birth: string
+  cefr_level: CEFR | ''
+}
 
-const emptyScores: Record<CompKey, string> = { EO: '', EE: '', CO: '', CE: '', EL: '' };
+const EMPTY_FORM: FormData = { first_name: '', last_name: '', date_of_birth: '', cefr_level: '' }
 
 export default function SchoolStudentsPage() {
-  const supabase = createClient();
+  const supabase = createClient()
 
-  const [schoolId, setSchoolId] = useState<string | null>(null);
-  const [students, setStudents] = useState<Student[]>([]);
-  const [examSessions, setExamSessions] = useState<{ id: string; title: string; cefr_level: CEFR; exam_date: string }[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [schoolId, setSchoolId] = useState<string | null>(null)
+  const [students, setStudents] = useState<Student[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
 
-  // Enroll dialog
-  const [enrollOpen, setEnrollOpen] = useState(false);
-  const [enrollEmail, setEnrollEmail] = useState('');
-  const [enrollResult, setEnrollResult] = useState<{ id: string; full_name: string } | null>(null);
-  const [enrollSearching, setEnrollSearching] = useState(false);
-  const [enrollSaving, setEnrollSaving] = useState(false);
-  const [enrollError, setEnrollError] = useState('');
+  const [formOpen, setFormOpen] = useState(false)
+  const [deleteOpen, setDeleteOpen] = useState(false)
+  const [editing, setEditing] = useState<Student | null>(null)
+  const [deleting, setDeleting] = useState<Student | null>(null)
+  const [form, setForm] = useState<FormData>(EMPTY_FORM)
+  const [saving, setSaving] = useState(false)
 
-  // Results dialog
-  const [resultsOpen, setResultsOpen] = useState(false);
-  const [selectedStudentId, setSelectedStudentId] = useState('');
-  const [selectedExamId, setSelectedExamId] = useState('');
-  const [scores, setScores] = useState<Record<CompKey, string>>({ ...emptyScores });
-  const [resultsSaving, setResultsSaving] = useState(false);
+  const getSchoolId = useCallback(async () => {
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) return null
+    const { data } = await supabase.from('schools').select('id').eq('profile_id', user.id).maybeSingle()
+    return data?.id ?? null
+  }, [supabase])
 
-  useEffect(() => { fetchData(); }, []);
+  const fetchStudents = useCallback(async (sid: string) => {
+    const { data, error: err } = await supabase
+      .from('school_students')
+      .select('id, first_name, last_name, date_of_birth, cefr_level, created_at')
+      .eq('school_id', sid)
+      .order('last_name', { ascending: true })
+    if (err) throw err
+    setStudents(data ?? [])
+  }, [supabase])
 
-  async function fetchData() {
-    setLoading(true);
-    setError(null);
+  const loadAll = useCallback(async () => {
+    setLoading(true)
+    setError(null)
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
-
-      const { data: school } = await supabase
-        .from('schools').select('id').eq('profile_id', user.id).maybeSingle();
-      if (!school) return;
-      setSchoolId(school.id);
-
-      const { data: enrollments } = await supabase
-        .from('school_enrollments')
-        .select('id, enrolled_at, learners(id, profile_id, cefr_level, profiles(full_name, email))')
-        .eq('school_id', school.id)
-        .order('enrolled_at', { ascending: false });
-
-      const mapped: Student[] = await Promise.all(
-        (enrollments ?? []).map(async (e: any) => {
-          const learner = e.learners;
-          const profile = learner?.profiles;
-          const { data: lastResult } = await supabase
-            .from('exam_results').select('total_score, passed')
-            .eq('learner_id', learner?.id).order('created_at', { ascending: false })
-            .limit(1).maybeSingle();
-          return {
-            id: learner?.id ?? e.id,
-            profile_id: learner?.profile_id ?? '',
-            full_name: profile?.full_name ?? 'Unknown',
-            email: profile?.email ?? '',
-            cefr_level: learner?.cefr_level ?? null,
-            enrolled_at: e.enrolled_at,
-            last_exam_result: lastResult?.total_score ?? null,
-            last_exam_passed: lastResult?.passed ?? null,
-          };
-        })
-      );
-      setStudents(mapped);
-
-      const { data: sessions } = await supabase
-        .from('exam_sessions').select('id, title, cefr_level, exam_date')
-        .order('exam_date', { ascending: false }).limit(20);
-      setExamSessions(sessions ?? []);
+      const sid = schoolId ?? await getSchoolId()
+      if (!sid) { setLoading(false); return }
+      if (!schoolId) setSchoolId(sid)
+      await fetchStudents(sid)
     } catch {
-      setError('Failed to load students. Please refresh.');
+      setError('Failed to load students. Please refresh.')
     } finally {
-      setLoading(false);
+      setLoading(false)
     }
+  }, [schoolId, getSchoolId, fetchStudents])
+
+  useEffect(() => { loadAll() }, [loadAll])
+
+  const openCreate = () => { setEditing(null); setForm(EMPTY_FORM); setFormOpen(true) }
+  const openEdit = (s: Student) => {
+    setEditing(s)
+    setForm({ first_name: s.first_name, last_name: s.last_name, date_of_birth: s.date_of_birth ?? '', cefr_level: s.cefr_level ?? '' })
+    setFormOpen(true)
   }
 
-  async function searchLearner() {
-    if (!enrollEmail.trim()) return;
-    setEnrollSearching(true);
-    setEnrollError('');
-    setEnrollResult(null);
+  const handleSave = async () => {
+    if (!schoolId || !form.first_name.trim() || !form.last_name.trim()) return
+    setSaving(true)
+    setError(null)
     try {
-      const { data: profile } = await supabase
-        .from('profiles').select('id, full_name')
-        .eq('email', enrollEmail.trim().toLowerCase()).maybeSingle();
-      if (!profile) { setEnrollError('No learner found with this email.'); return; }
-      setEnrollResult({ id: profile.id, full_name: profile.full_name });
-    } finally {
-      setEnrollSearching(false);
-    }
-  }
-
-  async function handleEnroll() {
-    if (!schoolId || !enrollResult) return;
-    setEnrollSaving(true);
-    try {
-      const { data: learner } = await supabase
-        .from('learners').select('id').eq('profile_id', enrollResult.id).maybeSingle();
-      if (!learner?.id) { setEnrollError('Learner profile not fully set up.'); return; }
-      await supabase.from('school_enrollments').upsert({
-        school_id: schoolId, learner_id: learner.id, enrolled_at: new Date().toISOString(),
-      });
-      setEnrollOpen(false);
-      setEnrollEmail('');
-      setEnrollResult(null);
-      await fetchData();
-    } finally {
-      setEnrollSaving(false);
-    }
-  }
-
-  function totalScore() {
-    return COMPETENCIES.reduce((sum, k) => sum + (parseFloat(scores[k]) || 0), 0);
-  }
-
-  async function handleSaveResults() {
-    if (!selectedStudentId || !selectedExamId || !schoolId) return;
-    setResultsSaving(true);
-    try {
-      const scorePayload: Record<string, number> = {};
-      COMPETENCIES.forEach((k) => { scorePayload[`score_${k.toLowerCase()}`] = parseFloat(scores[k]) || 0; });
-      const total = totalScore();
-      const passed = total >= 60;
-      const { data: inserted } = await supabase
-        .from('exam_results')
-        .insert({ learner_id: selectedStudentId, exam_session_id: selectedExamId, ...scorePayload, total_score: total, passed, school_id: schoolId })
-        .select('id').maybeSingle();
-      if (passed && inserted?.id) {
-        const { data: session } = await supabase
-          .from('exam_sessions').select('cefr_level').eq('id', selectedExamId).maybeSingle();
-        await supabase.from('certificates').insert({
-          learner_id: selectedStudentId, exam_result_id: inserted.id, school_id: schoolId,
-          cefr_level: session?.cefr_level ?? 'A1',
-          issue_date: new Date().toISOString().split('T')[0],
-          issued_at: new Date().toISOString(),
-          verification_code: Math.random().toString(36).substring(2, 10).toUpperCase(),
-          certificate_number: `CERT-${Date.now().toString(36).toUpperCase()}`,
-        });
+      const payload = {
+        school_id: schoolId,
+        first_name: form.first_name.trim(),
+        last_name: form.last_name.trim(),
+        date_of_birth: form.date_of_birth || null,
+        cefr_level: form.cefr_level || null,
       }
-      setResultsOpen(false);
-      setScores({ ...emptyScores });
-      setSelectedStudentId('');
-      setSelectedExamId('');
-      await fetchData();
+      if (editing) {
+        const { error: err } = await supabase.from('school_students').update(payload).eq('id', editing.id)
+        if (err) throw err
+      } else {
+        const { error: err } = await supabase.from('school_students').insert(payload)
+        if (err) throw err
+      }
+      setFormOpen(false)
+      await fetchStudents(schoolId)
+    } catch (err) {
+      setError((err as Error).message)
     } finally {
-      setResultsSaving(false);
+      setSaving(false)
+    }
+  }
+
+  const handleDelete = async () => {
+    if (!deleting || !schoolId) return
+    setSaving(true)
+    try {
+      const { error: err } = await supabase.from('school_students').delete().eq('id', deleting.id)
+      if (err) throw err
+      setDeleteOpen(false)
+      setDeleting(null)
+      await fetchStudents(schoolId)
+    } catch (err) {
+      setError((err as Error).message)
+    } finally {
+      setSaving(false)
     }
   }
 
   return (
-    <div className="p-6 space-y-6 max-w-7xl mx-auto">
+    <div className="p-6 space-y-6 max-w-5xl mx-auto">
       <div className="flex items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Students</h1>
-          <p className="text-sm text-gray-500 mt-1">Manage enrolled students and enter exam results.</p>
+          <p className="text-sm text-gray-500 mt-1">Manage students registered at your school.</p>
         </div>
         <div className="flex items-center gap-2">
-          <Button variant="outline" size="sm" onClick={() => { setResultsOpen(true); setScores({ ...emptyScores }); setSelectedStudentId(''); setSelectedExamId(''); }}>
-            <FileEdit className="w-4 h-4 mr-1.5" />
-            Enter Results
+          <Button variant="outline" size="sm" onClick={loadAll} disabled={loading}>
+            <RefreshCw className={`w-4 h-4 mr-1.5 ${loading ? 'animate-spin' : ''}`} />
+            Refresh
           </Button>
-          <Button size="sm" className="bg-[#00A550] hover:bg-[#008040] text-white"
-            onClick={() => { setEnrollOpen(true); setEnrollEmail(''); setEnrollResult(null); setEnrollError(''); }}>
+          <Button size="sm" className="bg-[#00A550] hover:bg-[#008040] text-white" onClick={openCreate}>
             <UserPlus className="w-4 h-4 mr-1.5" />
-            Enroll Student
+            Add Student
           </Button>
         </div>
       </div>
@@ -231,7 +193,8 @@ export default function SchoolStudentsPage() {
       {error && (
         <div className="flex items-center gap-2 rounded-lg bg-red-50 border border-red-200 px-4 py-3 text-sm text-red-700">
           <AlertTriangle className="w-4 h-4 flex-shrink-0" />
-          {error}
+          <span className="flex-1">{error}</span>
+          <button onClick={() => setError(null)}><X className="w-4 h-4 text-red-400 hover:text-red-600" /></button>
         </div>
       )}
 
@@ -248,167 +211,146 @@ export default function SchoolStudentsPage() {
           </div>
         </CardHeader>
         <CardContent className="p-0">
-          {loading ? (
-            <div className="p-5 space-y-3">
-              {Array.from({ length: 5 }).map((_, i) => <Skeleton key={i} className="h-10 w-full" />)}
-            </div>
-          ) : students.length === 0 ? (
-            <div className="flex flex-col items-center py-16 text-gray-400">
-              <div className="w-12 h-12 rounded-xl bg-[#E6F5EE] flex items-center justify-center mb-3">
-                <GraduationCap className="w-6 h-6 text-[#00A550]" />
-              </div>
-              <p className="text-sm font-medium text-gray-700">No students enrolled yet</p>
-              <p className="text-xs text-gray-400 mt-1">Use the button above to enroll a learner.</p>
-            </div>
-          ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="border-b border-gray-100">
-                    {['Name', 'Email', 'Level', 'Enrolled', 'Last Result', 'Actions'].map((h) => (
-                      <th key={h} className="text-left py-2.5 px-4 text-xs text-gray-500 font-medium">{h}</th>
+          <Table>
+            <TableHeader>
+              <TableRow className="border-gray-100">
+                {['Last Name', 'First Name', 'Date of Birth', 'Level', 'Enrolled', 'Actions'].map((h) => (
+                  <TableHead key={h} className="text-xs text-gray-500 font-medium first:pl-6 last:pr-6 last:text-right">{h}</TableHead>
+                ))}
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {loading ? (
+                Array.from({ length: 4 }).map((_, i) => (
+                  <TableRow key={i}>
+                    {Array.from({ length: 6 }).map((_, j) => (
+                      <TableCell key={j}><div className="h-4 bg-gray-100 rounded animate-pulse w-4/5" /></TableCell>
                     ))}
-                  </tr>
-                </thead>
-                <tbody>
-                  {students.map((s) => (
-                    <tr key={s.id} className="border-b border-gray-50 hover:bg-gray-50/60 transition-colors">
-                      <td className="py-3 px-4 font-medium text-gray-900">{s.full_name}</td>
-                      <td className="py-3 px-4 text-xs text-gray-500">{s.email}</td>
-                      <td className="py-3 px-4">
-                        {s.cefr_level ? (
-                          <span className={`text-xs px-2.5 py-0.5 rounded font-bold ${CEFR_COLORS[s.cefr_level]}`}>
-                            {s.cefr_level}
-                          </span>
-                        ) : <span className="text-gray-300 text-xs">—</span>}
-                      </td>
-                      <td className="py-3 px-4 text-xs text-gray-400">
-                        {new Date(s.enrolled_at).toLocaleDateString('en-RW', { day: 'numeric', month: 'short', year: 'numeric' })}
-                      </td>
-                      <td className="py-3 px-4">
-                        {s.last_exam_result !== null ? (
-                          <div className="flex items-center gap-1.5">
-                            <span className="font-semibold text-gray-900">{s.last_exam_result}/100</span>
-                            <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${s.last_exam_passed ? 'bg-[#E6F5EE] text-[#00A550]' : 'bg-red-50 text-red-600'}`}>
-                              {s.last_exam_passed ? 'Pass' : 'Fail'}
-                            </span>
-                          </div>
-                        ) : <span className="text-xs text-gray-300">No result</span>}
-                      </td>
-                      <td className="py-3 px-4">
-                        <Button variant="ghost" size="sm" className="h-7 text-xs text-[#00A550] hover:bg-[#E6F5EE]"
-                          onClick={() => { setSelectedStudentId(s.id); setScores({ ...emptyScores }); setSelectedExamId(''); setResultsOpen(true); }}>
-                          <FileEdit className="w-3.5 h-3.5 mr-1" />
-                          Results
+                  </TableRow>
+                ))
+              ) : students.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={6} className="text-center py-16">
+                    <div className="flex flex-col items-center gap-3">
+                      <div className="w-12 h-12 rounded-xl bg-[#E6F5EE] flex items-center justify-center">
+                        <GraduationCap className="w-6 h-6 text-[#00A550]" />
+                      </div>
+                      <p className="text-sm font-medium text-gray-700">No students yet</p>
+                      <p className="text-xs text-gray-400">Click "Add Student" to register your first student.</p>
+                    </div>
+                  </TableCell>
+                </TableRow>
+              ) : (
+                students.map((s) => (
+                  <TableRow key={s.id} className="border-gray-50 hover:bg-gray-50/60 transition-colors">
+                    <TableCell className="pl-6 py-3 font-semibold text-gray-900">{s.last_name}</TableCell>
+                    <TableCell className="py-3 text-gray-700">{s.first_name}</TableCell>
+                    <TableCell className="py-3 text-gray-500 text-sm">
+                      {s.date_of_birth ? new Date(s.date_of_birth).toLocaleDateString('en-RW', { day: 'numeric', month: 'short', year: 'numeric' }) : '—'}
+                    </TableCell>
+                    <TableCell className="py-3">
+                      {s.cefr_level
+                        ? <span className={`text-xs px-2.5 py-0.5 rounded font-bold ${CEFR_COLORS[s.cefr_level]}`}>{s.cefr_level}</span>
+                        : <span className="text-gray-300 text-xs">—</span>}
+                    </TableCell>
+                    <TableCell className="py-3 text-xs text-gray-400">
+                      {new Date(s.created_at).toLocaleDateString('en-RW', { day: 'numeric', month: 'short', year: 'numeric' })}
+                    </TableCell>
+                    <TableCell className="py-3 pr-6 text-right">
+                      <div className="flex items-center justify-end gap-1.5">
+                        <Button size="sm" variant="outline" onClick={() => openEdit(s)}
+                          className="h-7 w-7 p-0 border-gray-200 hover:border-[#00A550] hover:text-[#00A550]">
+                          <Pencil className="w-3.5 h-3.5" />
                         </Button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
+                        <Button size="sm" variant="outline"
+                          onClick={() => { setDeleting(s); setDeleteOpen(true) }}
+                          className="h-7 w-7 p-0 border-gray-200 text-red-400 hover:border-red-300 hover:text-red-600 hover:bg-red-50">
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </Button>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))
+              )}
+            </TableBody>
+          </Table>
         </CardContent>
       </Card>
 
-      {/* Enroll Dialog */}
-      <Dialog open={enrollOpen} onOpenChange={setEnrollOpen}>
-        <DialogContent className="max-w-sm">
-          <DialogHeader><DialogTitle>Enroll Student</DialogTitle></DialogHeader>
+      {/* Add / Edit Dialog */}
+      <Dialog open={formOpen} onOpenChange={setFormOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>{editing ? 'Edit Student' : 'Add New Student'}</DialogTitle>
+            <DialogDescription className="text-sm text-gray-500">
+              {editing ? 'Update student details.' : 'Register a new student at your school.'}
+            </DialogDescription>
+          </DialogHeader>
           <div className="space-y-4 py-2">
-            <p className="text-sm text-gray-500">Search for an existing learner by email to link them to your school.</p>
-            <div className="space-y-1.5">
-              <Label>Learner Email</Label>
-              <div className="flex gap-2">
-                <Input type="email" placeholder="learner@example.com" value={enrollEmail}
-                  onChange={(e) => setEnrollEmail(e.target.value)}
-                  onKeyDown={(e) => e.key === 'Enter' && searchLearner()}
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1.5">
+                <Label>Last Name <span className="text-red-500">*</span></Label>
+                <Input placeholder="UWIMANA" value={form.last_name}
+                  onChange={(e) => setForm((p) => ({ ...p, last_name: e.target.value }))}
+                  className="border-gray-200 focus:border-[#00A550] uppercase" />
+              </div>
+              <div className="space-y-1.5">
+                <Label>First Name <span className="text-red-500">*</span></Label>
+                <Input placeholder="Marie" value={form.first_name}
+                  onChange={(e) => setForm((p) => ({ ...p, first_name: e.target.value }))}
                   className="border-gray-200 focus:border-[#00A550]" />
-                <Button variant="outline" onClick={searchLearner} disabled={enrollSearching || !enrollEmail.trim()}>
-                  <Search className="w-4 h-4" />
-                </Button>
               </div>
             </div>
-            {enrollError && <p className="text-sm text-red-500">{enrollError}</p>}
-            {enrollResult && (
-              <div className="flex items-center gap-2 p-3 bg-[#E6F5EE] rounded-lg">
-                <GraduationCap className="w-5 h-5 text-[#00A550]" />
-                <div>
-                  <p className="text-sm font-medium text-[#00A550]">{enrollResult.full_name}</p>
-                  <p className="text-xs text-gray-500">{enrollEmail}</p>
-                </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1.5">
+                <Label>Date of Birth</Label>
+                <Input type="date" value={form.date_of_birth}
+                  onChange={(e) => setForm((p) => ({ ...p, date_of_birth: e.target.value }))}
+                  className="border-gray-200 focus:border-[#00A550]" />
               </div>
-            )}
+              <div className="space-y-1.5">
+                <Label>CEFR Level</Label>
+                <Select value={form.cefr_level} onValueChange={(v) => setForm((p) => ({ ...p, cefr_level: v as CEFR }))}>
+                  <SelectTrigger className="border-gray-200"><SelectValue placeholder="Select…" /></SelectTrigger>
+                  <SelectContent>
+                    {CEFR_LEVELS.map((l) => <SelectItem key={l} value={l}>{l}</SelectItem>)}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
           </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setEnrollOpen(false)}>Cancel</Button>
-            <Button className="bg-[#00A550] hover:bg-[#008040] text-white" onClick={handleEnroll} disabled={!enrollResult || enrollSaving}>
-              {enrollSaving ? 'Enrolling…' : 'Enroll Student'}
+          <DialogFooter className="gap-2">
+            <Button variant="outline" onClick={() => setFormOpen(false)} disabled={saving} className="border-gray-200">Cancel</Button>
+            <Button onClick={handleSave} disabled={saving || !form.first_name.trim() || !form.last_name.trim()}
+              className="bg-[#00A550] hover:bg-[#008040] text-white min-w-[90px]">
+              {saving ? 'Saving…' : editing ? 'Save Changes' : 'Add Student'}
             </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
 
-      {/* Results Dialog */}
-      <Dialog open={resultsOpen} onOpenChange={setResultsOpen}>
-        <DialogContent className="max-w-md">
-          <DialogHeader><DialogTitle>Enter Exam Results</DialogTitle></DialogHeader>
-          <div className="space-y-4 py-2">
-            <div className="space-y-1.5">
-              <Label>Student <span className="text-red-500">*</span></Label>
-              <Select value={selectedStudentId} onValueChange={setSelectedStudentId}>
-                <SelectTrigger className="border-gray-200"><SelectValue placeholder="Select student" /></SelectTrigger>
-                <SelectContent>
-                  {students.map((s) => <SelectItem key={s.id} value={s.id}>{s.full_name}</SelectItem>)}
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-1.5">
-              <Label>Exam Session <span className="text-red-500">*</span></Label>
-              <Select value={selectedExamId} onValueChange={setSelectedExamId}>
-                <SelectTrigger className="border-gray-200"><SelectValue placeholder="Select exam session" /></SelectTrigger>
-                <SelectContent>
-                  {examSessions.map((ex) => (
-                    <SelectItem key={ex.id} value={ex.id}>
-                      {ex.title} — {ex.cefr_level} ({new Date(ex.exam_date).toLocaleDateString('en-RW')})
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="border-t border-gray-100 pt-3">
-              <p className="text-sm font-medium text-gray-700 mb-3">Competency Scores (0–20 each)</p>
-              <div className="grid grid-cols-5 gap-2">
-                {COMPETENCIES.map((comp) => (
-                  <div key={comp} className="space-y-1">
-                    <Label className="text-xs font-semibold text-gray-600">{comp}</Label>
-                    <Input type="number" min={0} max={20} placeholder="0" value={scores[comp]}
-                      onChange={(e) => setScores({ ...scores, [comp]: e.target.value })}
-                      className="text-center px-1 border-gray-200" />
-                  </div>
-                ))}
+      {/* Delete Confirm */}
+      <Dialog open={deleteOpen} onOpenChange={setDeleteOpen}>
+        <DialogContent className="sm:max-w-sm">
+          <DialogHeader>
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-full bg-red-50 flex items-center justify-center">
+                <AlertTriangle className="w-5 h-5 text-red-600" />
               </div>
-              <div className="flex items-center justify-between mt-3 pt-3 border-t border-gray-100">
-                <span className="text-sm text-gray-600">Total Score</span>
-                <div className="flex items-center gap-2">
-                  <span className="text-lg font-bold">{totalScore()}/100</span>
-                  <span className={`text-xs px-2.5 py-0.5 rounded-full font-medium ${totalScore() >= 60 ? 'bg-[#E6F5EE] text-[#00A550]' : 'bg-red-50 text-red-600'}`}>
-                    {totalScore() >= 60 ? 'Pass' : 'Fail'}
-                  </span>
-                </div>
-              </div>
-              <p className="text-xs text-gray-400 mt-1.5">Pass threshold: 60/100. Certificates auto-issued for passing students.</p>
+              <DialogTitle>Delete Student</DialogTitle>
             </div>
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setResultsOpen(false)}>Cancel</Button>
-            <Button className="bg-[#00A550] hover:bg-[#008040] text-white" onClick={handleSaveResults}
-              disabled={resultsSaving || !selectedStudentId || !selectedExamId}>
-              {resultsSaving ? 'Saving…' : 'Save Results'}
+            <DialogDescription className="mt-2 text-sm text-gray-500">
+              Remove <span className="font-semibold text-gray-700">{deleting?.last_name} {deleting?.first_name}</span>? This cannot be undone.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="gap-2">
+            <Button variant="outline" onClick={() => setDeleteOpen(false)} disabled={saving} className="border-gray-200">Cancel</Button>
+            <Button onClick={handleDelete} disabled={saving} className="bg-red-600 hover:bg-red-700 text-white">
+              {saving ? 'Deleting…' : 'Delete'}
             </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
     </div>
-  );
+  )
 }

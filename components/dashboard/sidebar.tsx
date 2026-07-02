@@ -23,6 +23,8 @@ import {
   ChevronLeft,
   ChevronRight,
   Menu,
+  ClipboardList,
+  BookOpenCheck,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
@@ -54,9 +56,10 @@ const navByRole: Record<Role, NavItem[]> = {
   school: [
     { label: 'Dashboard', href: '/dashboard/school', icon: LayoutDashboard },
     { label: 'Students', href: '/dashboard/school/students', icon: Users },
-    { label: 'Exam Results', href: '/dashboard/school/results', icon: FileText },
+    { label: 'Exam Papers', href: '/dashboard/school/exams', icon: BookOpenCheck },
+    { label: 'Exam Results', href: '/dashboard/school/results', icon: ClipboardList },
     { label: 'Certificates', href: '/dashboard/school/certificates', icon: Award },
-    { label: 'Messages', href: '/dashboard/school/messages', icon: MessageSquare },
+    { label: 'Settings', href: '/dashboard/school/settings', icon: Settings },
   ],
   teacher: [
     { label: 'Dashboard', href: '/dashboard/teacher', icon: LayoutDashboard },
