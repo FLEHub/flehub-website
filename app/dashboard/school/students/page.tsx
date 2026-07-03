@@ -178,14 +178,33 @@ export default function SchoolStudentsPage() {
     )
   }
 
+  const ensureStudentMirror = async (student: Student, sid: string) => {
+    const { data: existing } = await supabase
+      .from('students')
+      .select('id')
+      .eq('id', student.id)
+      .maybeSingle()
+    if (!existing) {
+      await supabase.from('students').insert({
+        id: student.id,
+        school_id: sid,
+        first_name: student.first_name,
+        last_name: student.last_name,
+      })
+    }
+  }
+
   const handleEnrollInSession = async () => {
-    if (!editing || !selectedSessionId) return
+    if (!editing || !selectedSessionId || !schoolId) return
     const alreadyActive = enrollments.some(
       (e) => e.exam_session_id === selectedSessionId && e.active
     )
     if (alreadyActive) return
     setEnrolling(true)
     try {
+      // Ensure the student exists in the `students` table before enrolling
+      await ensureStudentMirror(editing, schoolId)
+
       const existing = enrollments.find((e) => e.exam_session_id === selectedSessionId)
       if (existing) {
         // Re-activate
@@ -243,8 +262,21 @@ export default function SchoolStudentsPage() {
         const { error: err } = await supabase.from('school_students').update(payload).eq('id', editing.id)
         if (err) throw err
       } else {
-        const { error: err } = await supabase.from('school_students').insert(payload)
+        const { data: newRow, error: err } = await supabase
+          .from('school_students')
+          .insert(payload)
+          .select('id, first_name, last_name')
+          .single()
         if (err) throw err
+        // Mirror into `students` so enrollment RLS passes for this student
+        if (newRow) {
+          await supabase.from('students').insert({
+            id: newRow.id,
+            school_id: schoolId,
+            first_name: newRow.first_name,
+            last_name: newRow.last_name,
+          })
+        }
       }
       setFormOpen(false)
       await fetchStudents(schoolId)
