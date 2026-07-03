@@ -178,19 +178,24 @@ export default function SchoolStudentsPage() {
     )
   }
 
-  const ensureStudentMirror = async (student: Student, sid: string) => {
+  const ensureStudentMirror = async (student: Student, sid: string, dob: string | null) => {
     const { data: existing } = await supabase
       .from('students')
       .select('id')
       .eq('id', student.id)
       .maybeSingle()
     if (!existing) {
+      if (!dob) {
+        throw new Error(
+          "Merci de renseigner la date de naissance de l'étudiant(e) avant l'inscription à une session."
+        )
+      }
       const { error: mirrorError } = await supabase.from('students').insert({
         id: student.id,
         school_id: sid,
         first_name: student.first_name,
         last_name: student.last_name,
-        date_of_birth: student.date_of_birth,
+        date_of_birth: dob,
         grade: student.cefr_level ?? 'unspecified',
       })
       if (mirrorError) {
@@ -209,7 +214,7 @@ export default function SchoolStudentsPage() {
     setError(null)
     try {
       // Ensure the student exists in the `students` table before enrolling
-      await ensureStudentMirror(editing, schoolId)
+      await ensureStudentMirror(editing, schoolId, editing.date_of_birth || form.date_of_birth || null)
 
       const existing = enrollments.find((e) => e.exam_session_id === selectedSessionId)
       if (existing) {
