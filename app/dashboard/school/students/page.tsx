@@ -185,12 +185,17 @@ export default function SchoolStudentsPage() {
       .eq('id', student.id)
       .maybeSingle()
     if (!existing) {
-      await supabase.from('students').insert({
+      const { error: mirrorError } = await supabase.from('students').insert({
         id: student.id,
         school_id: sid,
         first_name: student.first_name,
         last_name: student.last_name,
+        date_of_birth: student.date_of_birth,
+        grade: student.cefr_level ?? 'unspecified',
       })
+      if (mirrorError) {
+        throw new Error(`Impossible de créer la fiche étudiant : ${mirrorError.message}`)
+      }
     }
   }
 
@@ -201,6 +206,7 @@ export default function SchoolStudentsPage() {
     )
     if (alreadyActive) return
     setEnrolling(true)
+    setError(null)
     try {
       // Ensure the student exists in the `students` table before enrolling
       await ensureStudentMirror(editing, schoolId)
@@ -208,14 +214,19 @@ export default function SchoolStudentsPage() {
       const existing = enrollments.find((e) => e.exam_session_id === selectedSessionId)
       if (existing) {
         // Re-activate
-        await supabase.from('student_enrollments').update({ active: true }).eq('id', existing.id)
+        const { error: updateError } = await supabase
+          .from('student_enrollments')
+          .update({ active: true })
+          .eq('id', existing.id)
+        if (updateError) throw new Error(updateError.message)
       } else {
-        await supabase.from('student_enrollments').insert({
+        const { error: insertError } = await supabase.from('student_enrollments').insert({
           student_id: editing.id,
           exam_session_id: selectedSessionId,
           active: true,
           cefr_level: form.cefr_level || editing.cefr_level || null,
         })
+        if (insertError) throw new Error(insertError.message)
       }
       // Refresh enrollments
       const { data } = await supabase
@@ -229,6 +240,8 @@ export default function SchoolStudentsPage() {
         }))
       )
       setSelectedSessionId('')
+    } catch (err) {
+      setError((err as Error).message)
     } finally {
       setEnrolling(false)
     }
