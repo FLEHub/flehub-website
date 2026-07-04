@@ -196,7 +196,7 @@ export default function SchoolStudentsPage() {
         first_name: student.first_name,
         last_name: student.last_name,
         date_of_birth: dob,
-        grade: student.cefr_level ?? 'unspecified',
+        grade: student.cefr_level ?? form.cefr_level ?? null,
       })
       if (mirrorError) {
         throw new Error(`Impossible de créer la fiche étudiant : ${mirrorError.message}`)
