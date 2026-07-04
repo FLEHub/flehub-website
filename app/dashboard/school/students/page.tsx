@@ -45,12 +45,14 @@ import {
 } from 'lucide-react'
 
 type CEFR = 'A1' | 'A2' | 'B1' | 'B2' | 'C1' | 'C2'
+type Gender = 'M' | 'F'
 
 interface Student {
   id: string
   first_name: string
   last_name: string
   date_of_birth: string | null
+  gender: Gender | null
   cefr_level: CEFR | null
   created_at: string
 }
@@ -69,10 +71,11 @@ interface FormData {
   first_name: string
   last_name: string
   date_of_birth: string
+  gender: Gender | ''
   cefr_level: CEFR | ''
 }
 
-const EMPTY_FORM: FormData = { first_name: '', last_name: '', date_of_birth: '', cefr_level: '' }
+const EMPTY_FORM: FormData = { first_name: '', last_name: '', date_of_birth: '', gender: '', cefr_level: '' }
 
 interface ExamSession {
   id: string
@@ -121,7 +124,7 @@ export default function SchoolStudentsPage() {
   const fetchStudents = useCallback(async (sid: string) => {
     const { data, error: err } = await supabase
       .from('school_students')
-      .select('id, first_name, last_name, date_of_birth, cefr_level, created_at')
+      .select('id, first_name, last_name, date_of_birth, gender, cefr_level, created_at')
       .eq('school_id', sid)
       .order('last_name', { ascending: true })
     if (err) throw err
@@ -148,7 +151,7 @@ export default function SchoolStudentsPage() {
   const openCreate = () => { setEditing(null); setForm(EMPTY_FORM); setFormOpen(true) }
   const openEdit = async (s: Student) => {
     setEditing(s)
-    setForm({ first_name: s.first_name, last_name: s.last_name, date_of_birth: s.date_of_birth ?? '', cefr_level: s.cefr_level ?? '' })
+    setForm({ first_name: s.first_name, last_name: s.last_name, date_of_birth: s.date_of_birth ?? '', gender: s.gender ?? '', cefr_level: s.cefr_level ?? '' })
     setSelectedSessionId('')
     setEnrollments([])
     setAllSessions([])
@@ -178,7 +181,7 @@ export default function SchoolStudentsPage() {
     )
   }
 
-  const ensureStudentMirror = async (student: Student, sid: string, dob: string | null) => {
+  const ensureStudentMirror = async (student: Student, sid: string, dob: string | null, gender: Gender | null) => {
     const { data: existing } = await supabase
       .from('students')
       .select('id')
@@ -190,13 +193,19 @@ export default function SchoolStudentsPage() {
           "Merci de renseigner la date de naissance de l'étudiant(e) avant l'inscription à une session."
         )
       }
+      if (!gender) {
+        throw new Error(
+          "Merci de renseigner le genre de l'étudiant(e) avant l'inscription à une session."
+        )
+      }
       const { error: mirrorError } = await supabase.from('students').insert({
         id: student.id,
         school_id: sid,
         first_name: student.first_name,
         last_name: student.last_name,
         date_of_birth: dob,
-        grade: student.cefr_level ?? 'unspecified',
+        gender,
+        grade: student.cefr_level ?? form.cefr_level ?? null,
       })
       if (mirrorError) {
         throw new Error(`Impossible de créer la fiche étudiant : ${mirrorError.message}`)
@@ -214,7 +223,12 @@ export default function SchoolStudentsPage() {
     setError(null)
     try {
       // Ensure the student exists in the `students` table before enrolling
-      await ensureStudentMirror(editing, schoolId, editing.date_of_birth || form.date_of_birth || null)
+      await ensureStudentMirror(
+        editing,
+        schoolId,
+        editing.date_of_birth || form.date_of_birth || null,
+        editing.gender || form.gender || null
+      )
 
       const existing = enrollments.find((e) => e.exam_session_id === selectedSessionId)
       if (existing) {
@@ -274,6 +288,7 @@ export default function SchoolStudentsPage() {
         first_name: form.first_name.trim(),
         last_name: form.last_name.trim(),
         date_of_birth: form.date_of_birth || null,
+        gender: form.gender || null,
         cefr_level: form.cefr_level || null,
       }
       if (editing) {
@@ -459,14 +474,24 @@ export default function SchoolStudentsPage() {
                   className="border-gray-200 focus:border-[#00A550]" />
               </div>
               <div className="space-y-1.5">
-                <Label>CEFR Level</Label>
-                <Select value={form.cefr_level} onValueChange={(v) => setForm((p) => ({ ...p, cefr_level: v as CEFR }))}>
+                <Label>Gender</Label>
+                <Select value={form.gender} onValueChange={(v) => setForm((p) => ({ ...p, gender: v as Gender }))}>
                   <SelectTrigger className="border-gray-200"><SelectValue placeholder="Select…" /></SelectTrigger>
                   <SelectContent>
-                    {CEFR_LEVELS.map((l) => <SelectItem key={l} value={l}>{l}</SelectItem>)}
+                    <SelectItem value="M">M</SelectItem>
+                    <SelectItem value="F">F</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
+            </div>
+            <div className="space-y-1.5">
+              <Label>CEFR Level</Label>
+              <Select value={form.cefr_level} onValueChange={(v) => setForm((p) => ({ ...p, cefr_level: v as CEFR }))}>
+                <SelectTrigger className="border-gray-200"><SelectValue placeholder="Select…" /></SelectTrigger>
+                <SelectContent>
+                  {CEFR_LEVELS.map((l) => <SelectItem key={l} value={l}>{l}</SelectItem>)}
+                </SelectContent>
+              </Select>
             </div>
 
             {/* ── Exam Session Enrollment ── only shown when editing */}
