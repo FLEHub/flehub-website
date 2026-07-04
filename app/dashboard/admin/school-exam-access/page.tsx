@@ -45,6 +45,35 @@ interface AccessRow {
   exam_sessions: { title: string; cefr_level: string; exam_date: string } | null
 }
 
+interface AccessRowRaw {
+  id: string
+  school_id: string
+  exam_session_id: string
+  status: string
+  paid_at: string | null
+  schools: { school_name: string } | { school_name: string }[] | null
+  exam_sessions:
+    | { title: string; cefr_level: string; exam_date: string }
+    | { title: string; cefr_level: string; exam_date: string }[]
+    | null
+}
+
+function normalizeAccessRow(raw: AccessRowRaw): AccessRow {
+  const school = Array.isArray(raw.schools) ? (raw.schools[0] ?? null) : raw.schools
+  const session = Array.isArray(raw.exam_sessions)
+    ? (raw.exam_sessions[0] ?? null)
+    : raw.exam_sessions
+  return {
+    id: raw.id,
+    school_id: raw.school_id,
+    exam_session_id: raw.exam_session_id,
+    status: raw.status,
+    paid_at: raw.paid_at,
+    schools: school,
+    exam_sessions: session,
+  }
+}
+
 const STATUS_COLORS: Record<string, string> = {
   pending: 'bg-amber-50 text-amber-700',
   completed: 'bg-[#E6F5EE] text-[#00A550]',
@@ -89,7 +118,7 @@ export default function AdminSchoolExamAccessPage() {
 
       setSchools(schoolsRes.data ?? [])
       setSessions(sessionsRes.data ?? [])
-      setAccessRows((accessRes.data as AccessRow[]) ?? [])
+      setAccessRows((accessRes.data ?? []).map((row) => normalizeAccessRow(row as AccessRowRaw)))
     } catch (err) {
       setError((err as Error).message)
     } finally {
