@@ -54,6 +54,55 @@ interface ResultDraftRow {
   exam_sessions: { title: string; cefr_level: CEFR; exam_date: string } | null
 }
 
+interface ResultDraftRowRaw {
+  id: string
+  score_eo: number | null
+  score_ee: number | null
+  score_co: number | null
+  score_ce: number | null
+  score_langue: number | null
+  total_score: number | null
+  status: DraftStatus
+  admin_notes: string | null
+  submitted_at: string | null
+  validated_at: string | null
+  schools: { school_name: string } | { school_name: string }[] | null
+  school_students:
+    | { first_name: string; last_name: string }
+    | { first_name: string; last_name: string }[]
+    | null
+  exam_sessions:
+    | { title: string; cefr_level: CEFR; exam_date: string }
+    | { title: string; cefr_level: CEFR; exam_date: string }[]
+    | null
+}
+
+function normalizeResultDraftRow(raw: ResultDraftRowRaw): ResultDraftRow {
+  const school = Array.isArray(raw.schools) ? (raw.schools[0] ?? null) : raw.schools
+  const student = Array.isArray(raw.school_students)
+    ? (raw.school_students[0] ?? null)
+    : raw.school_students
+  const session = Array.isArray(raw.exam_sessions)
+    ? (raw.exam_sessions[0] ?? null)
+    : raw.exam_sessions
+  return {
+    id: raw.id,
+    score_eo: raw.score_eo,
+    score_ee: raw.score_ee,
+    score_co: raw.score_co,
+    score_ce: raw.score_ce,
+    score_langue: raw.score_langue,
+    total_score: raw.total_score,
+    status: raw.status,
+    admin_notes: raw.admin_notes,
+    submitted_at: raw.submitted_at,
+    validated_at: raw.validated_at,
+    schools: school,
+    school_students: student,
+    exam_sessions: session,
+  }
+}
+
 const STATUS_CONFIG: Record<
   DraftStatus,
   { label: string; className: string; icon: React.ElementType }
@@ -122,7 +171,7 @@ export default function AdminResultsPage() {
       const { data, error: fetchError } = await query
       if (fetchError) throw fetchError
 
-      let rows = (data ?? []) as ResultDraftRow[]
+      let rows = (data ?? []).map((row) => normalizeResultDraftRow(row as ResultDraftRowRaw))
       if (statusFilter === 'all') {
         const priority: Record<DraftStatus, number> = {
           submitted: 0,
