@@ -165,22 +165,24 @@ export default function SchoolDashboard() {
 
       setStudents(studentsMapped);
 
-      // Stats
+      // Stats — examRegistrations: paid exam sessions for this school
       const { count: regCount } = await supabase
-        .from('exam_registrations')
+        .from('school_exam_access')
         .select('*', { count: 'exact', head: true })
-        .eq('school_id', school.id);
+        .eq('school_id', school.id)
+        .eq('status', 'completed');
 
       const { count: certCount } = await supabase
         .from('certificates')
         .select('*', { count: 'exact', head: true })
         .eq('school_id', school.id);
 
+      // pendingResults: result drafts not yet validated by admin
       const { count: pendingCount } = await supabase
-        .from('exam_registrations')
+        .from('exam_result_drafts')
         .select('*', { count: 'exact', head: true })
         .eq('school_id', school.id)
-        .is('result_id', null);
+        .in('status', ['draft', 'submitted']);
 
       setStats({
         totalStudents: studentsMapped.length,
@@ -189,12 +191,23 @@ export default function SchoolDashboard() {
         pendingResults: pendingCount ?? 0,
       });
 
-      // Exam sessions
-      const { data: exSessions } = await supabase
-        .from('exam_sessions')
-        .select('id, title, cefr_level, exam_date')
-        .order('exam_date', { ascending: false })
-        .limit(20);
+      // Exam sessions this school has paid access to (for results entry)
+      const { data: accessRows } = await supabase
+        .from('school_exam_access')
+        .select('exam_session_id')
+        .eq('school_id', school.id)
+        .eq('status', 'completed');
+
+      const paidSessionIds = (accessRows ?? []).map((r) => r.exam_session_id);
+      const { data: exSessions } =
+        paidSessionIds.length > 0
+          ? await supabase
+              .from('exam_sessions')
+              .select('id, title, cefr_level, exam_date')
+              .in('id', paidSessionIds)
+              .order('exam_date', { ascending: false })
+              .limit(20)
+          : { data: [] as ExamSession[] };
 
       setExamSessions(exSessions ?? []);
     } catch (err) {

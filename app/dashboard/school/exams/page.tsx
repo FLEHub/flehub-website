@@ -83,9 +83,37 @@ export default function SchoolExamsPage() {
     setLoading(true)
     setError(null)
     try {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser()
+      if (!user) throw new Error('Not authenticated')
+
+      const { data: school, error: schoolErr } = await supabase
+        .from('schools')
+        .select('id')
+        .eq('profile_id', user.id)
+        .maybeSingle()
+      if (schoolErr) throw schoolErr
+      if (!school) throw new Error('School profile not found')
+
+      const { data: accessRows, error: accessErr } = await supabase
+        .from('school_exam_access')
+        .select('exam_session_id')
+        .eq('school_id', school.id)
+        .eq('status', 'completed')
+      if (accessErr) throw accessErr
+
+      const sessionIds = (accessRows ?? []).map((r) => r.exam_session_id)
+      if (sessionIds.length === 0) {
+        setSessions([])
+        setPapers({})
+        return
+      }
+
       const { data: sess, error: sessErr } = await supabase
         .from('exam_sessions')
         .select('id, title, cefr_level, exam_date, status')
+        .in('id', sessionIds)
         .in('status', ['upcoming', 'ongoing'])
         .order('exam_date', { ascending: true })
       if (sessErr) throw sessErr
@@ -104,6 +132,8 @@ export default function SchoolExamsPage() {
           grouped[p.exam_session_id].push(p as ExamPaper)
         }
         setPapers(grouped)
+      } else {
+        setPapers({})
       }
     } catch {
       setError('Failed to load exam papers. Please refresh.')
@@ -179,7 +209,7 @@ export default function SchoolExamsPage() {
               <BookOpen className="w-6 h-6 text-[#00A550]" />
             </div>
             <p className="text-sm font-medium text-gray-700">No exam sessions available</p>
-            <p className="text-xs text-gray-400 mt-1">Exam papers will appear here once published by the admin.</p>
+            <p className="text-xs text-gray-400 mt-1">Exam papers appear here once your school has paid access to a session.</p>
           </CardContent>
         </Card>
       ) : (
