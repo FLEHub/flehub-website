@@ -2,7 +2,6 @@
 
 import { useState, useEffect, useCallback } from 'react'
 import { createClient } from '@/lib/supabase/client'
-import { jsPDF } from 'jspdf'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import {
@@ -66,111 +65,10 @@ const CEFR_LABELS: Record<CEFR, string> = {
   B2: 'Upper-Intermediate', C1: 'Advanced', C2: 'Mastery',
 }
 
-async function loadImageAsDataUrl(src: string): Promise<string | null> {
-  try {
-    const response = await fetch(src)
-    if (!response.ok) return null
-    const blob = await response.blob()
-    return await new Promise((resolve) => {
-      const reader = new FileReader()
-      reader.onloadend = () => resolve(typeof reader.result === 'string' ? reader.result : null)
-      reader.onerror = () => resolve(null)
-      reader.readAsDataURL(blob)
-    })
-  } catch {
-    return null
-  }
-}
-
-async function generateCertificatePdf(params: {
-  studentName: string
-  cefrLevel: CEFR
-  schoolName: string
-  certificateNumber: string
-  issueDate: string
-  verificationCode: string
-}): Promise<Blob> {
-  const doc = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' })
-  const pageW = doc.internal.pageSize.getWidth()
-  const pageH = doc.internal.pageSize.getHeight()
-
-  doc.setDrawColor(0, 165, 80)
-  doc.setLineWidth(1.5)
-  doc.rect(10, 10, pageW - 20, pageH - 20)
-  doc.setLineWidth(0.5)
-  doc.rect(14, 14, pageW - 28, pageH - 28)
-
-  const logoDataUrl = await loadImageAsDataUrl('/logo.png')
-  if (logoDataUrl) {
-    doc.addImage(logoDataUrl, 'PNG', pageW / 2 - 12, 18, 24, 24)
-    doc.setFont('helvetica', 'bold')
-    doc.setFontSize(24)
-    doc.setTextColor(0, 165, 80)
-    doc.text('FLEHub', pageW / 2, 52, { align: 'center' })
-  } else {
-    doc.setFont('helvetica', 'bold')
-    doc.setFontSize(28)
-    doc.setTextColor(0, 165, 80)
-    doc.text('FLEHub', pageW / 2, 35, { align: 'center' })
-  }
-
-  doc.setFontSize(11)
-  doc.setTextColor(100, 100, 100)
-  doc.setFont('helvetica', 'normal')
-  doc.text('French Language Examination Platform', pageW / 2, logoDataUrl ? 58 : 42, { align: 'center' })
-
-  doc.setFontSize(22)
-  doc.setTextColor(30, 30, 30)
-  doc.setFont('helvetica', 'bold')
-  doc.text('Certificate of Achievement', pageW / 2, logoDataUrl ? 72 : 58, { align: 'center' })
-
-  const bodyStartY = logoDataUrl ? 88 : 75
-
-  doc.setFont('helvetica', 'normal')
-  doc.setFontSize(13)
-  doc.setTextColor(80, 80, 80)
-  doc.text('This is to certify that', pageW / 2, bodyStartY, { align: 'center' })
-
-  doc.setFontSize(26)
-  doc.setTextColor(20, 20, 20)
-  doc.setFont('helvetica', 'bold')
-  doc.text(params.studentName, pageW / 2, bodyStartY + 15, { align: 'center' })
-
-  doc.setFont('helvetica', 'normal')
-  doc.setFontSize(13)
-  doc.setTextColor(80, 80, 80)
-  doc.text('has successfully achieved CEFR level', pageW / 2, bodyStartY + 30, { align: 'center' })
-
-  doc.setFontSize(20)
-  doc.setTextColor(0, 165, 80)
-  doc.setFont('helvetica', 'bold')
-  doc.text(`${params.cefrLevel} — ${CEFR_LABELS[params.cefrLevel]}`, pageW / 2, bodyStartY + 43, { align: 'center' })
-
-  doc.setFont('helvetica', 'normal')
-  doc.setFontSize(12)
-  doc.setTextColor(80, 80, 80)
-  doc.text(`Issued by: ${params.schoolName}`, pageW / 2, bodyStartY + 58, { align: 'center' })
-
-  const formattedDate = new Date(params.issueDate).toLocaleDateString('en-RW', {
-    day: 'numeric',
-    month: 'long',
-    year: 'numeric',
-  })
-
-  doc.setFontSize(10)
-  doc.setTextColor(100, 100, 100)
-  doc.text(`Certificate No: ${params.certificateNumber}`, 20, pageH - 30)
-  doc.text(`Issue Date: ${formattedDate}`, 20, pageH - 24)
-  doc.text(`Verification Code: ${params.verificationCode}`, 20, pageH - 18)
-
-  return doc.output('blob')
-}
-
 export default function SchoolCertificatesPage() {
   const supabase = createClient()
 
   const [schoolId, setSchoolId] = useState<string | null>(null)
-  const [schoolName, setSchoolName] = useState<string>('')
   const [certificates, setCertificates] = useState<Certificate[]>([])
   const [validatedResults, setValidatedResults] = useState<ValidatedResult[]>([])
   const [students, setStudents] = useState<StudentRow[]>([])
@@ -179,16 +77,11 @@ export default function SchoolCertificatesPage() {
   const [error, setError] = useState<string | null>(null)
   const [generating, setGenerating] = useState<string | null>(null)
 
-  const getSchoolContext = useCallback(async () => {
+  const getSchoolId = useCallback(async () => {
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return null
-    const { data } = await supabase
-      .from('schools')
-      .select('id, school_name')
-      .eq('profile_id', user.id)
-      .maybeSingle()
-    if (!data) return null
-    return { id: data.id, name: data.school_name }
+    const { data } = await supabase.from('schools').select('id').eq('profile_id', user.id).maybeSingle()
+    return data?.id ?? null
   }, [supabase])
 
   const fetchAll = useCallback(async (sid: string) => {
@@ -213,16 +106,13 @@ export default function SchoolCertificatesPage() {
     setLoading(true)
     setError(null)
     try {
-      const context = schoolId
-        ? { id: schoolId, name: schoolName }
-        : await getSchoolContext()
-      if (!context) { setLoading(false); return }
-      if (!schoolId) setSchoolId(context.id)
-      if (!schoolName) setSchoolName(context.name)
-      await fetchAll(context.id)
+      const sid = schoolId ?? await getSchoolId()
+      if (!sid) { setLoading(false); return }
+      if (!schoolId) setSchoolId(sid)
+      await fetchAll(sid)
     } catch { setError('Failed to load certificates. Please refresh.') }
     finally { setLoading(false) }
-  }, [schoolId, schoolName, getSchoolContext, fetchAll])
+  }, [schoolId, getSchoolId, fetchAll])
 
   useEffect(() => { loadAll() }, [loadAll])
 
@@ -232,6 +122,7 @@ export default function SchoolCertificatesPage() {
   }
   const getSession = (id: string) => sessions.find((s) => s.id === id)
 
+  // Results that passed (>=60) and validated but don't have a certificate yet
   const pendingGeneration = validatedResults.filter((r) => {
     if (r.total_score < 60) return false
     return !certificates.some((c) => c.school_student_id === r.school_student_id)
@@ -241,65 +132,21 @@ export default function SchoolCertificatesPage() {
     if (!schoolId) return
     setGenerating(result.id)
     setError(null)
-
-    const session = getSession(result.exam_session_id)
-    const studentName = getStudentName(result.school_student_id)
-    const cefrLevel = session?.cefr_level ?? 'A1'
-    const certNumber = `CERT-${Date.now().toString(36).toUpperCase()}-${Math.random().toString(36).substring(2, 5).toUpperCase()}`
-    const issueDate = new Date().toISOString().split('T')[0]
-    const verificationCode = certNumber.slice(-8)
-    const resolvedSchoolName = schoolName || 'School'
-
-    let certificateId: string | null = null
-
     try {
-      const { data: inserted, error: insertErr } = await supabase
-        .from('school_certificates')
-        .insert({
-          school_id: schoolId,
-          school_student_id: result.school_student_id,
-          exam_result_draft_id: result.id,
-          certificate_number: certNumber,
-          cefr_level: cefrLevel,
-          issue_date: issueDate,
-        })
-        .select('id')
-        .single()
-
-      if (insertErr) throw new Error(`Failed to create certificate record: ${insertErr.message}`)
-      certificateId = inserted.id
-
-      let pdfBlob: Blob
-      try {
-        pdfBlob = await generateCertificatePdf({
-          studentName,
-          cefrLevel,
-          schoolName: resolvedSchoolName,
-          certificateNumber: certNumber,
-          issueDate,
-          verificationCode,
-        })
-      } catch {
-        throw new Error('Failed to generate certificate PDF.')
-      }
-
-      const pdfPath = `certificates/${certNumber}.pdf`
-      const { error: uploadErr } = await supabase.storage
-        .from('school-assets')
-        .upload(pdfPath, pdfBlob, { contentType: 'application/pdf', upsert: true })
-
-      if (uploadErr) throw new Error(`Failed to upload PDF: ${uploadErr.message}`)
-
-      const { error: updateErr } = await supabase
-        .from('school_certificates')
-        .update({ pdf_path: pdfPath })
-        .eq('id', certificateId)
-
-      if (updateErr) throw new Error(`Failed to save PDF path: ${updateErr.message}`)
-
+      const session = getSession(result.exam_session_id)
+      const certNumber = `CERT-${Date.now().toString(36).toUpperCase()}-${Math.random().toString(36).substring(2, 5).toUpperCase()}`
+      const { error: err } = await supabase.from('school_certificates').insert({
+        school_id: schoolId,
+        school_student_id: result.school_student_id,
+        exam_result_draft_id: result.id,
+        certificate_number: certNumber,
+        cefr_level: session?.cefr_level ?? 'A1',
+        issue_date: new Date().toISOString().split('T')[0],
+      })
+      if (err) throw err
       await fetchAll(schoolId)
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Certificate generation failed.')
+      setError((err as Error).message)
     } finally {
       setGenerating(null)
     }
@@ -340,6 +187,7 @@ export default function SchoolCertificatesPage() {
         </div>
       )}
 
+      {/* Pending generation */}
       {!loading && pendingGeneration.length > 0 && (
         <Card className="border-0 shadow-sm border-l-4 border-l-[#00A550]">
           <CardHeader className="pb-2">
@@ -376,6 +224,7 @@ export default function SchoolCertificatesPage() {
         </Card>
       )}
 
+      {/* Level breakdown */}
       {!loading && certificates.length > 0 && (
         <div className="flex flex-wrap items-center gap-2">
           <span className="text-xs text-gray-500 mr-1">By Level:</span>
