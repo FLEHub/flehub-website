@@ -321,7 +321,7 @@ export default function SchoolResultsPage() {
                         </TableCell>
                       ))}
                       <TableCell className="py-3">
-                        <span className={`text-sm font-bold ${total >= 60 ? 'text-[#00A550]' : 'text-red-600'}`}>
+                        <span className={`text-sm font-bold ${total >= 50 ? 'text-[#00A550]' : 'text-red-600'}`}>
                           {total.toFixed(1)}
                         </span>
                         <span className="text-xs text-gray-400">/100</span>
@@ -410,12 +410,12 @@ export default function SchoolResultsPage() {
                 <span className="text-sm text-gray-600">Total</span>
                 <div className="flex items-center gap-2">
                   <span className="text-xl font-bold text-gray-900">{calcTotal(form).toFixed(1)}/100</span>
-                  <span className={`text-xs px-2.5 py-0.5 rounded-full font-medium ${calcTotal(form) >= 60 ? 'bg-[#E6F5EE] text-[#00A550]' : 'bg-red-50 text-red-600'}`}>
-                    {calcTotal(form) >= 60 ? 'Pass' : 'Fail'}
+                  <span className={`text-xs px-2.5 py-0.5 rounded-full font-medium ${calcTotal(form) >= 50 ? 'bg-[#E6F5EE] text-[#00A550]' : 'bg-red-50 text-red-600'}`}>
+                    {calcTotal(form) >= 50 ? 'Pass' : 'Fail'}
                   </span>
                 </div>
               </div>
-              <p className="text-xs text-gray-400 mt-1.5">Pass threshold: 60/100. Certificates are generated after admin validation.</p>
+              <p className="text-xs text-gray-400 mt-1.5">Pass threshold: 50/100.</p>
             </div>
           </div>
           <DialogFooter className="gap-2">
