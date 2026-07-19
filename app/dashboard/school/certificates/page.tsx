@@ -325,7 +325,7 @@ export default function SchoolCertificatesPage() {
       <div className="flex items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Certificates</h1>
-          <p className="text-sm text-gray-500 mt-1">Generate and download certificates for validated passing students.</p>
+          <p className="text-sm text-gray-500 mt-1">Generate and download certificates for students who scored 50 or above.</p>
         </div>
         <Button variant="outline" size="sm" onClick={loadAll} disabled={loading}>
           <RefreshCw className={`w-4 h-4 mr-1.5 ${loading ? 'animate-spin' : ''}`} />
@@ -353,7 +353,7 @@ export default function SchoolCertificatesPage() {
             </div>
           </CardHeader>
           <CardContent className="pt-0">
-            <p className="text-xs text-gray-500 mb-3">These students passed and their results were validated by the admin. Generate their certificates now.</p>
+            <p className="text-xs text-gray-500 mb-3">These students passed (score ≥ 50). Generate their certificates now.</p>
             <div className="space-y-2">
               {pendingGeneration.map((r) => {
                 const session = getSession(r.exam_session_id)
@@ -425,7 +425,7 @@ export default function SchoolCertificatesPage() {
                         <Award className="w-6 h-6 text-amber-500" />
                       </div>
                       <p className="text-sm font-medium text-gray-700">No certificates yet</p>
-                      <p className="text-xs text-gray-400">Certificates appear here after admin validates a passing result.</p>
+                      <p className="text-xs text-gray-400">Certificates appear here after you generate them for a passing result.</p>
                     </div>
                   </TableCell>
                 </TableRow>

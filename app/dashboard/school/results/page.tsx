@@ -360,7 +360,7 @@ export default function SchoolResultsPage() {
           <DialogHeader>
             <DialogTitle>{editing ? 'Edit Results' : 'Enter Exam Results'}</DialogTitle>
             <DialogDescription className="text-sm text-gray-500">
-              Enter scores per competency (0–20 each, total /100). Save as draft or submit to admin for validation.
+              Enter scores per competency (0–20 each, total /100). Save as draft or save results to enable certificate generation.
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-2">
@@ -431,7 +431,7 @@ export default function SchoolResultsPage() {
               disabled={saving || !form.student_id || !form.session_id}
               className="bg-[#00A550] hover:bg-[#008040] text-white">
               <Send className="w-3.5 h-3.5 mr-1.5" />
-              {saving && submitAction === 'submit' ? 'Submitting…' : 'Submit to Admin'}
+              {saving && submitAction === 'submit' ? 'Saving…' : 'Save Results'}
             </Button>
           </DialogFooter>
         </DialogContent>
