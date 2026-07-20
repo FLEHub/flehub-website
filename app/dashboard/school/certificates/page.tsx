@@ -45,6 +45,11 @@ interface ValidatedResult {
   id: string
   school_student_id: string
   exam_session_id: string
+  score_eo: number | null
+  score_ee: number | null
+  score_co: number | null
+  score_ce: number | null
+  score_langue: number | null
   total_score: number
   status: string
 }
@@ -62,8 +67,18 @@ const CEFR_COLORS: Record<CEFR, string> = {
 }
 
 const CEFR_LABELS: Record<CEFR, string> = {
-  A1: 'Beginner', A2: 'Elementary', B1: 'Intermediate',
-  B2: 'Upper-Intermediate', C1: 'Advanced', C2: 'Mastery',
+  A1: 'Débutant', A2: 'Élémentaire', B1: 'Intermédiaire',
+  B2: 'Intermédiaire supérieur', C1: 'Avancé', C2: 'Maîtrise',
+}
+
+function formatScore(value: number | null | undefined): string {
+  if (value == null || Number.isNaN(Number(value))) return '—'
+  return Number(value).toFixed(Number.isInteger(Number(value)) ? 0 : 1)
+}
+
+function imageFormatFromDataUrl(dataUrl: string): 'PNG' | 'JPEG' {
+  if (dataUrl.startsWith('data:image/jpeg') || dataUrl.startsWith('data:image/jpg')) return 'JPEG'
+  return 'PNG'
 }
 
 async function loadImageAsDataUrl(src: string): Promise<string | null> {
@@ -89,6 +104,17 @@ async function generateCertificatePdf(params: {
   certificateNumber: string
   issueDate: string
   verificationCode: string
+  scores: {
+    score_eo: number | null
+    score_ee: number | null
+    score_co: number | null
+    score_ce: number | null
+    score_langue: number | null
+    total_score: number
+  }
+  examinerName: string | null
+  schoolLogoDataUrl: string | null
+  examinerSignatureDataUrl: string | null
 }): Promise<Blob> {
   const doc = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' })
   const pageW = doc.internal.pageSize.getWidth()
@@ -100,68 +126,123 @@ async function generateCertificatePdf(params: {
   doc.setLineWidth(0.5)
   doc.rect(14, 14, pageW - 28, pageH - 28)
 
-  const logoDataUrl = await loadImageAsDataUrl('/logo.png')
-  if (logoDataUrl) {
-    doc.addImage(logoDataUrl, 'PNG', pageW / 2 - 12, 18, 24, 24)
-    doc.setFont('helvetica', 'bold')
-    doc.setFontSize(24)
-    doc.setTextColor(0, 165, 80)
-    doc.text('FLEHub', pageW / 2, 52, { align: 'center' })
-  } else {
-    doc.setFont('helvetica', 'bold')
-    doc.setFontSize(28)
-    doc.setTextColor(0, 165, 80)
-    doc.text('FLEHub', pageW / 2, 35, { align: 'center' })
+  const schoolLogo = params.schoolLogoDataUrl
+  let logoDrawn = false
+  if (schoolLogo) {
+    try {
+      doc.addImage(schoolLogo, imageFormatFromDataUrl(schoolLogo), pageW / 2 - 14, 18, 28, 22)
+      logoDrawn = true
+    } catch {
+      // Image load/format failure: fall back to text branding below.
+    }
   }
+
+  const hasLogo = logoDrawn
+  doc.setFont('helvetica', 'bold')
+  doc.setFontSize(hasLogo ? 22 : 28)
+  doc.setTextColor(0, 165, 80)
+  doc.text('FLEHub', pageW / 2, hasLogo ? 48 : 35, { align: 'center' })
 
   doc.setFontSize(11)
   doc.setTextColor(100, 100, 100)
   doc.setFont('helvetica', 'normal')
-  doc.text('French Language Examination Platform', pageW / 2, logoDataUrl ? 58 : 42, { align: 'center' })
+  doc.text('Plateforme d\'examen de français langue étrangère', pageW / 2, hasLogo ? 55 : 42, { align: 'center' })
 
   doc.setFontSize(22)
   doc.setTextColor(30, 30, 30)
   doc.setFont('helvetica', 'bold')
-  doc.text('Certificate of Achievement', pageW / 2, logoDataUrl ? 72 : 58, { align: 'center' })
+  doc.text('Certificat de Réussite', pageW / 2, hasLogo ? 68 : 56, { align: 'center' })
 
-  const bodyStartY = logoDataUrl ? 88 : 75
+  const bodyStartY = hasLogo ? 82 : 72
 
   doc.setFont('helvetica', 'normal')
   doc.setFontSize(13)
   doc.setTextColor(80, 80, 80)
-  doc.text('This is to certify that', pageW / 2, bodyStartY, { align: 'center' })
+  doc.text('Nous certifions que', pageW / 2, bodyStartY, { align: 'center' })
 
-  doc.setFontSize(26)
+  doc.setFontSize(24)
   doc.setTextColor(20, 20, 20)
   doc.setFont('helvetica', 'bold')
-  doc.text(params.studentName, pageW / 2, bodyStartY + 15, { align: 'center' })
+  doc.text(params.studentName, pageW / 2, bodyStartY + 13, { align: 'center' })
 
   doc.setFont('helvetica', 'normal')
   doc.setFontSize(13)
   doc.setTextColor(80, 80, 80)
-  doc.text('has successfully achieved CEFR level', pageW / 2, bodyStartY + 30, { align: 'center' })
+  doc.text('a obtenu avec succès le niveau CECRL', pageW / 2, bodyStartY + 26, { align: 'center' })
 
-  doc.setFontSize(20)
+  doc.setFontSize(18)
   doc.setTextColor(0, 165, 80)
   doc.setFont('helvetica', 'bold')
-  doc.text(`${params.cefrLevel} — ${CEFR_LABELS[params.cefrLevel]}`, pageW / 2, bodyStartY + 43, { align: 'center' })
+  doc.text(`${params.cefrLevel} — ${CEFR_LABELS[params.cefrLevel]}`, pageW / 2, bodyStartY + 38, { align: 'center' })
 
   doc.setFont('helvetica', 'normal')
   doc.setFontSize(12)
   doc.setTextColor(80, 80, 80)
-  doc.text(`Issued by: ${params.schoolName}`, pageW / 2, bodyStartY + 58, { align: 'center' })
+  doc.text(`Délivré par : ${params.schoolName}`, pageW / 2, bodyStartY + 50, { align: 'center' })
 
-  const formattedDate = new Date(params.issueDate).toLocaleDateString('en-RW', {
+  const scoreLine = [
+    `EO : ${formatScore(params.scores.score_eo)}/20`,
+    `EE : ${formatScore(params.scores.score_ee)}/20`,
+    `CO : ${formatScore(params.scores.score_co)}/20`,
+    `CE : ${formatScore(params.scores.score_ce)}/20`,
+    `LANGUE : ${formatScore(params.scores.score_langue)}/20`,
+    `Total : ${formatScore(params.scores.total_score)}/100`,
+  ].join('   ')
+
+  doc.setFontSize(10)
+  doc.setTextColor(60, 60, 60)
+  doc.setFont('helvetica', 'bold')
+  doc.text(scoreLine, pageW / 2, bodyStartY + 62, { align: 'center' })
+
+  const formattedDate = new Date(params.issueDate).toLocaleDateString('fr-FR', {
     day: 'numeric',
     month: 'long',
     year: 'numeric',
   })
 
-  doc.setFontSize(10)
+  doc.setFont('helvetica', 'normal')
+  doc.setFontSize(9)
   doc.setTextColor(100, 100, 100)
-  doc.text(`Certificate No: ${params.certificateNumber}`, 20, pageH - 30)
-  doc.text(`Issue Date: ${formattedDate}`, 20, pageH - 24)
-  doc.text(`Verification Code: ${params.verificationCode}`, 20, pageH - 18)
+  doc.text(`N° de certificat : ${params.certificateNumber}`, pageW / 2, bodyStartY + 74, { align: 'center' })
+  doc.text(`Date de délivrance : ${formattedDate}`, pageW / 2, bodyStartY + 80, { align: 'center' })
+  doc.text(`Code de vérification : ${params.verificationCode}`, pageW / 2, bodyStartY + 86, { align: 'center' })
+
+  // Dual signature zones at the bottom
+  const leftX = pageW * 0.28
+  const rightX = pageW * 0.72
+  const lineY = pageH - 42
+  const lineHalfW = 40
+
+  if (params.examinerSignatureDataUrl) {
+    try {
+      doc.addImage(
+        params.examinerSignatureDataUrl,
+        imageFormatFromDataUrl(params.examinerSignatureDataUrl),
+        leftX - 18,
+        lineY - 22,
+        36,
+        18,
+      )
+    } catch {
+      // Continue without signature image.
+    }
+  }
+
+  doc.setDrawColor(80, 80, 80)
+  doc.setLineWidth(0.4)
+  doc.line(leftX - lineHalfW, lineY, leftX + lineHalfW, lineY)
+  doc.line(rightX - lineHalfW, lineY, rightX + lineHalfW, lineY)
+
+  doc.setFont('helvetica', 'bold')
+  doc.setFontSize(10)
+  doc.setTextColor(40, 40, 40)
+  doc.text(params.examinerName?.trim() || 'Examinateur', leftX, lineY + 6, { align: 'center' })
+  doc.text('Administration FLEHub', rightX, lineY + 6, { align: 'center' })
+
+  doc.setFont('helvetica', 'normal')
+  doc.setFontSize(8)
+  doc.setTextColor(100, 100, 100)
+  doc.text('Examinateur / Directeur de l\'École', leftX, lineY + 12, { align: 'center' })
 
   return doc.output('blob')
 }
@@ -197,7 +278,7 @@ export default function SchoolCertificatesPage() {
       supabase.from('exam_sessions').select('id, title, cefr_level'),
       supabase.from('school_certificates').select('id, certificate_number, school_student_id, cefr_level, issue_date, pdf_path').eq('school_id', sid).order('issue_date', { ascending: false }),
       supabase.from('exam_result_drafts')
-        .select('id, school_student_id, exam_session_id, total_score, status')
+        .select('id, school_student_id, exam_session_id, score_eo, score_ee, score_co, score_ce, score_langue, total_score, status')
         .eq('school_id', sid)
         .in('status', ['draft', 'submitted', 'validated']),
     ])
@@ -237,6 +318,17 @@ export default function SchoolCertificatesPage() {
     return !certificates.some((c) => c.school_student_id === r.school_student_id)
   })
 
+  const resolveAssetDataUrl = async (path: string | null | undefined): Promise<string | null> => {
+    if (!path) return null
+    try {
+      const { data } = await supabase.storage.from('school-assets').createSignedUrl(path, 3600)
+      if (!data?.signedUrl) return null
+      return await loadImageAsDataUrl(data.signedUrl)
+    } catch {
+      return null
+    }
+  }
+
   const handleGenerate = async (result: ValidatedResult) => {
     if (!schoolId) return
     setGenerating(result.id)
@@ -269,6 +361,27 @@ export default function SchoolCertificatesPage() {
       if (insertErr) throw new Error(`Failed to create certificate record: ${insertErr.message}`)
       certificateId = inserted.id
 
+      // Fetch examiner / branding assets from school_settings (non-blocking on missing data)
+      let examinerName: string | null = null
+      let schoolLogoDataUrl: string | null = null
+      let examinerSignatureDataUrl: string | null = null
+      try {
+        const { data: settings } = await supabase
+          .from('school_settings')
+          .select('examiner_name, examiner_signature_path, school_logo_path')
+          .eq('school_id', schoolId)
+          .maybeSingle()
+        examinerName = settings?.examiner_name?.trim() || null
+        const [logoUrl, signatureUrl] = await Promise.all([
+          resolveAssetDataUrl(settings?.school_logo_path),
+          resolveAssetDataUrl(settings?.examiner_signature_path),
+        ])
+        schoolLogoDataUrl = logoUrl
+        examinerSignatureDataUrl = signatureUrl
+      } catch {
+        // Continue PDF generation without school branding assets.
+      }
+
       let pdfBlob: Blob
       try {
         pdfBlob = await generateCertificatePdf({
@@ -278,6 +391,17 @@ export default function SchoolCertificatesPage() {
           certificateNumber: certNumber,
           issueDate,
           verificationCode,
+          scores: {
+            score_eo: result.score_eo,
+            score_ee: result.score_ee,
+            score_co: result.score_co,
+            score_ce: result.score_ce,
+            score_langue: result.score_langue,
+            total_score: result.total_score,
+          },
+          examinerName,
+          schoolLogoDataUrl,
+          examinerSignatureDataUrl,
         })
       } catch {
         throw new Error('Failed to generate certificate PDF.')
