@@ -115,6 +115,10 @@ async function generateCertificatePdf(params: {
   examinerName: string | null
   schoolLogoDataUrl: string | null
   examinerSignatureDataUrl: string | null
+  orgName: string
+  adminSignatoryName: string | null
+  adminLogoDataUrl: string | null
+  adminSignatureDataUrl: string | null
 }): Promise<Blob> {
   const doc = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' })
   const pageW = doc.internal.pageSize.getWidth()
@@ -138,10 +142,11 @@ async function generateCertificatePdf(params: {
   }
 
   const hasLogo = logoDrawn
+  const brandName = params.orgName.trim() || 'FLEHub'
   doc.setFont('helvetica', 'bold')
   doc.setFontSize(hasLogo ? 22 : 28)
   doc.setTextColor(0, 165, 80)
-  doc.text('FLEHub', pageW / 2, hasLogo ? 48 : 35, { align: 'center' })
+  doc.text(brandName, pageW / 2, hasLogo ? 48 : 35, { align: 'center' })
 
   doc.setFontSize(11)
   doc.setTextColor(100, 100, 100)
@@ -228,6 +233,37 @@ async function generateCertificatePdf(params: {
     }
   }
 
+  // Admin zone (right): logo above signature, then signature above the line
+  if (params.adminLogoDataUrl) {
+    try {
+      doc.addImage(
+        params.adminLogoDataUrl,
+        imageFormatFromDataUrl(params.adminLogoDataUrl),
+        rightX - 12,
+        lineY - 42,
+        24,
+        16,
+      )
+    } catch {
+      // Continue without admin logo.
+    }
+  }
+
+  if (params.adminSignatureDataUrl) {
+    try {
+      doc.addImage(
+        params.adminSignatureDataUrl,
+        imageFormatFromDataUrl(params.adminSignatureDataUrl),
+        rightX - 18,
+        lineY - 22,
+        36,
+        18,
+      )
+    } catch {
+      // Continue without admin signature image.
+    }
+  }
+
   doc.setDrawColor(80, 80, 80)
   doc.setLineWidth(0.4)
   doc.line(leftX - lineHalfW, lineY, leftX + lineHalfW, lineY)
@@ -237,12 +273,18 @@ async function generateCertificatePdf(params: {
   doc.setFontSize(10)
   doc.setTextColor(40, 40, 40)
   doc.text(params.examinerName?.trim() || 'Examinateur', leftX, lineY + 6, { align: 'center' })
-  doc.text('Administration FLEHub', rightX, lineY + 6, { align: 'center' })
+  doc.text(
+    params.adminSignatoryName?.trim() || 'Administration FLEHub',
+    rightX,
+    lineY + 6,
+    { align: 'center' },
+  )
 
   doc.setFont('helvetica', 'normal')
   doc.setFontSize(8)
   doc.setTextColor(100, 100, 100)
   doc.text('Examinateur / Directeur de l\'École', leftX, lineY + 12, { align: 'center' })
+  doc.text('Administration FLEHub', rightX, lineY + 12, { align: 'center' })
 
   return doc.output('blob')
 }
@@ -382,6 +424,32 @@ export default function SchoolCertificatesPage() {
         // Continue PDF generation without school branding assets.
       }
 
+      // Fetch global admin org branding (non-blocking on missing data)
+      let orgName = 'FLEHub'
+      let adminSignatoryName: string | null = null
+      let adminLogoDataUrl: string | null = null
+      let adminSignatureDataUrl: string | null = null
+      try {
+        const { data: orgSettings } = await supabase
+          .from('org_settings')
+          .select('org_name, logo_url, signature_url, admin_signatory_name')
+          .limit(1)
+          .maybeSingle()
+        if (orgSettings) {
+          orgName = orgSettings.org_name?.trim() || 'FLEHub'
+          adminSignatoryName = orgSettings.admin_signatory_name?.trim() || null
+          // admin-assets bucket is public — logo_url / signature_url are direct public URLs
+          const [adminLogo, adminSig] = await Promise.all([
+            orgSettings.logo_url ? loadImageAsDataUrl(orgSettings.logo_url) : Promise.resolve(null),
+            orgSettings.signature_url ? loadImageAsDataUrl(orgSettings.signature_url) : Promise.resolve(null),
+          ])
+          adminLogoDataUrl = adminLogo
+          adminSignatureDataUrl = adminSig
+        }
+      } catch {
+        // Continue PDF generation without admin branding assets.
+      }
+
       let pdfBlob: Blob
       try {
         pdfBlob = await generateCertificatePdf({
@@ -402,6 +470,10 @@ export default function SchoolCertificatesPage() {
           examinerName,
           schoolLogoDataUrl,
           examinerSignatureDataUrl,
+          orgName,
+          adminSignatoryName,
+          adminLogoDataUrl,
+          adminSignatureDataUrl,
         })
       } catch {
         throw new Error('Failed to generate certificate PDF.')
