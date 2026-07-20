@@ -283,7 +283,9 @@ export default function SchoolCertificatesPage() {
         throw new Error('Failed to generate certificate PDF.')
       }
 
-      const pdfPath = `certificates/${certNumber}.pdf`
+      // Path must start with school UUID so it matches school-assets RLS
+      // ("Schools manage own school assets" / school_assets_insert).
+      const pdfPath = `${schoolId}/certificates/${certNumber}.pdf`
       const { error: uploadErr } = await supabase.storage
         .from('school-assets')
         .upload(pdfPath, pdfBlob, { contentType: 'application/pdf', upsert: true })
