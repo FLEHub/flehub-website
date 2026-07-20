@@ -16,6 +16,7 @@ import {
   Mail,
   Phone,
   PenLine,
+  User,
 } from 'lucide-react'
 
 interface OrgSettings {
@@ -25,6 +26,7 @@ interface OrgSettings {
   contact_phone: string | null
   logo_url: string | null
   signature_url: string | null
+  admin_signatory_name: string | null
   updated_at: string
 }
 
@@ -121,6 +123,7 @@ export function AdminSettingsForm({ initialSettings }: Props) {
       contact_phone: null,
       logo_url: null,
       signature_url: null,
+      admin_signatory_name: null,
       updated_at: new Date().toISOString(),
     }
   )
@@ -174,6 +177,7 @@ export function AdminSettingsForm({ initialSettings }: Props) {
           org_name: settings.org_name,
           contact_email: settings.contact_email,
           contact_phone: settings.contact_phone,
+          admin_signatory_name: settings.admin_signatory_name,
           updated_at: new Date().toISOString(),
         })
         .eq('id', settings.id)
@@ -260,6 +264,20 @@ export function AdminSettingsForm({ initialSettings }: Props) {
                 className="border-gray-200 focus:border-[#00A550] focus:ring-[#00A550]/20"
               />
             </div>
+          </div>
+
+          <div className="space-y-1.5">
+            <Label htmlFor="admin_signatory_name" className="text-sm font-medium text-gray-700 flex items-center gap-1.5">
+              <User className="w-3.5 h-3.5 text-gray-400" />
+              Nom du signataire
+            </Label>
+            <Input
+              id="admin_signatory_name"
+              value={settings.admin_signatory_name ?? ''}
+              onChange={(e) => setSettings((p) => ({ ...p, admin_signatory_name: e.target.value || null }))}
+              placeholder="Nom de la personne qui signe les certificats"
+              className="border-gray-200 focus:border-[#00A550] focus:ring-[#00A550]/20"
+            />
           </div>
 
           <div className="flex justify-end pt-2">
