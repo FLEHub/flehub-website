@@ -130,35 +130,60 @@ async function generateCertificatePdf(params: {
   doc.setLineWidth(0.5)
   doc.rect(14, 14, pageW - 28, pageH - 28)
 
-  const schoolLogo = params.schoolLogoDataUrl
-  let logoDrawn = false
-  if (schoolLogo) {
+  // Header logos: school top-left, admin top-right; org name stays centered between them
+  const topLogoW = 24
+  const topLogoH = 16
+  const topLogoY = 20
+  const leftLogoX = 20
+  const rightLogoX = pageW - 20 - topLogoW
+
+  if (params.schoolLogoDataUrl) {
     try {
-      doc.addImage(schoolLogo, imageFormatFromDataUrl(schoolLogo), pageW / 2 - 14, 18, 28, 22)
-      logoDrawn = true
+      doc.addImage(
+        params.schoolLogoDataUrl,
+        imageFormatFromDataUrl(params.schoolLogoDataUrl),
+        leftLogoX,
+        topLogoY,
+        topLogoW,
+        topLogoH,
+      )
     } catch {
-      // Image load/format failure: fall back to text branding below.
+      // Image load/format failure: continue without school logo.
     }
   }
 
-  const hasLogo = logoDrawn
+  if (params.adminLogoDataUrl) {
+    try {
+      doc.addImage(
+        params.adminLogoDataUrl,
+        imageFormatFromDataUrl(params.adminLogoDataUrl),
+        rightLogoX,
+        topLogoY,
+        topLogoW,
+        topLogoH,
+      )
+    } catch {
+      // Continue without admin logo.
+    }
+  }
+
   const brandName = params.orgName.trim() || 'FLEHub'
   doc.setFont('helvetica', 'bold')
-  doc.setFontSize(hasLogo ? 22 : 28)
+  doc.setFontSize(26)
   doc.setTextColor(0, 165, 80)
-  doc.text(brandName, pageW / 2, hasLogo ? 48 : 35, { align: 'center' })
+  doc.text(brandName, pageW / 2, 32, { align: 'center' })
 
   doc.setFontSize(11)
   doc.setTextColor(100, 100, 100)
   doc.setFont('helvetica', 'normal')
-  doc.text('Plateforme d\'examen de français langue étrangère', pageW / 2, hasLogo ? 55 : 42, { align: 'center' })
+  doc.text('Plateforme d\'examen de français langue étrangère', pageW / 2, 40, { align: 'center' })
 
   doc.setFontSize(22)
   doc.setTextColor(30, 30, 30)
   doc.setFont('helvetica', 'bold')
-  doc.text('Certificat de Réussite', pageW / 2, hasLogo ? 68 : 56, { align: 'center' })
+  doc.text('Certificat de Réussite', pageW / 2, 54, { align: 'center' })
 
-  const bodyStartY = hasLogo ? 82 : 72
+  const bodyStartY = 70
 
   doc.setFont('helvetica', 'normal')
   doc.setFontSize(13)
@@ -233,22 +258,7 @@ async function generateCertificatePdf(params: {
     }
   }
 
-  // Admin zone (right): logo above signature, then signature above the line
-  if (params.adminLogoDataUrl) {
-    try {
-      doc.addImage(
-        params.adminLogoDataUrl,
-        imageFormatFromDataUrl(params.adminLogoDataUrl),
-        rightX - 12,
-        lineY - 42,
-        24,
-        16,
-      )
-    } catch {
-      // Continue without admin logo.
-    }
-  }
-
+  // Admin zone (right): signature above the line (logo is in the header)
   if (params.adminSignatureDataUrl) {
     try {
       doc.addImage(
