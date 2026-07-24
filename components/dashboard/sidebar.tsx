@@ -49,6 +49,7 @@ const navByRole: Record<Role, NavItem[]> = {
     { label: 'Dashboard', href: '/dashboard/admin', icon: LayoutDashboard },
     { label: 'Users', href: '/dashboard/admin/users', icon: Shield },
     { label: 'Exams', href: '/dashboard/admin/exams', icon: FileText },
+    { label: 'School Exam Access', href: '/dashboard/admin/school-exam-access', icon: BookOpenCheck },
     { label: 'Calendar', href: '/dashboard/admin/calendar', icon: Calendar },
     { label: 'Finances', href: '/dashboard/admin/finances', icon: DollarSign },
     { label: 'Settings', href: '/dashboard/admin/settings', icon: Settings },
