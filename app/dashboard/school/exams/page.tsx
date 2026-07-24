@@ -2,9 +2,8 @@
 
 import { useState, useEffect, useCallback } from 'react'
 import { createClient } from '@/lib/supabase/client'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
 import {
   Table,
   TableBody,
@@ -21,7 +20,6 @@ import {
   ChevronUp,
   RefreshCw,
   AlertTriangle,
-  CheckCircle2,
   XCircle,
   BookOpen,
 } from 'lucide-react'
@@ -53,6 +51,8 @@ const COMPETENCIES: { key: Competency; label: string; hasAudio: boolean }[] = [
   { key: 'LANGUE', label: 'Étude de la Langue', hasAudio: false },
 ]
 
+const COMPETENCY_KEYS = new Set<string>(COMPETENCIES.map((c) => c.key))
+
 const CEFR_COLORS: Record<CEFR, string> = {
   A1: 'bg-slate-100 text-slate-600',
   A2: 'bg-blue-50 text-blue-600',
@@ -69,6 +69,11 @@ const STATUS_COLORS: Record<string, string> = {
   cancelled: 'bg-red-50 text-red-600 border border-red-200',
 }
 
+function competencyFromFilename(name: string): Competency | null {
+  const base = name.replace(/\.(pdf|mp3|mpeg|wav)$/i, '')
+  return COMPETENCY_KEYS.has(base) ? (base as Competency) : null
+}
+
 export default function SchoolExamsPage() {
   const supabase = createClient()
 
@@ -83,28 +88,116 @@ export default function SchoolExamsPage() {
     setLoading(true)
     setError(null)
     try {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser()
+      if (!user) throw new Error('Not authenticated')
+
+      const { data: school, error: schoolErr } = await supabase
+        .from('schools')
+        .select('id')
+        .eq('profile_id', user.id)
+        .maybeSingle()
+      if (schoolErr) throw schoolErr
+      if (!school) throw new Error('School profile not found')
+
+      // Visibility gate: school_exam_access (NOT student_enrollments)
+      const { data: accessRows, error: accessErr } = await supabase
+        .from('school_exam_access')
+        .select('exam_session_id')
+        .eq('school_id', school.id)
+        .eq('status', 'completed')
+      if (accessErr) throw accessErr
+
+      const accessIds = (accessRows ?? []).map((r) => r.exam_session_id)
+      if (accessIds.length === 0) {
+        setSessions([])
+        setPapers({})
+        return
+      }
+
       const { data: sess, error: sessErr } = await supabase
         .from('exam_sessions')
         .select('id, title, cefr_level, exam_date, status')
+        .in('id', accessIds)
         .in('status', ['upcoming', 'ongoing'])
         .order('exam_date', { ascending: true })
       if (sessErr) throw sessErr
       setSessions(sess ?? [])
 
-      if ((sess ?? []).length > 0) {
-        const ids = (sess ?? []).map((s) => s.id)
-        const { data: papersData, error: papersErr } = await supabase
-          .from('exam_papers')
-          .select('id, exam_session_id, competency, file_path, audio_path')
-          .in('exam_session_id', ids)
-        if (papersErr) throw papersErr
-        const grouped: Record<string, ExamPaper[]> = {}
-        for (const p of papersData ?? []) {
-          if (!grouped[p.exam_session_id]) grouped[p.exam_session_id] = []
-          grouped[p.exam_session_id].push(p as ExamPaper)
-        }
-        setPapers(grouped)
+      const ids = (sess ?? []).map((s) => s.id)
+      if (ids.length === 0) {
+        setPapers({})
+        return
       }
+
+      const { data: papersData, error: papersErr } = await supabase
+        .from('exam_papers')
+        .select('id, exam_session_id, competency, file_path, audio_path')
+        .in('exam_session_id', ids)
+      if (papersErr) throw papersErr
+
+      const grouped: Record<string, ExamPaper[]> = {}
+      for (const p of papersData ?? []) {
+        if (!grouped[p.exam_session_id]) grouped[p.exam_session_id] = []
+        grouped[p.exam_session_id].push(p as ExamPaper)
+      }
+
+      // Merge real storage objects so counters/downloads reflect uploaded files,
+      // even if exam_papers rows are incomplete.
+      await Promise.all(
+        ids.map(async (sessionId) => {
+          const byComp = new Map<Competency, ExamPaper>()
+          for (const p of grouped[sessionId] ?? []) {
+            byComp.set(p.competency, p)
+          }
+
+          const [pdfList, audioList] = await Promise.all([
+            supabase.storage.from('exam-papers').list(sessionId, { limit: 100 }),
+            supabase.storage.from('exam-audio').list(sessionId, { limit: 100 }),
+          ])
+
+          for (const file of pdfList.data ?? []) {
+            const competency = competencyFromFilename(file.name)
+            if (!competency || !file.name.toLowerCase().endsWith('.pdf')) continue
+            const path = `${sessionId}/${file.name}`
+            const existing = byComp.get(competency)
+            if (existing) {
+              byComp.set(competency, { ...existing, file_path: existing.file_path || path })
+            } else {
+              byComp.set(competency, {
+                id: `storage-pdf-${sessionId}-${competency}`,
+                exam_session_id: sessionId,
+                competency,
+                file_path: path,
+                audio_path: null,
+              })
+            }
+          }
+
+          for (const file of audioList.data ?? []) {
+            const competency = competencyFromFilename(file.name)
+            if (!competency) continue
+            const path = `${sessionId}/${file.name}`
+            const existing = byComp.get(competency)
+            if (existing) {
+              byComp.set(competency, { ...existing, audio_path: existing.audio_path || path })
+            } else {
+              byComp.set(competency, {
+                id: `storage-audio-${sessionId}-${competency}`,
+                exam_session_id: sessionId,
+                competency,
+                file_path: null,
+                audio_path: path,
+              })
+            }
+          }
+
+          grouped[sessionId] = Array.from(byComp.values())
+        })
+      )
+
+      setPapers(grouped)
     } catch {
       setError('Failed to load exam papers. Please refresh.')
     } finally {
@@ -179,7 +272,9 @@ export default function SchoolExamsPage() {
               <BookOpen className="w-6 h-6 text-[#00A550]" />
             </div>
             <p className="text-sm font-medium text-gray-700">No exam sessions available</p>
-            <p className="text-xs text-gray-400 mt-1">Exam papers will appear here once published by the admin.</p>
+            <p className="text-xs text-gray-400 mt-1">
+              Exam papers appear here once the admin grants school access and uploads files.
+            </p>
           </CardContent>
         </Card>
       ) : (
