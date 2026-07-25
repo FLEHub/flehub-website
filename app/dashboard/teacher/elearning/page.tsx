@@ -25,7 +25,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Plus, Pencil, Trash2, BookOpen, Layers } from 'lucide-react';
+import { Plus, Pencil, Trash2, BookOpen, Layers, FolderOpen } from 'lucide-react';
 
 type CEFR = 'A1' | 'A2' | 'B1' | 'B2' | 'C1' | 'C2';
 
@@ -216,9 +216,12 @@ export default function TeacherElearningPage() {
                     {mod.published ? 'Publié' : 'Brouillon'}
                   </Badge>
                 </div>
-                <h3 className="font-semibold text-gray-900 text-sm mt-2 leading-snug line-clamp-2">
+                <Link
+                  href={`/dashboard/teacher/elearning/${mod.id}`}
+                  className="font-semibold text-gray-900 text-sm mt-2 leading-snug line-clamp-2 hover:text-flehub-green transition-colors block"
+                >
                   {mod.title}
-                </h3>
+                </Link>
               </CardHeader>
               <CardContent className="flex flex-col flex-1 justify-between gap-3">
                 <p className="text-xs text-gray-500 line-clamp-2">
@@ -234,6 +237,16 @@ export default function TeacherElearningPage() {
                     </Badge>
                   )}
                 </div>
+                <Button
+                  asChild
+                  size="sm"
+                  className="bg-flehub-green hover:bg-flehub-green/90 text-white"
+                >
+                  <Link href={`/dashboard/teacher/elearning/${mod.id}`}>
+                    <FolderOpen className="w-3.5 h-3.5 mr-1" />
+                    Gérer le contenu
+                  </Link>
+                </Button>
                 <div className="flex gap-2 pt-1 border-t border-gray-100">
                   <Button
                     variant="ghost"
