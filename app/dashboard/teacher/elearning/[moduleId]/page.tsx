@@ -237,6 +237,7 @@ export default function TeacherModuleDetailPage() {
         sequence_id: lessonSequenceId,
         title: lessonTitle.trim(),
         competency: lessonCompetency,
+        content_type: 'text',
         content: '',
         order_index: nextIndex,
       });

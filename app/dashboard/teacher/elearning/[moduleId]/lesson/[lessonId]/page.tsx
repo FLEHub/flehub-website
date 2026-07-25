@@ -25,7 +25,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { ArrowLeft, Plus, Trash2, Pencil, ListChecks, Save } from 'lucide-react';
+import { ArrowLeft, Plus, Trash2, Pencil, ListChecks, Save, Upload, ImageIcon } from 'lucide-react';
+import {
+  getYoutubeEmbedUrl,
+  MEDIA_BUCKET,
+  type LessonContentType,
+} from '@/lib/elearning-content';
+import { LessonContentView } from '@/components/dashboard/lesson-content-view';
 
 type Competency = 'CO' | 'CE' | 'PE' | 'PO' | 'EL';
 type ExerciseType = 'qcm' | 'matching' | 'fill_blank' | 'short_answer';
@@ -35,6 +41,7 @@ interface Lesson {
   sequence_id: string;
   title: string;
   competency: Competency | null;
+  content_type: LessonContentType;
   content: string | null;
   order_index: number;
 }
@@ -49,6 +56,16 @@ interface Exercise {
 
 const COMPETENCIES: Competency[] = ['CO', 'CE', 'PE', 'PO', 'EL'];
 const EXERCISE_TYPES: ExerciseType[] = ['qcm', 'matching', 'fill_blank', 'short_answer'];
+const CONTENT_TYPES: { value: LessonContentType; label: string }[] = [
+  { value: 'youtube', label: 'YouTube' },
+  { value: 'image', label: 'Image' },
+  { value: 'text', label: 'Texte' },
+];
+
+function normalizeContentType(value: unknown): LessonContentType {
+  if (value === 'youtube' || value === 'image' || value === 'text') return value;
+  return 'text';
+}
 
 const competencyLabels: Record<Competency, string> = {
   CO: 'Compréhension Orale',
@@ -120,7 +137,10 @@ export default function TeacherLessonEditPage() {
 
   const [title, setTitle] = useState('');
   const [competency, setCompetency] = useState<Competency | ''>('');
+  const [contentType, setContentType] = useState<LessonContentType>('text');
   const [content, setContent] = useState('');
+  const [uploading, setUploading] = useState(false);
+  const [uploadError, setUploadError] = useState<string | null>(null);
 
   const [exerciseDialogOpen, setExerciseDialogOpen] = useState(false);
   const [editingExercise, setEditingExercise] = useState<Exercise | null>(null);
@@ -161,7 +181,7 @@ export default function TeacherLessonEditPage() {
 
       const { data: lessonRow, error: lessonErr } = await supabase
         .from('elearning_lessons')
-        .select('id, sequence_id, title, competency, content, order_index')
+        .select('id, sequence_id, title, competency, content_type, content, order_index')
         .eq('id', lessonId)
         .maybeSingle();
 
@@ -183,11 +203,16 @@ export default function TeacherLessonEditPage() {
         return;
       }
 
-      const typed = lessonRow as Lesson;
+      const typed: Lesson = {
+        ...(lessonRow as Lesson),
+        content_type: normalizeContentType((lessonRow as Lesson).content_type),
+      };
       setLesson(typed);
       setTitle(typed.title ?? '');
       setCompetency((typed.competency as Competency) ?? '');
+      setContentType(typed.content_type);
       setContent(typed.content ?? '');
+      setUploadError(null);
 
       const { data: exRows } = await supabase
         .from('elearning_exercises')
@@ -216,6 +241,41 @@ export default function TeacherLessonEditPage() {
     loadData();
   }, [loadData]);
 
+  function handleContentTypeChange(next: LessonContentType) {
+    if (next === contentType) return;
+    setContentType(next);
+    setContent('');
+    setUploadError(null);
+  }
+
+  async function handleImageUpload(file: File | null) {
+    if (!file || !lesson) return;
+    setUploading(true);
+    setUploadError(null);
+    try {
+      const ext = file.name.split('.').pop()?.toLowerCase() || 'jpg';
+      const path = `lessons/${lesson.id}/${Date.now()}.${ext}`;
+
+      const { error: upErr } = await supabase.storage
+        .from(MEDIA_BUCKET)
+        .upload(path, file, { upsert: true, contentType: file.type });
+
+      if (upErr) throw upErr;
+
+      // Remove previous image if it was stored in the same bucket
+      if (contentType === 'image' && content && content !== path) {
+        await supabase.storage.from(MEDIA_BUCKET).remove([content]);
+      }
+
+      setContent(path);
+    } catch (err) {
+      console.error(err);
+      setUploadError("Échec de l'upload. Vérifiez le type de fichier (JPG, PNG, WebP, GIF).");
+    } finally {
+      setUploading(false);
+    }
+  }
+
   async function saveLesson() {
     if (!lesson || !title.trim() || !competency) return;
     setSaving(true);
@@ -225,11 +285,18 @@ export default function TeacherLessonEditPage() {
         .update({
           title: title.trim(),
           competency,
+          content_type: contentType,
           content,
         })
         .eq('id', lesson.id);
       if (error) throw error;
-      setLesson({ ...lesson, title: title.trim(), competency, content });
+      setLesson({
+        ...lesson,
+        title: title.trim(),
+        competency,
+        content_type: contentType,
+        content,
+      });
     } catch (err) {
       console.error(err);
     } finally {
@@ -405,24 +472,109 @@ export default function TeacherLessonEditPage() {
             </Select>
           </div>
           <div className="space-y-2">
-            <Label htmlFor="lesson-content">Contenu</Label>
-            <Textarea
-              id="lesson-content"
-              rows={10}
-              value={content}
-              onChange={(e) => setContent(e.target.value)}
-              placeholder="Instructions, texte de la leçon, consignes pour l'apprenant…"
-              className="font-mono text-sm"
-            />
-            <p className="text-xs text-gray-400">
-              Champ <code className="bg-gray-100 px-1 rounded">content</code> de la
-              leçon (texte libre).
-            </p>
+            <Label>Type de contenu</Label>
+            <Select
+              value={contentType}
+              onValueChange={(v) => handleContentTypeChange(v as LessonContentType)}
+            >
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {CONTENT_TYPES.map((t) => (
+                  <SelectItem key={t.value} value={t.value}>
+                    {t.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
+
+          {contentType === 'youtube' && (
+            <div className="space-y-3">
+              <div className="space-y-2">
+                <Label htmlFor="youtube-url">URL YouTube</Label>
+                <Input
+                  id="youtube-url"
+                  value={content}
+                  onChange={(e) => setContent(e.target.value)}
+                  placeholder="https://www.youtube.com/watch?v=…"
+                />
+              </div>
+              {content && getYoutubeEmbedUrl(content) ? (
+                <LessonContentView contentType="youtube" content={content} />
+              ) : content ? (
+                <p className="text-xs text-amber-600">
+                  Collez une URL YouTube valide pour afficher la prévisualisation.
+                </p>
+              ) : null}
+            </div>
+          )}
+
+          {contentType === 'image' && (
+            <div className="space-y-3">
+              <div className="space-y-2">
+                <Label htmlFor="lesson-image">Image</Label>
+                <div className="flex flex-wrap items-center gap-2">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    className="border-flehub-green text-flehub-green hover:bg-flehub-green-light"
+                    disabled={uploading}
+                    onClick={() => document.getElementById('lesson-image')?.click()}
+                  >
+                    {uploading ? (
+                      'Upload…'
+                    ) : (
+                      <>
+                        <Upload className="w-4 h-4 mr-1" />
+                        {content ? "Remplacer l'image" : 'Uploader une image'}
+                      </>
+                    )}
+                  </Button>
+                  <input
+                    id="lesson-image"
+                    type="file"
+                    accept="image/jpeg,image/png,image/webp,image/gif"
+                    className="hidden"
+                    onChange={(e) => handleImageUpload(e.target.files?.[0] ?? null)}
+                  />
+                  {content && (
+                    <span className="text-xs text-gray-400 truncate max-w-[220px]" title={content}>
+                      <ImageIcon className="w-3.5 h-3.5 inline mr-1" />
+                      {content}
+                    </span>
+                  )}
+                </div>
+                {uploadError && <p className="text-xs text-red-500">{uploadError}</p>}
+                <p className="text-xs text-gray-400">
+                  Stocké dans le bucket{' '}
+                  <code className="bg-gray-100 px-1 rounded">{MEDIA_BUCKET}</code>
+                  {' '}(chemin dans <code className="bg-gray-100 px-1 rounded">content</code>).
+                </p>
+              </div>
+              {content && <LessonContentView contentType="image" content={content} />}
+            </div>
+          )}
+
+          {contentType === 'text' && (
+            <div className="space-y-2">
+              <Label htmlFor="lesson-content">Contenu</Label>
+              <Textarea
+                id="lesson-content"
+                rows={10}
+                value={content}
+                onChange={(e) => setContent(e.target.value)}
+                placeholder="Instructions, texte de la leçon, consignes pour l'apprenant…"
+                className="text-sm"
+              />
+            </div>
+          )}
+
           <div className="flex justify-end">
             <Button
               className="bg-flehub-green hover:bg-flehub-green/90 text-white"
-              disabled={saving || !title.trim() || !competency}
+              disabled={saving || uploading || !title.trim() || !competency}
               onClick={saveLesson}
             >
               <Save className="w-4 h-4 mr-1" />
