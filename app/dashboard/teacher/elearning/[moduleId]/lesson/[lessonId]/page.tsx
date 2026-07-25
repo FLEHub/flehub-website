@@ -25,6 +25,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { Checkbox } from '@/components/ui/checkbox';
 import { ArrowLeft, Plus, Trash2, Pencil, ListChecks, Save, Upload, ImageIcon } from 'lucide-react';
 import {
   getYoutubeEmbedUrl,
@@ -87,39 +88,176 @@ const exerciseTypeLabels: Record<ExerciseType, string> = {
   qcm: 'QCM',
   matching: 'Association',
   fill_blank: 'Texte à trous',
-  short_answer: 'Réponse courte',
+  short_answer: 'Réponse libre',
 };
 
-function defaultContent(type: ExerciseType): Record<string, unknown> {
+interface QcmOption {
+  text: string;
+  correct: boolean;
+}
+
+interface MatchingPair {
+  left: string;
+  right: string;
+}
+
+interface ExerciseFormState {
+  question: string;
+  options: QcmOption[];
+  explanation: string;
+  pairs: MatchingPair[];
+  prompt: string;
+  answer: string;
+}
+
+function emptyExerciseForm(): ExerciseFormState {
+  return {
+    question: '',
+    options: [
+      { text: '', correct: true },
+      { text: '', correct: false },
+      { text: '', correct: false },
+      { text: '', correct: false },
+    ],
+    explanation: '',
+    pairs: [
+      { left: '', right: '' },
+      { left: '', right: '' },
+    ],
+    prompt: '',
+    answer: '',
+  };
+}
+
+function parseExerciseForm(
+  type: ExerciseType,
+  raw: Record<string, unknown> | null | undefined
+): ExerciseFormState {
+  const base = emptyExerciseForm();
+  if (!raw || typeof raw !== 'object') return base;
+
+  if (type === 'qcm') {
+    const question = typeof raw.question === 'string' ? raw.question : '';
+    const explanation = typeof raw.explanation === 'string' ? raw.explanation : '';
+    let options: QcmOption[] = base.options;
+
+    if (Array.isArray(raw.options)) {
+      const optionsList = raw.options as unknown[];
+      if (optionsList.every((o) => typeof o === 'string')) {
+        const correctIndex =
+          typeof raw.correct_index === 'number' ? raw.correct_index : 0;
+        const texts = optionsList as string[];
+        options = [0, 1, 2, 3].map((i) => ({
+          text: texts[i] ?? '',
+          correct: i === correctIndex,
+        }));
+      } else {
+        options = [0, 1, 2, 3].map((i) => {
+          const item = optionsList[i] as Record<string, unknown> | undefined;
+          return {
+            text: typeof item?.text === 'string' ? item.text : '',
+            correct: Boolean(item?.correct ?? item?.is_correct),
+          };
+        });
+        if (!options.some((o) => o.correct)) options[0].correct = true;
+      }
+    }
+
+    return { ...base, question, options, explanation };
+  }
+
+  if (type === 'matching') {
+    const pairsRaw = Array.isArray(raw.pairs) ? raw.pairs : [];
+    const pairs: MatchingPair[] =
+      pairsRaw.length > 0
+        ? pairsRaw.map((p) => {
+            const pair = p as Record<string, unknown>;
+            return {
+              left: typeof pair?.left === 'string' ? pair.left : '',
+              right: typeof pair?.right === 'string' ? pair.right : '',
+            };
+          })
+        : base.pairs;
+    return { ...base, pairs };
+  }
+
+  if (type === 'fill_blank') {
+    return {
+      ...base,
+      prompt: typeof raw.prompt === 'string' ? raw.prompt : '',
+      answer: typeof raw.answer === 'string' ? raw.answer : '',
+    };
+  }
+
+  // short_answer
+  const prompt =
+    typeof raw.prompt === 'string'
+      ? raw.prompt
+      : typeof raw.question === 'string'
+        ? raw.question
+        : '';
+  return { ...base, prompt };
+}
+
+function buildExerciseContent(
+  type: ExerciseType,
+  form: ExerciseFormState
+): Record<string, unknown> {
   switch (type) {
     case 'qcm':
       return {
-        question: '',
-        options: ['', '', '', ''],
-        correct_index: 0,
+        question: form.question.trim(),
+        options: form.options.map((o) => ({
+          text: o.text.trim(),
+          correct: o.correct,
+        })),
+        explanation: form.explanation.trim(),
       };
-    case 'fill_blank':
-      return { prompt: '', answer: '' };
-    case 'short_answer':
-      return { question: '', sample_answer: '' };
     case 'matching':
       return {
-        pairs: [
-          { left: '', right: '' },
-          { left: '', right: '' },
-        ],
+        pairs: form.pairs.map((p) => ({
+          left: p.left.trim(),
+          right: p.right.trim(),
+        })),
+      };
+    case 'fill_blank':
+      return {
+        prompt: form.prompt.trim(),
+        answer: form.answer.trim(),
+      };
+    case 'short_answer':
+      return {
+        prompt: form.prompt.trim(),
       };
     default:
       return {};
   }
 }
 
-function contentToEditorString(content: unknown): string {
-  try {
-    return JSON.stringify(content ?? {}, null, 2);
-  } catch {
-    return '{}';
+function validateExerciseForm(type: ExerciseType, form: ExerciseFormState): string | null {
+  if (type === 'qcm') {
+    if (!form.question.trim()) return 'La question est obligatoire';
+    if (form.options.some((o) => !o.text.trim())) return 'Remplissez les 4 réponses';
+    if (!form.options.some((o) => o.correct)) return 'Cochez la bonne réponse';
+    return null;
   }
+  if (type === 'matching') {
+    if (form.pairs.length < 1) return 'Ajoutez au moins une paire';
+    if (form.pairs.some((p) => !p.left.trim() || !p.right.trim())) {
+      return 'Remplissez toutes les paires';
+    }
+    return null;
+  }
+  if (type === 'fill_blank') {
+    if (!form.prompt.trim()) return 'La phrase est obligatoire';
+    if (!form.answer.trim()) return 'La réponse attendue est obligatoire';
+    return null;
+  }
+  if (type === 'short_answer') {
+    if (!form.prompt.trim()) return 'La consigne est obligatoire';
+    return null;
+  }
+  return null;
 }
 
 export default function TeacherLessonEditPage() {
@@ -146,8 +284,8 @@ export default function TeacherLessonEditPage() {
   const [editingExercise, setEditingExercise] = useState<Exercise | null>(null);
   const [exTitle, setExTitle] = useState('');
   const [exType, setExType] = useState<ExerciseType>('qcm');
-  const [exContentJson, setExContentJson] = useState('{}');
-  const [exJsonError, setExJsonError] = useState<string | null>(null);
+  const [exForm, setExForm] = useState<ExerciseFormState>(emptyExerciseForm());
+  const [exFormError, setExFormError] = useState<string | null>(null);
   const [deleteExerciseId, setDeleteExerciseId] = useState<string | null>(null);
 
   const loadData = useCallback(async () => {
@@ -308,8 +446,8 @@ export default function TeacherLessonEditPage() {
     setEditingExercise(null);
     setExTitle('');
     setExType('qcm');
-    setExContentJson(contentToEditorString(defaultContent('qcm')));
-    setExJsonError(null);
+    setExForm(emptyExerciseForm());
+    setExFormError(null);
     setExerciseDialogOpen(true);
   }
 
@@ -317,36 +455,35 @@ export default function TeacherLessonEditPage() {
     setEditingExercise(ex);
     setExTitle(ex.title);
     setExType(ex.exercise_type);
-    setExContentJson(contentToEditorString(ex.content));
-    setExJsonError(null);
+    setExForm(parseExerciseForm(ex.exercise_type, ex.content));
+    setExFormError(null);
     setExerciseDialogOpen(true);
   }
 
   function handleTypeChange(type: ExerciseType) {
     setExType(type);
-    if (!editingExercise) {
-      setExContentJson(contentToEditorString(defaultContent(type)));
-      setExJsonError(null);
-    }
+    setExForm(emptyExerciseForm());
+    setExFormError(null);
+  }
+
+  function setCorrectOption(index: number) {
+    setExForm((prev) => ({
+      ...prev,
+      options: prev.options.map((o, i) => ({ ...o, correct: i === index })),
+    }));
   }
 
   async function saveExercise() {
     if (!lesson || !exTitle.trim()) return;
 
-    let parsed: Record<string, unknown>;
-    try {
-      const value = JSON.parse(exContentJson);
-      if (!value || typeof value !== 'object' || Array.isArray(value)) {
-        setExJsonError('Le contenu doit être un objet JSON');
-        return;
-      }
-      parsed = value as Record<string, unknown>;
-      setExJsonError(null);
-    } catch {
-      setExJsonError('JSON invalide');
+    const validationError = validateExerciseForm(exType, exForm);
+    if (validationError) {
+      setExFormError(validationError);
       return;
     }
 
+    const contentPayload = buildExerciseContent(exType, exForm);
+    setExFormError(null);
     setSaving(true);
     try {
       if (editingExercise) {
@@ -355,7 +492,7 @@ export default function TeacherLessonEditPage() {
           .update({
             title: exTitle.trim(),
             exercise_type: exType,
-            content: parsed,
+            content: contentPayload,
           })
           .eq('id', editingExercise.id);
         if (error) throw error;
@@ -368,7 +505,7 @@ export default function TeacherLessonEditPage() {
           lesson_id: lesson.id,
           title: exTitle.trim(),
           exercise_type: exType,
-          content: parsed,
+          content: contentPayload,
           order_index: nextIndex,
         });
         if (error) throw error;
@@ -647,10 +784,10 @@ export default function TeacherLessonEditPage() {
       </Card>
 
       <Dialog open={exerciseDialogOpen} onOpenChange={setExerciseDialogOpen}>
-        <DialogContent className="max-w-xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-w-xl max-h-[90vh] overflow-y-auto bg-white">
           <DialogHeader>
             <DialogTitle>
-              {editingExercise ? 'Modifier l’exercice' : 'Ajouter un exercice'}
+              {editingExercise ? "Modifier l'exercice" : 'Ajouter un exercice'}
             </DialogTitle>
           </DialogHeader>
           <div className="space-y-4 py-2">
@@ -672,7 +809,7 @@ export default function TeacherLessonEditPage() {
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent className="bg-white">
                   {EXERCISE_TYPES.map((t) => (
                     <SelectItem key={t} value={t}>
                       {exerciseTypeLabels[t]}
@@ -681,28 +818,181 @@ export default function TeacherLessonEditPage() {
                 </SelectContent>
               </Select>
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="ex-content">Contenu (JSON)</Label>
-              <Textarea
-                id="ex-content"
-                rows={12}
-                value={exContentJson}
-                onChange={(e) => {
-                  setExContentJson(e.target.value);
-                  setExJsonError(null);
-                }}
-                className="font-mono text-xs"
-              />
-              {exJsonError ? (
-                <p className="text-xs text-red-500">{exJsonError}</p>
-              ) : (
-                <p className="text-xs text-gray-400">
-                  Stocké dans la colonne{' '}
-                  <code className="bg-gray-100 px-1 rounded">content</code> (jsonb).
-                  Un modèle est prérempli selon le type.
-                </p>
-              )}
-            </div>
+
+            {exType === 'qcm' && (
+              <div className="space-y-4 rounded-lg border border-gray-100 bg-gray-50 p-4">
+                <div className="space-y-2">
+                  <Label htmlFor="qcm-question">Question</Label>
+                  <Textarea
+                    id="qcm-question"
+                    rows={2}
+                    value={exForm.question}
+                    onChange={(e) =>
+                      setExForm((prev) => ({ ...prev, question: e.target.value }))
+                    }
+                    placeholder="Posez votre question…"
+                  />
+                </div>
+                <div className="space-y-3">
+                  <Label>Réponses</Label>
+                  {exForm.options.map((opt, index) => (
+                    <div key={index} className="flex items-center gap-3">
+                      <Input
+                        value={opt.text}
+                        onChange={(e) =>
+                          setExForm((prev) => ({
+                            ...prev,
+                            options: prev.options.map((o, i) =>
+                              i === index ? { ...o, text: e.target.value } : o
+                            ),
+                          }))
+                        }
+                        placeholder={`Réponse ${index + 1}`}
+                        className="bg-white"
+                      />
+                      <label className="flex items-center gap-2 text-xs text-gray-600 whitespace-nowrap cursor-pointer">
+                        <Checkbox
+                          checked={opt.correct}
+                          onCheckedChange={() => setCorrectOption(index)}
+                        />
+                        Bonne réponse
+                      </label>
+                    </div>
+                  ))}
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="qcm-explanation">Explication</Label>
+                  <Textarea
+                    id="qcm-explanation"
+                    rows={2}
+                    value={exForm.explanation}
+                    onChange={(e) =>
+                      setExForm((prev) => ({ ...prev, explanation: e.target.value }))
+                    }
+                    placeholder="Pourquoi c'est la bonne réponse…"
+                  />
+                </div>
+              </div>
+            )}
+
+            {exType === 'matching' && (
+              <div className="space-y-3 rounded-lg border border-gray-100 bg-gray-50 p-4">
+                <Label>Paires d&apos;association</Label>
+                {exForm.pairs.map((pair, index) => (
+                  <div key={index} className="flex items-center gap-2">
+                    <Input
+                      value={pair.left}
+                      onChange={(e) =>
+                        setExForm((prev) => ({
+                          ...prev,
+                          pairs: prev.pairs.map((p, i) =>
+                            i === index ? { ...p, left: e.target.value } : p
+                          ),
+                        }))
+                      }
+                      placeholder="Colonne gauche"
+                      className="bg-white"
+                    />
+                    <span className="text-gray-300">↔</span>
+                    <Input
+                      value={pair.right}
+                      onChange={(e) =>
+                        setExForm((prev) => ({
+                          ...prev,
+                          pairs: prev.pairs.map((p, i) =>
+                            i === index ? { ...p, right: e.target.value } : p
+                          ),
+                        }))
+                      }
+                      placeholder="Colonne droite"
+                      className="bg-white"
+                    />
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      className="text-red-500 hover:bg-red-50 shrink-0"
+                      disabled={exForm.pairs.length <= 1}
+                      onClick={() =>
+                        setExForm((prev) => ({
+                          ...prev,
+                          pairs: prev.pairs.filter((_, i) => i !== index),
+                        }))
+                      }
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                    </Button>
+                  </div>
+                ))}
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  className="border-flehub-green text-flehub-green hover:bg-flehub-green-light"
+                  onClick={() =>
+                    setExForm((prev) => ({
+                      ...prev,
+                      pairs: [...prev.pairs, { left: '', right: '' }],
+                    }))
+                  }
+                >
+                  <Plus className="w-3.5 h-3.5 mr-1" />
+                  Ajouter une paire
+                </Button>
+              </div>
+            )}
+
+            {exType === 'fill_blank' && (
+              <div className="space-y-4 rounded-lg border border-gray-100 bg-gray-50 p-4">
+                <div className="space-y-2">
+                  <Label htmlFor="fb-prompt">Phrase avec le mot manquant</Label>
+                  <Textarea
+                    id="fb-prompt"
+                    rows={3}
+                    value={exForm.prompt}
+                    onChange={(e) =>
+                      setExForm((prev) => ({ ...prev, prompt: e.target.value }))
+                    }
+                    placeholder="Exemple : Je ___ français tous les jours."
+                    className="bg-white"
+                  />
+                  <p className="text-xs text-gray-400">
+                    Utilisez <code className="bg-white px-1 rounded border">___</code>{' '}
+                    pour indiquer l&apos;emplacement du trou.
+                  </p>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="fb-answer">Réponse attendue</Label>
+                  <Input
+                    id="fb-answer"
+                    value={exForm.answer}
+                    onChange={(e) =>
+                      setExForm((prev) => ({ ...prev, answer: e.target.value }))
+                    }
+                    placeholder="parle"
+                    className="bg-white"
+                  />
+                </div>
+              </div>
+            )}
+
+            {exType === 'short_answer' && (
+              <div className="space-y-2 rounded-lg border border-gray-100 bg-gray-50 p-4">
+                <Label htmlFor="sa-prompt">Consigne</Label>
+                <Textarea
+                  id="sa-prompt"
+                  rows={4}
+                  value={exForm.prompt}
+                  onChange={(e) =>
+                    setExForm((prev) => ({ ...prev, prompt: e.target.value }))
+                  }
+                  placeholder="Question posée à l'apprenant (correction manuelle)…"
+                  className="bg-white"
+                />
+              </div>
+            )}
+
+            {exFormError && <p className="text-xs text-red-500">{exFormError}</p>}
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setExerciseDialogOpen(false)}>
