@@ -109,6 +109,7 @@ CREATE TABLE IF NOT EXISTS elearning_lessons (
   sequence_id uuid NOT NULL REFERENCES elearning_sequences(id) ON DELETE CASCADE,
   title text NOT NULL DEFAULT '',
   competency text CHECK (competency IN ('PE', 'PO', 'CE', 'CO', 'EE', 'EO', 'EL')),
+  content_type text NOT NULL DEFAULT 'text' CHECK (content_type IN ('youtube', 'image', 'text')),
   content text,
   order_index integer NOT NULL DEFAULT 0,
   created_at timestamptz DEFAULT now()
@@ -443,7 +444,8 @@ VALUES (
   104857600,
   ARRAY[
     'audio/mpeg', 'audio/mp3', 'audio/wav', 'audio/webm', 'audio/ogg', 'audio/x-m4a', 'audio/mp4',
-    'video/mp4', 'video/webm', 'video/quicktime'
+    'video/mp4', 'video/webm', 'video/quicktime',
+    'image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'image/gif'
   ]
 )
 ON CONFLICT (id) DO NOTHING;
