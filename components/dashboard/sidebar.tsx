@@ -25,6 +25,7 @@ import {
   Menu,
   ClipboardList,
   BookOpenCheck,
+  PenSquare,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
@@ -64,9 +65,9 @@ const navByRole: Record<Role, NavItem[]> = {
   ],
   teacher: [
     { label: 'Dashboard', href: '/dashboard/teacher', icon: LayoutDashboard },
-    { label: 'My Courses', href: '/dashboard/teacher/courses', icon: BookOpen },
-    { label: 'Exercises', href: '/dashboard/teacher/exercises', icon: PenTool },
-    { label: 'Live Sessions', href: '/dashboard/teacher/live', icon: Video },
+    { label: 'Modules', href: '/dashboard/teacher/elearning', icon: BookOpen },
+    { label: 'Sessions', href: '/dashboard/teacher/sessions', icon: Video },
+    { label: 'Corrections', href: '/dashboard/teacher/corrections', icon: PenSquare },
     { label: 'Learners', href: '/dashboard/teacher/learners', icon: UserCheck },
     { label: 'Messages', href: '/dashboard/teacher/messages', icon: MessageSquare },
   ],
