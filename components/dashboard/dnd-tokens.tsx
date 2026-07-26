@@ -1,12 +1,14 @@
 'use client';
 
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { cn } from '@/lib/utils';
 
 export interface DnDToken {
   id: string;
   label: string;
 }
+
+const DND_TYPE = 'application/x-flehub-dnd';
 
 interface TokenSorterProps {
   /** Correct order labels (used only for validation by parent). */
@@ -20,7 +22,7 @@ interface TokenSorterProps {
 }
 
 /**
- * Touch-friendly drag-and-drop sorter (pointer events).
+ * Drag-and-drop sorter using HTML5 DnD (mouse) + pointer fallback (touch).
  * Drag tokens from the bank into the answer row, reorder, or drag back.
  */
 export function TokenSorter({
@@ -33,62 +35,115 @@ export function TokenSorter({
   className,
 }: TokenSorterProps) {
   const [draggingId, setDraggingId] = useState<string | null>(null);
-  const dragSource = useRef<'bank' | 'answer' | null>(null);
+  const dragLabelRef = useRef<string>('');
+  const pointerDragRef = useRef<{
+    id: string;
+    active: boolean;
+  } | null>(null);
+  const [ghost, setGhost] = useState<{ x: number; y: number; label: string } | null>(
+    null
+  );
 
   function findToken(id: string): DnDToken | undefined {
     return bank.find((t) => t.id === id) ?? answer.find((t) => t.id === id);
   }
 
-  function onPointerDown(
-    e: React.PointerEvent,
-    tokenId: string,
-    source: 'bank' | 'answer'
-  ) {
-    (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
-    setDraggingId(tokenId);
-    dragSource.current = source;
-  }
-
-  function dropOnAnswer(index?: number) {
-    if (!draggingId) return;
-    const token = findToken(draggingId);
+  function placeOnAnswer(tokenId: string, index?: number) {
+    const token = findToken(tokenId);
     if (!token) return;
-
-    const nextBank = bank.filter((t) => t.id !== draggingId);
-    const without = answer.filter((t) => t.id !== draggingId);
+    const nextBank = bank.filter((t) => t.id !== tokenId);
+    const without = answer.filter((t) => t.id !== tokenId);
     const insertAt = typeof index === 'number' ? index : without.length;
-    const nextAnswer = [
+    onBankChange(nextBank);
+    onAnswerChange([
       ...without.slice(0, insertAt),
       token,
       ...without.slice(insertAt),
-    ];
-
-    onBankChange(nextBank);
-    onAnswerChange(nextAnswer);
-    setDraggingId(null);
-    dragSource.current = null;
+    ]);
   }
 
-  function dropOnBank() {
-    if (!draggingId) return;
-    const token = findToken(draggingId);
+  function placeOnBank(tokenId: string) {
+    const token = findToken(tokenId);
     if (!token) return;
-
-    const nextAnswer = answer.filter((t) => t.id !== draggingId);
-    if (bank.some((t) => t.id === draggingId)) {
-      setDraggingId(null);
-      dragSource.current = null;
-      return;
-    }
-    onAnswerChange(nextAnswer);
+    if (bank.some((t) => t.id === tokenId)) return;
+    onAnswerChange(answer.filter((t) => t.id !== tokenId));
     onBankChange([...bank, token]);
-    setDraggingId(null);
-    dragSource.current = null;
   }
 
-  function endDrag() {
+  function clearDrag() {
     setDraggingId(null);
-    dragSource.current = null;
+    setGhost(null);
+    pointerDragRef.current = null;
+    dragLabelRef.current = '';
+  }
+
+  function onHtmlDragStart(e: React.DragEvent, tokenId: string, label: string) {
+    e.dataTransfer.setData(DND_TYPE, tokenId);
+    e.dataTransfer.setData('text/plain', tokenId);
+    e.dataTransfer.effectAllowed = 'move';
+    setDraggingId(tokenId);
+    dragLabelRef.current = label;
+  }
+
+  function allowDrop(e: React.DragEvent) {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+  }
+
+  function tokenIdFromEvent(e: React.DragEvent): string | null {
+    return e.dataTransfer.getData(DND_TYPE) || e.dataTransfer.getData('text/plain') || draggingId;
+  }
+
+  // Pointer / touch fallback: follow finger and drop via elementFromPoint
+  useEffect(() => {
+    function onMove(e: PointerEvent) {
+      const drag = pointerDragRef.current;
+      if (!drag?.active) return;
+      setGhost({
+        x: e.clientX,
+        y: e.clientY,
+        label: dragLabelRef.current,
+      });
+    }
+
+    function onUp(e: PointerEvent) {
+      const drag = pointerDragRef.current;
+      if (!drag?.active) return;
+
+      const el = document.elementFromPoint(e.clientX, e.clientY);
+      const dropZone = el?.closest('[data-dnd-drop]') as HTMLElement | null;
+      const zone = dropZone?.dataset.dndDrop;
+      const indexRaw = dropZone?.dataset.dndIndex;
+      const index =
+        typeof indexRaw === 'string' && indexRaw !== ''
+          ? Number(indexRaw)
+          : undefined;
+
+      if (zone === 'answer') placeOnAnswer(drag.id, index);
+      else if (zone === 'bank') placeOnBank(drag.id);
+
+      clearDrag();
+    }
+
+    window.addEventListener('pointermove', onMove);
+    window.addEventListener('pointerup', onUp);
+    window.addEventListener('pointercancel', clearDrag);
+    return () => {
+      window.removeEventListener('pointermove', onMove);
+      window.removeEventListener('pointerup', onUp);
+      window.removeEventListener('pointercancel', clearDrag);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [bank, answer]);
+
+  function startPointerDrag(e: React.PointerEvent, tokenId: string, label: string) {
+    // Mouse uses HTML5 DnD; pointer path is for touch / pen
+    if (e.pointerType === 'mouse') return;
+    e.preventDefault();
+    pointerDragRef.current = { id: tokenId, active: true };
+    dragLabelRef.current = label;
+    setDraggingId(tokenId);
+    setGhost({ x: e.clientX, y: e.clientY, label });
   }
 
   return (
@@ -96,11 +151,20 @@ export function TokenSorter({
       <div>
         <p className="text-xs font-medium text-gray-500 mb-2">{answerLabel}</p>
         <div
+          data-dnd-drop="answer"
           className={cn(
             'min-h-[56px] flex flex-wrap gap-2 rounded-lg border-2 border-dashed p-3 transition-colors',
-            draggingId ? 'border-flehub-green bg-flehub-green-light/40' : 'border-gray-200 bg-gray-50'
+            draggingId
+              ? 'border-flehub-green bg-flehub-green-light/40'
+              : 'border-gray-200 bg-gray-50'
           )}
-          onPointerUp={() => dropOnAnswer()}
+          onDragOver={allowDrop}
+          onDrop={(e) => {
+            e.preventDefault();
+            const id = tokenIdFromEvent(e);
+            if (id) placeOnAnswer(id);
+            clearDrag();
+          }}
         >
           {answer.length === 0 ? (
             <p className="text-xs text-gray-400 self-center">
@@ -108,22 +172,31 @@ export function TokenSorter({
             </p>
           ) : (
             answer.map((token, index) => (
-              <button
+              <div
                 key={token.id}
-                type="button"
+                data-dnd-drop="answer"
+                data-dnd-index={String(index)}
+                draggable
+                role="button"
+                tabIndex={0}
                 className={cn(
-                  'px-3 py-1.5 rounded-md bg-white border border-gray-200 text-sm font-medium text-gray-800 shadow-sm touch-none select-none',
+                  'px-3 py-1.5 rounded-md bg-white border border-gray-200 text-sm font-medium text-gray-800 shadow-sm select-none cursor-grab active:cursor-grabbing',
                   draggingId === token.id && 'opacity-40'
                 )}
-                onPointerDown={(e) => onPointerDown(e, token.id, 'answer')}
-                onPointerUp={(e) => {
+                onDragStart={(e) => onHtmlDragStart(e, token.id, token.label)}
+                onDragEnd={clearDrag}
+                onDragOver={allowDrop}
+                onDrop={(e) => {
+                  e.preventDefault();
                   e.stopPropagation();
-                  if (draggingId && draggingId !== token.id) dropOnAnswer(index);
-                  else endDrag();
+                  const id = tokenIdFromEvent(e);
+                  if (id) placeOnAnswer(id, index);
+                  clearDrag();
                 }}
+                onPointerDown={(e) => startPointerDrag(e, token.id, token.label)}
               >
                 {token.label}
-              </button>
+              </div>
             ))
           )}
         </div>
@@ -132,32 +205,50 @@ export function TokenSorter({
       <div>
         <p className="text-xs font-medium text-gray-500 mb-2">{bankLabel}</p>
         <div
+          data-dnd-drop="bank"
           className="min-h-[56px] flex flex-wrap gap-2 rounded-lg border border-gray-100 bg-white p-3"
-          onPointerUp={dropOnBank}
+          onDragOver={allowDrop}
+          onDrop={(e) => {
+            e.preventDefault();
+            const id = tokenIdFromEvent(e);
+            if (id) placeOnBank(id);
+            clearDrag();
+          }}
         >
           {bank.length === 0 ? (
-            <p className="text-xs text-gray-400 self-center">Tous les éléments sont placés</p>
+            <p className="text-xs text-gray-400 self-center">
+              Tous les éléments sont placés
+            </p>
           ) : (
             bank.map((token) => (
-              <button
+              <div
                 key={token.id}
-                type="button"
+                draggable
+                role="button"
+                tabIndex={0}
                 className={cn(
-                  'px-3 py-1.5 rounded-md bg-flehub-green-light border border-flehub-green/30 text-sm font-medium text-flehub-green touch-none select-none',
+                  'px-3 py-1.5 rounded-md bg-flehub-green-light border border-flehub-green/30 text-sm font-medium text-flehub-green select-none cursor-grab active:cursor-grabbing',
                   draggingId === token.id && 'opacity-40'
                 )}
-                onPointerDown={(e) => onPointerDown(e, token.id, 'bank')}
-                onPointerUp={(e) => {
-                  e.stopPropagation();
-                  endDrag();
-                }}
+                onDragStart={(e) => onHtmlDragStart(e, token.id, token.label)}
+                onDragEnd={clearDrag}
+                onPointerDown={(e) => startPointerDrag(e, token.id, token.label)}
               >
                 {token.label}
-              </button>
+              </div>
             ))
           )}
         </div>
       </div>
+
+      {ghost && (
+        <div
+          className="pointer-events-none fixed z-[100] px-3 py-1.5 rounded-md bg-flehub-green text-white text-sm font-medium shadow-lg -translate-x-1/2 -translate-y-1/2"
+          style={{ left: ghost.x, top: ghost.y }}
+        >
+          {ghost.label}
+        </div>
+      )}
     </div>
   );
 }
@@ -171,7 +262,7 @@ interface MatchBoardProps {
   className?: string;
 }
 
-/** Drag source chips onto target slots (text or image). Touch-friendly. */
+/** Drag source chips onto target slots (text or image). HTML5 DnD + touch fallback. */
 export function MatchBoard({
   targets,
   sources,
@@ -180,6 +271,13 @@ export function MatchBoard({
   className,
 }: MatchBoardProps) {
   const [draggingId, setDraggingId] = useState<string | null>(null);
+  const dragLabelRef = useRef<string>('');
+  const pointerDragRef = useRef<{ id: string; active: boolean } | null>(null);
+  const [ghost, setGhost] = useState<{ x: number; y: number; label: string } | null>(
+    null
+  );
+  const assignmentsRef = useRef(assignments);
+  assignmentsRef.current = assignments;
 
   const usedSourceIds = new Set(
     Object.values(assignments).filter((v): v is string => !!v)
@@ -191,6 +289,84 @@ export function MatchBoard({
     return sources.find((s) => s.id === id)?.label ?? null;
   }
 
+  function clearDrag() {
+    setDraggingId(null);
+    setGhost(null);
+    pointerDragRef.current = null;
+    dragLabelRef.current = '';
+  }
+
+  function assignToTarget(targetId: string, sourceId: string) {
+    Object.entries(assignmentsRef.current).forEach(([tid, sid]) => {
+      if (sid === sourceId && tid !== targetId) onAssign(tid, null);
+    });
+    onAssign(targetId, sourceId);
+  }
+
+  function onHtmlDragStart(e: React.DragEvent, sourceId: string, label: string) {
+    e.dataTransfer.setData(DND_TYPE, sourceId);
+    e.dataTransfer.setData('text/plain', sourceId);
+    e.dataTransfer.effectAllowed = 'move';
+    setDraggingId(sourceId);
+    dragLabelRef.current = label;
+  }
+
+  function allowDrop(e: React.DragEvent) {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+  }
+
+  function tokenIdFromEvent(e: React.DragEvent): string | null {
+    return (
+      e.dataTransfer.getData(DND_TYPE) ||
+      e.dataTransfer.getData('text/plain') ||
+      draggingId
+    );
+  }
+
+  useEffect(() => {
+    function onMove(e: PointerEvent) {
+      const drag = pointerDragRef.current;
+      if (!drag?.active) return;
+      setGhost({
+        x: e.clientX,
+        y: e.clientY,
+        label: dragLabelRef.current,
+      });
+    }
+
+    function onUp(e: PointerEvent) {
+      const drag = pointerDragRef.current;
+      if (!drag?.active) return;
+
+      const el = document.elementFromPoint(e.clientX, e.clientY);
+      const dropZone = el?.closest('[data-dnd-drop="target"]') as HTMLElement | null;
+      const targetId = dropZone?.dataset.dndTargetId;
+      if (targetId) assignToTarget(targetId, drag.id);
+
+      clearDrag();
+    }
+
+    window.addEventListener('pointermove', onMove);
+    window.addEventListener('pointerup', onUp);
+    window.addEventListener('pointercancel', clearDrag);
+    return () => {
+      window.removeEventListener('pointermove', onMove);
+      window.removeEventListener('pointerup', onUp);
+      window.removeEventListener('pointercancel', clearDrag);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [onAssign]);
+
+  function startPointerDrag(e: React.PointerEvent, sourceId: string, label: string) {
+    if (e.pointerType === 'mouse') return;
+    e.preventDefault();
+    pointerDragRef.current = { id: sourceId, active: true };
+    dragLabelRef.current = label;
+    setDraggingId(sourceId);
+    setGhost({ x: e.clientX, y: e.clientY, label });
+  }
+
   return (
     <div className={cn('space-y-4', className)}>
       <div className="space-y-2">
@@ -200,21 +376,20 @@ export function MatchBoard({
           return (
             <div
               key={target.id}
+              data-dnd-drop="target"
+              data-dnd-target-id={target.id}
               className={cn(
                 'flex items-center gap-3 rounded-lg border-2 border-dashed p-3 transition-colors',
                 draggingId
                   ? 'border-flehub-green bg-flehub-green-light/30'
                   : 'border-gray-200 bg-gray-50'
               )}
-              onPointerUp={() => {
-                if (draggingId) {
-                  // Clear previous assignment of this source
-                  Object.entries(assignments).forEach(([tid, sid]) => {
-                    if (sid === draggingId && tid !== target.id) onAssign(tid, null);
-                  });
-                  onAssign(target.id, draggingId);
-                  setDraggingId(null);
-                }
+              onDragOver={allowDrop}
+              onDrop={(e) => {
+                e.preventDefault();
+                const sourceId = tokenIdFromEvent(e);
+                if (sourceId) assignToTarget(target.id, sourceId);
+                clearDrag();
               }}
             >
               <div className="flex-1 min-w-0">
@@ -223,21 +398,36 @@ export function MatchBoard({
                   <img
                     src={target.imageUrl}
                     alt={target.label}
-                    className="h-16 w-16 object-cover rounded-md border border-gray-100 bg-white"
+                    className="h-16 w-16 object-cover rounded-md border border-gray-100 bg-white pointer-events-none"
+                    draggable={false}
                   />
                 ) : (
                   <p className="text-sm font-medium text-gray-800">{target.label}</p>
                 )}
               </div>
               <div className="min-w-[120px] text-right">
-                {label ? (
-                  <button
-                    type="button"
-                    className="px-3 py-1.5 rounded-md bg-white border border-flehub-green text-sm text-flehub-green"
-                    onClick={() => onAssign(target.id, null)}
-                  >
-                    {label} ✕
-                  </button>
+                {label && assigned ? (
+                  <div className="inline-flex items-center gap-1">
+                    <div
+                      draggable
+                      role="button"
+                      tabIndex={0}
+                      className="px-3 py-1.5 rounded-md bg-white border border-flehub-green text-sm text-flehub-green select-none cursor-grab active:cursor-grabbing"
+                      onDragStart={(e) => onHtmlDragStart(e, assigned, label)}
+                      onDragEnd={clearDrag}
+                      onPointerDown={(e) => startPointerDrag(e, assigned, label)}
+                    >
+                      {label}
+                    </div>
+                    <button
+                      type="button"
+                      className="px-1.5 py-1 rounded-md text-xs text-gray-400 hover:text-red-500"
+                      onClick={() => onAssign(target.id, null)}
+                      aria-label="Retirer"
+                    >
+                      ✕
+                    </button>
+                  </div>
                 ) : (
                   <span className="text-xs text-gray-400">Déposer ici</span>
                 )}
@@ -252,24 +442,33 @@ export function MatchBoard({
           <p className="text-xs text-gray-400">Tous les éléments sont associés</p>
         ) : (
           available.map((source) => (
-            <button
+            <div
               key={source.id}
-              type="button"
+              draggable
+              role="button"
+              tabIndex={0}
               className={cn(
-                'px-3 py-1.5 rounded-md bg-flehub-green-light border border-flehub-green/30 text-sm font-medium text-flehub-green touch-none select-none',
+                'px-3 py-1.5 rounded-md bg-flehub-green-light border border-flehub-green/30 text-sm font-medium text-flehub-green select-none cursor-grab active:cursor-grabbing',
                 draggingId === source.id && 'opacity-40'
               )}
-              onPointerDown={(e) => {
-                (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
-                setDraggingId(source.id);
-              }}
-              onPointerUp={() => setDraggingId(null)}
+              onDragStart={(e) => onHtmlDragStart(e, source.id, source.label)}
+              onDragEnd={clearDrag}
+              onPointerDown={(e) => startPointerDrag(e, source.id, source.label)}
             >
               {source.label}
-            </button>
+            </div>
           ))
         )}
       </div>
+
+      {ghost && (
+        <div
+          className="pointer-events-none fixed z-[100] px-3 py-1.5 rounded-md bg-flehub-green text-white text-sm font-medium shadow-lg -translate-x-1/2 -translate-y-1/2"
+          style={{ left: ghost.x, top: ghost.y }}
+        >
+          {ghost.label}
+        </div>
+      )}
     </div>
   );
 }
