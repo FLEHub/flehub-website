@@ -215,10 +215,27 @@ export function parseExerciseForm(
     const imagePairs: ImageMatchPair[] =
       pairsRaw.length > 0
         ? pairsRaw.map((p) => {
-            const pair = p as Record<string, unknown>;
+            const pair =
+              p && typeof p === 'object' && !Array.isArray(p)
+                ? (p as Record<string, unknown>)
+                : {};
+            const imagePathCandidates = [
+              pair.image_path,
+              pair.imagePath,
+              pair.image,
+              pair.path,
+              pair.url,
+            ];
+            let image_path = '';
+            for (const value of imagePathCandidates) {
+              if (typeof value === 'string' && value.trim()) {
+                image_path = value.trim();
+                break;
+              }
+            }
             return {
-              image_path: typeof pair?.image_path === 'string' ? pair.image_path : '',
-              word: typeof pair?.word === 'string' ? pair.word : '',
+              image_path,
+              word: typeof pair.word === 'string' ? pair.word : '',
             };
           })
         : base.imagePairs;
