@@ -26,6 +26,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import {
   ArrowLeft,
   Plus,
@@ -47,9 +48,19 @@ import {
   type LessonContentType,
 } from '@/lib/elearning-content';
 import { LessonContentView } from '@/components/dashboard/lesson-content-view';
+import {
+  EXERCISE_TYPES,
+  buildExerciseContent,
+  emptyExerciseForm,
+  exerciseTypeLabels,
+  parseExerciseForm,
+  splitWords,
+  validateExerciseForm,
+  type ExerciseFormState,
+  type ExerciseType,
+} from '@/lib/elearning-exercises';
 
 type Competency = 'CO' | 'CE' | 'PE' | 'PO' | 'EL';
-type ExerciseType = 'qcm' | 'matching' | 'fill_blank' | 'short_answer';
 
 interface Lesson {
   id: string;
@@ -70,7 +81,6 @@ interface Exercise {
 }
 
 const COMPETENCIES: Competency[] = ['CO', 'CE', 'PE', 'PO', 'EL'];
-const EXERCISE_TYPES: ExerciseType[] = ['qcm', 'matching', 'fill_blank', 'short_answer'];
 
 const competencyLabels: Record<Competency, string> = {
   CO: 'Compréhension Orale',
@@ -87,182 +97,6 @@ const competencyColors: Record<Competency, string> = {
   PO: 'bg-blue-100 text-blue-700',
   EL: 'bg-amber-100 text-amber-700',
 };
-
-const exerciseTypeLabels: Record<ExerciseType, string> = {
-  qcm: 'QCM',
-  matching: 'Association',
-  fill_blank: 'Texte à trous',
-  short_answer: 'Réponse libre',
-};
-
-interface QcmOption {
-  text: string;
-  correct: boolean;
-}
-
-interface MatchingPair {
-  left: string;
-  right: string;
-}
-
-interface ExerciseFormState {
-  question: string;
-  options: QcmOption[];
-  explanation: string;
-  pairs: MatchingPair[];
-  prompt: string;
-  answer: string;
-}
-
-function emptyExerciseForm(): ExerciseFormState {
-  return {
-    question: '',
-    options: [
-      { text: '', correct: true },
-      { text: '', correct: false },
-      { text: '', correct: false },
-      { text: '', correct: false },
-    ],
-    explanation: '',
-    pairs: [
-      { left: '', right: '' },
-      { left: '', right: '' },
-    ],
-    prompt: '',
-    answer: '',
-  };
-}
-
-function parseExerciseForm(
-  type: ExerciseType,
-  raw: Record<string, unknown> | null | undefined
-): ExerciseFormState {
-  const base = emptyExerciseForm();
-  if (!raw || typeof raw !== 'object') return base;
-
-  if (type === 'qcm') {
-    const question = typeof raw.question === 'string' ? raw.question : '';
-    const explanation = typeof raw.explanation === 'string' ? raw.explanation : '';
-    let options: QcmOption[] = base.options;
-
-    if (Array.isArray(raw.options)) {
-      const optionsList = raw.options as unknown[];
-      if (optionsList.every((o) => typeof o === 'string')) {
-        const correctIndex =
-          typeof raw.correct_index === 'number' ? raw.correct_index : 0;
-        const texts = optionsList as string[];
-        options = [0, 1, 2, 3].map((i) => ({
-          text: texts[i] ?? '',
-          correct: i === correctIndex,
-        }));
-      } else {
-        options = [0, 1, 2, 3].map((i) => {
-          const item = optionsList[i] as Record<string, unknown> | undefined;
-          return {
-            text: typeof item?.text === 'string' ? item.text : '',
-            correct: Boolean(item?.correct ?? item?.is_correct),
-          };
-        });
-        if (!options.some((o) => o.correct)) options[0].correct = true;
-      }
-    }
-
-    return { ...base, question, options, explanation };
-  }
-
-  if (type === 'matching') {
-    const pairsRaw = Array.isArray(raw.pairs) ? raw.pairs : [];
-    const pairs: MatchingPair[] =
-      pairsRaw.length > 0
-        ? pairsRaw.map((p) => {
-            const pair = p as Record<string, unknown>;
-            return {
-              left: typeof pair?.left === 'string' ? pair.left : '',
-              right: typeof pair?.right === 'string' ? pair.right : '',
-            };
-          })
-        : base.pairs;
-    return { ...base, pairs };
-  }
-
-  if (type === 'fill_blank') {
-    return {
-      ...base,
-      prompt: typeof raw.prompt === 'string' ? raw.prompt : '',
-      answer: typeof raw.answer === 'string' ? raw.answer : '',
-    };
-  }
-
-  // short_answer
-  const prompt =
-    typeof raw.prompt === 'string'
-      ? raw.prompt
-      : typeof raw.question === 'string'
-        ? raw.question
-        : '';
-  return { ...base, prompt };
-}
-
-function buildExerciseContent(
-  type: ExerciseType,
-  form: ExerciseFormState
-): Record<string, unknown> {
-  switch (type) {
-    case 'qcm':
-      return {
-        question: form.question.trim(),
-        options: form.options.map((o) => ({
-          text: o.text.trim(),
-          correct: o.correct,
-        })),
-        explanation: form.explanation.trim(),
-      };
-    case 'matching':
-      return {
-        pairs: form.pairs.map((p) => ({
-          left: p.left.trim(),
-          right: p.right.trim(),
-        })),
-      };
-    case 'fill_blank':
-      return {
-        prompt: form.prompt.trim(),
-        answer: form.answer.trim(),
-      };
-    case 'short_answer':
-      return {
-        prompt: form.prompt.trim(),
-      };
-    default:
-      return {};
-  }
-}
-
-function validateExerciseForm(type: ExerciseType, form: ExerciseFormState): string | null {
-  if (type === 'qcm') {
-    if (!form.question.trim()) return 'La question est obligatoire';
-    if (form.options.some((o) => !o.text.trim())) return 'Remplissez les 4 réponses';
-    if (!form.options.some((o) => o.correct)) return 'Cochez la bonne réponse';
-    return null;
-  }
-  if (type === 'matching') {
-    if (form.pairs.length < 1) return 'Ajoutez au moins une paire';
-    if (form.pairs.some((p) => !p.left.trim() || !p.right.trim())) {
-      return 'Remplissez toutes les paires';
-    }
-    return null;
-  }
-  if (type === 'fill_blank') {
-    if (!form.prompt.trim()) return 'La phrase est obligatoire';
-    if (!form.answer.trim()) return 'La réponse attendue est obligatoire';
-    return null;
-  }
-  if (type === 'short_answer') {
-    if (!form.prompt.trim()) return 'La consigne est obligatoire';
-    return null;
-  }
-  return null;
-}
 
 export default function TeacherLessonEditPage() {
   const supabase = createClient();
@@ -480,6 +314,37 @@ export default function TeacherLessonEditPage() {
       ...prev,
       options: prev.options.map((o, i) => ({ ...o, correct: i === index })),
     }));
+  }
+
+  async function handleImagePairUpload(file: File | null, pairIndex: number) {
+    if (!file || !lesson) return;
+    setUploading(true);
+    setExFormError(null);
+    try {
+      const ext = file.name.split('.').pop()?.toLowerCase() || 'jpg';
+      const path = `exercises/${lesson.id}/${Date.now()}-${pairIndex}.${ext}`;
+      const { error: upErr } = await supabase.storage
+        .from(MEDIA_BUCKET)
+        .upload(path, file, { upsert: true, contentType: file.type || undefined });
+      if (upErr) throw upErr;
+
+      const previous = exForm.imagePairs[pairIndex]?.image_path;
+      if (previous && previous !== path) {
+        await supabase.storage.from(MEDIA_BUCKET).remove([previous]);
+      }
+
+      setExForm((prev) => ({
+        ...prev,
+        imagePairs: prev.imagePairs.map((p, i) =>
+          i === pairIndex ? { ...p, image_path: path } : p
+        ),
+      }));
+    } catch (err) {
+      console.error(err);
+      setExFormError("Échec de l'upload de l'image (JPG, PNG, WebP, GIF).");
+    } finally {
+      setUploading(false);
+    }
   }
 
   async function saveExercise() {
@@ -1098,6 +963,262 @@ export default function TeacherLessonEditPage() {
               </div>
             )}
 
+            {exType === 'word_order' && (
+              <div className="space-y-3 rounded-lg border border-gray-100 bg-gray-50 p-4">
+                <div className="space-y-2">
+                  <Label htmlFor="wo-sentence">Phrase correcte</Label>
+                  <Textarea
+                    id="wo-sentence"
+                    rows={2}
+                    value={exForm.correct_sentence}
+                    onChange={(e) =>
+                      setExForm((prev) => ({
+                        ...prev,
+                        correct_sentence: e.target.value,
+                      }))
+                    }
+                    placeholder="Ex. Je vais à l'école"
+                    className="bg-white"
+                  />
+                  <p className="text-xs text-gray-400">
+                    Les mots seront découpés automatiquement pour le glisser-déposer.
+                  </p>
+                </div>
+                {splitWords(exForm.correct_sentence).length > 0 && (
+                  <div className="flex flex-wrap gap-1.5">
+                    {splitWords(exForm.correct_sentence).map((w, i) => (
+                      <span
+                        key={`${w}-${i}`}
+                        className="px-2 py-1 rounded-md bg-white border border-flehub-green/30 text-xs text-flehub-green"
+                      >
+                        {w}
+                      </span>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+
+            {exType === 'anagram' && (
+              <div className="space-y-4 rounded-lg border border-gray-100 bg-gray-50 p-4">
+                <div className="space-y-2">
+                  <Label htmlFor="anagram-word">Mot correct</Label>
+                  <Input
+                    id="anagram-word"
+                    value={exForm.word}
+                    onChange={(e) =>
+                      setExForm((prev) => ({ ...prev, word: e.target.value }))
+                    }
+                    placeholder="Ex. bonjour"
+                    className="bg-white"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="anagram-hint">Indice (optionnel)</Label>
+                  <Input
+                    id="anagram-hint"
+                    value={exForm.hint}
+                    onChange={(e) =>
+                      setExForm((prev) => ({ ...prev, hint: e.target.value }))
+                    }
+                    placeholder="Ex. salutation du matin"
+                    className="bg-white"
+                  />
+                </div>
+              </div>
+            )}
+
+            {exType === 'true_false' && (
+              <div className="space-y-4 rounded-lg border border-gray-100 bg-gray-50 p-4">
+                <div className="space-y-2">
+                  <Label htmlFor="tf-statement">Affirmation</Label>
+                  <Textarea
+                    id="tf-statement"
+                    rows={2}
+                    value={exForm.statement}
+                    onChange={(e) =>
+                      setExForm((prev) => ({ ...prev, statement: e.target.value }))
+                    }
+                    placeholder="Ex. Paris est la capitale de la France."
+                    className="bg-white"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>Bonne réponse</Label>
+                  <RadioGroup
+                    value={exForm.trueFalseCorrect ? 'true' : 'false'}
+                    onValueChange={(v) =>
+                      setExForm((prev) => ({
+                        ...prev,
+                        trueFalseCorrect: v === 'true',
+                      }))
+                    }
+                    className="flex gap-4"
+                  >
+                    <label className="flex items-center gap-2 text-sm cursor-pointer">
+                      <RadioGroupItem value="true" id="tf-correct-true" />
+                      Vrai
+                    </label>
+                    <label className="flex items-center gap-2 text-sm cursor-pointer">
+                      <RadioGroupItem value="false" id="tf-correct-false" />
+                      Faux
+                    </label>
+                  </RadioGroup>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="tf-explanation">Explication</Label>
+                  <Textarea
+                    id="tf-explanation"
+                    rows={2}
+                    value={exForm.explanation}
+                    onChange={(e) =>
+                      setExForm((prev) => ({ ...prev, explanation: e.target.value }))
+                    }
+                    placeholder="Pourquoi cette réponse est correcte…"
+                    className="bg-white"
+                  />
+                </div>
+              </div>
+            )}
+
+            {exType === 'image_match' && (
+              <div className="space-y-3 rounded-lg border border-gray-100 bg-gray-50 p-4">
+                <Label>Paires image — mot</Label>
+                {exForm.imagePairs.map((pair, index) => (
+                  <div
+                    key={index}
+                    className="flex flex-col sm:flex-row gap-2 items-stretch sm:items-center rounded-md border border-gray-200 bg-white p-3"
+                  >
+                    <div className="flex items-center gap-2 flex-1 min-w-0">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        className="border-flehub-green text-flehub-green hover:bg-flehub-green-light shrink-0"
+                        disabled={uploading}
+                        onClick={() =>
+                          document.getElementById(`img-pair-${index}`)?.click()
+                        }
+                      >
+                        <Upload className="w-3.5 h-3.5 mr-1" />
+                        {pair.image_path ? 'Image' : 'Upload'}
+                      </Button>
+                      <input
+                        id={`img-pair-${index}`}
+                        type="file"
+                        accept="image/jpeg,image/png,image/webp,image/gif"
+                        className="hidden"
+                        onChange={(e) =>
+                          handleImagePairUpload(e.target.files?.[0] ?? null, index)
+                        }
+                      />
+                      <span
+                        className="text-xs text-gray-400 truncate"
+                        title={pair.image_path || undefined}
+                      >
+                        {pair.image_path
+                          ? pair.image_path.split('/').pop()
+                          : 'Aucune image'}
+                      </span>
+                    </div>
+                    <Input
+                      value={pair.word}
+                      onChange={(e) =>
+                        setExForm((prev) => ({
+                          ...prev,
+                          imagePairs: prev.imagePairs.map((p, i) =>
+                            i === index ? { ...p, word: e.target.value } : p
+                          ),
+                        }))
+                      }
+                      placeholder="Mot correspondant"
+                      className="sm:max-w-[180px]"
+                    />
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      className="text-red-500 hover:bg-red-50 shrink-0"
+                      disabled={exForm.imagePairs.length <= 1}
+                      onClick={() =>
+                        setExForm((prev) => ({
+                          ...prev,
+                          imagePairs: prev.imagePairs.filter((_, i) => i !== index),
+                        }))
+                      }
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                    </Button>
+                  </div>
+                ))}
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  className="border-flehub-green text-flehub-green hover:bg-flehub-green-light"
+                  onClick={() =>
+                    setExForm((prev) => ({
+                      ...prev,
+                      imagePairs: [...prev.imagePairs, { image_path: '', word: '' }],
+                    }))
+                  }
+                >
+                  <Plus className="w-3.5 h-3.5 mr-1" />
+                  Ajouter une paire
+                </Button>
+              </div>
+            )}
+
+            {exType === 'find_error' && (
+              <div className="space-y-4 rounded-lg border border-gray-100 bg-gray-50 p-4">
+                <div className="space-y-2">
+                  <Label htmlFor="fe-error">Phrase avec l&apos;erreur</Label>
+                  <Textarea
+                    id="fe-error"
+                    rows={2}
+                    value={exForm.sentence_with_error}
+                    onChange={(e) =>
+                      setExForm((prev) => ({
+                        ...prev,
+                        sentence_with_error: e.target.value,
+                      }))
+                    }
+                    placeholder="Ex. Il a manger une pomme"
+                    className="bg-white"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="fe-correct">Phrase correcte</Label>
+                  <Textarea
+                    id="fe-correct"
+                    rows={2}
+                    value={exForm.find_error_correct}
+                    onChange={(e) =>
+                      setExForm((prev) => ({
+                        ...prev,
+                        find_error_correct: e.target.value,
+                      }))
+                    }
+                    placeholder="Ex. Il a mangé une pomme"
+                    className="bg-white"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="fe-explanation">Explication</Label>
+                  <Textarea
+                    id="fe-explanation"
+                    rows={2}
+                    value={exForm.explanation}
+                    onChange={(e) =>
+                      setExForm((prev) => ({ ...prev, explanation: e.target.value }))
+                    }
+                    placeholder="Pourquoi c'était une erreur…"
+                    className="bg-white"
+                  />
+                </div>
+              </div>
+            )}
+
             {exFormError && <p className="text-xs text-red-500">{exFormError}</p>}
           </div>
           <DialogFooter>
@@ -1106,7 +1227,7 @@ export default function TeacherLessonEditPage() {
             </Button>
             <Button
               className="bg-flehub-green hover:bg-flehub-green/90 text-white"
-              disabled={saving || !exTitle.trim()}
+              disabled={saving || uploading || !exTitle.trim()}
               onClick={saveExercise}
             >
               {saving ? 'Enregistrement…' : 'Enregistrer'}
