@@ -26,10 +26,24 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
-import { ArrowLeft, Plus, Trash2, Pencil, ListChecks, Save, Upload, ImageIcon } from 'lucide-react';
+import {
+  ArrowLeft,
+  Plus,
+  Trash2,
+  Pencil,
+  ListChecks,
+  Save,
+  Upload,
+  ImageIcon,
+  Headphones,
+  FileText,
+} from 'lucide-react';
 import {
   getYoutubeEmbedUrl,
+  isStorageContentType,
+  LESSON_CONTENT_TYPES,
   MEDIA_BUCKET,
+  normalizeContentType,
   type LessonContentType,
 } from '@/lib/elearning-content';
 import { LessonContentView } from '@/components/dashboard/lesson-content-view';
@@ -57,16 +71,6 @@ interface Exercise {
 
 const COMPETENCIES: Competency[] = ['CO', 'CE', 'PE', 'PO', 'EL'];
 const EXERCISE_TYPES: ExerciseType[] = ['qcm', 'matching', 'fill_blank', 'short_answer'];
-const CONTENT_TYPES: { value: LessonContentType; label: string }[] = [
-  { value: 'youtube', label: 'YouTube' },
-  { value: 'image', label: 'Image' },
-  { value: 'text', label: 'Texte' },
-];
-
-function normalizeContentType(value: unknown): LessonContentType {
-  if (value === 'youtube' || value === 'image' || value === 'text') return value;
-  return 'text';
-}
 
 const competencyLabels: Record<Competency, string> = {
   CO: 'Compréhension Orale',
@@ -386,29 +390,34 @@ export default function TeacherLessonEditPage() {
     setUploadError(null);
   }
 
-  async function handleImageUpload(file: File | null) {
+  async function handleMediaUpload(file: File | null, kind: 'image' | 'audio' | 'pdf') {
     if (!file || !lesson) return;
     setUploading(true);
     setUploadError(null);
     try {
-      const ext = file.name.split('.').pop()?.toLowerCase() || 'jpg';
+      const ext = file.name.split('.').pop()?.toLowerCase() || kind;
       const path = `lessons/${lesson.id}/${Date.now()}.${ext}`;
 
       const { error: upErr } = await supabase.storage
         .from(MEDIA_BUCKET)
-        .upload(path, file, { upsert: true, contentType: file.type });
+        .upload(path, file, { upsert: true, contentType: file.type || undefined });
 
       if (upErr) throw upErr;
 
-      // Remove previous image if it was stored in the same bucket
-      if (contentType === 'image' && content && content !== path) {
+      // Remove previous file if it was stored in the same bucket
+      if (isStorageContentType(contentType) && content && content !== path) {
         await supabase.storage.from(MEDIA_BUCKET).remove([content]);
       }
 
       setContent(path);
     } catch (err) {
       console.error(err);
-      setUploadError("Échec de l'upload. Vérifiez le type de fichier (JPG, PNG, WebP, GIF).");
+      const hints: Record<'image' | 'audio' | 'pdf', string> = {
+        image: 'JPG, PNG, WebP, GIF',
+        audio: 'MP3, WAV, M4A',
+        pdf: 'PDF',
+      };
+      setUploadError(`Échec de l'upload. Vérifiez le type de fichier (${hints[kind]}).`);
     } finally {
       setUploading(false);
     }
@@ -618,7 +627,7 @@ export default function TeacherLessonEditPage() {
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                {CONTENT_TYPES.map((t) => (
+                {LESSON_CONTENT_TYPES.map((t) => (
                   <SelectItem key={t.value} value={t.value}>
                     {t.label}
                   </SelectItem>
@@ -674,7 +683,9 @@ export default function TeacherLessonEditPage() {
                     type="file"
                     accept="image/jpeg,image/png,image/webp,image/gif"
                     className="hidden"
-                    onChange={(e) => handleImageUpload(e.target.files?.[0] ?? null)}
+                    onChange={(e) =>
+                      handleMediaUpload(e.target.files?.[0] ?? null, 'image')
+                    }
                   />
                   {content && (
                     <span className="text-xs text-gray-400 truncate max-w-[220px]" title={content}>
@@ -691,6 +702,101 @@ export default function TeacherLessonEditPage() {
                 </p>
               </div>
               {content && <LessonContentView contentType="image" content={content} />}
+            </div>
+          )}
+
+          {contentType === 'audio' && (
+            <div className="space-y-3">
+              <div className="space-y-2">
+                <Label htmlFor="lesson-audio">Audio</Label>
+                <div className="flex flex-wrap items-center gap-2">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    className="border-flehub-green text-flehub-green hover:bg-flehub-green-light"
+                    disabled={uploading}
+                    onClick={() => document.getElementById('lesson-audio')?.click()}
+                  >
+                    {uploading ? (
+                      'Upload…'
+                    ) : (
+                      <>
+                        <Upload className="w-4 h-4 mr-1" />
+                        {content ? "Remplacer l'audio" : 'Uploader un audio'}
+                      </>
+                    )}
+                  </Button>
+                  <input
+                    id="lesson-audio"
+                    type="file"
+                    accept="audio/mpeg,audio/mp3,audio/wav,audio/x-m4a,audio/mp4,.mp3,.wav,.m4a"
+                    className="hidden"
+                    onChange={(e) =>
+                      handleMediaUpload(e.target.files?.[0] ?? null, 'audio')
+                    }
+                  />
+                  {content && (
+                    <span className="text-xs text-gray-400 truncate max-w-[220px]" title={content}>
+                      <Headphones className="w-3.5 h-3.5 inline mr-1" />
+                      {content}
+                    </span>
+                  )}
+                </div>
+                {uploadError && <p className="text-xs text-red-500">{uploadError}</p>}
+                <p className="text-xs text-gray-400">
+                  Formats acceptés : MP3, WAV, M4A — bucket{' '}
+                  <code className="bg-gray-100 px-1 rounded">{MEDIA_BUCKET}</code>.
+                </p>
+              </div>
+              {content && <LessonContentView contentType="audio" content={content} />}
+            </div>
+          )}
+
+          {contentType === 'pdf' && (
+            <div className="space-y-3">
+              <div className="space-y-2">
+                <Label htmlFor="lesson-pdf">PDF</Label>
+                <div className="flex flex-wrap items-center gap-2">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    className="border-flehub-green text-flehub-green hover:bg-flehub-green-light"
+                    disabled={uploading}
+                    onClick={() => document.getElementById('lesson-pdf')?.click()}
+                  >
+                    {uploading ? (
+                      'Upload…'
+                    ) : (
+                      <>
+                        <Upload className="w-4 h-4 mr-1" />
+                        {content ? 'Remplacer le PDF' : 'Uploader un PDF'}
+                      </>
+                    )}
+                  </Button>
+                  <input
+                    id="lesson-pdf"
+                    type="file"
+                    accept="application/pdf,.pdf"
+                    className="hidden"
+                    onChange={(e) =>
+                      handleMediaUpload(e.target.files?.[0] ?? null, 'pdf')
+                    }
+                  />
+                  {content && (
+                    <span className="text-xs text-gray-400 truncate max-w-[220px]" title={content}>
+                      <FileText className="w-3.5 h-3.5 inline mr-1" />
+                      {content}
+                    </span>
+                  )}
+                </div>
+                {uploadError && <p className="text-xs text-red-500">{uploadError}</p>}
+                <p className="text-xs text-gray-400">
+                  Stocké dans le bucket{' '}
+                  <code className="bg-gray-100 px-1 rounded">{MEDIA_BUCKET}</code>
+                  {' '}(chemin dans <code className="bg-gray-100 px-1 rounded">content</code>).
+                </p>
+              </div>
+              {content && <LessonContentView contentType="pdf" content={content} />}
             </div>
           )}
 

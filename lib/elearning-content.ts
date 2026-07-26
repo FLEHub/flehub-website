@@ -1,6 +1,33 @@
-export type LessonContentType = 'youtube' | 'image' | 'text';
+export type LessonContentType = 'youtube' | 'image' | 'text' | 'audio' | 'pdf';
 
 export const MEDIA_BUCKET = 'elearning-media';
+
+export const LESSON_CONTENT_TYPES: { value: LessonContentType; label: string }[] = [
+  { value: 'youtube', label: 'YouTube' },
+  { value: 'image', label: 'Image' },
+  { value: 'audio', label: 'Audio' },
+  { value: 'pdf', label: 'PDF' },
+  { value: 'text', label: 'Texte' },
+];
+
+export function isLessonContentType(value: unknown): value is LessonContentType {
+  return (
+    value === 'youtube' ||
+    value === 'image' ||
+    value === 'text' ||
+    value === 'audio' ||
+    value === 'pdf'
+  );
+}
+
+export function normalizeContentType(value: unknown): LessonContentType {
+  return isLessonContentType(value) ? value : 'text';
+}
+
+/** True when content stores a path in the elearning-media bucket. */
+export function isStorageContentType(type: LessonContentType): boolean {
+  return type === 'image' || type === 'audio' || type === 'pdf';
+}
 
 /** Extract a YouTube video id from common URL formats. */
 export function getYoutubeVideoId(url: string): string | null {
