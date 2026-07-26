@@ -168,7 +168,25 @@ export default function LearnerModulePage() {
             .eq('learner_id', lid)
             .in('lesson_id', lessonIds),
         ]);
-        setExercises((exRows ?? []) as ExerciseRow[]);
+        setExercises(
+          ((exRows ?? []) as ExerciseRow[]).map((e) => {
+            const raw = e.content as unknown;
+            let content: Record<string, unknown> = {};
+            if (typeof raw === 'string') {
+              try {
+                const parsed = JSON.parse(raw);
+                if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) {
+                  content = parsed as Record<string, unknown>;
+                }
+              } catch {
+                content = {};
+              }
+            } else if (raw && typeof raw === 'object' && !Array.isArray(raw)) {
+              content = raw as Record<string, unknown>;
+            }
+            return { ...e, content };
+          })
+        );
         for (const p of progRows ?? []) {
           progMap[p.lesson_id as string] = p as ProgressRow;
         }

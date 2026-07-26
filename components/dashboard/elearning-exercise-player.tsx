@@ -7,7 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { MEDIA_BUCKET } from '@/lib/elearning-content';
+import { pickImageMatchPath, resolveElearningMediaUrl } from '@/lib/elearning-content';
 import {
   exerciseTypeLabels,
   splitLetters,
@@ -312,20 +312,30 @@ function ImageMatchPlayer({
   content: Record<string, unknown>;
   onResult?: ElearningExercisePlayerProps['onResult'];
 }) {
-  const supabase = createClient();
+  const supabase = useMemo(() => createClient(), []);
   const pairs = Array.isArray(content.pairs) ? content.pairs : [];
   const [imageUrls, setImageUrls] = useState<Record<string, string>>({});
+  const [imagesReady, setImagesReady] = useState(false);
   const [correct, setCorrect] = useState<boolean | null>(null);
 
-  const targets = pairs.map((p, i) => {
-    const pair = p as Record<string, unknown>;
-    return {
-      id: `img-${i}`,
-      label: typeof pair.word === 'string' ? pair.word : `Image ${i + 1}`,
-      image_path: typeof pair.image_path === 'string' ? pair.image_path : '',
-      word: typeof pair.word === 'string' ? pair.word : '',
-    };
-  });
+  const targets = useMemo(
+    () =>
+      pairs.map((p, i) => {
+        const pair =
+          p && typeof p === 'object' && !Array.isArray(p)
+            ? (p as Record<string, unknown>)
+            : {};
+        const word = typeof pair.word === 'string' ? pair.word.trim() : '';
+        return {
+          id: `img-${i}`,
+          label: word || `Image ${i + 1}`,
+          image_path: pickImageMatchPath(pair),
+          word,
+        };
+      }),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [JSON.stringify(pairs)]
+  );
 
   const sources = useMemo(
     () =>
@@ -344,26 +354,31 @@ function ImageMatchPlayer({
   );
 
   useEffect(() => {
+    setAssignments(Object.fromEntries(targets.map((t) => [t.id, null])));
+  }, [targets]);
+
+  useEffect(() => {
     let cancelled = false;
     async function load() {
+      setImagesReady(false);
       const entries: Record<string, string> = {};
       await Promise.all(
         targets.map(async (t) => {
           if (!t.image_path) return;
-          const { data } = await supabase.storage
-            .from(MEDIA_BUCKET)
-            .createSignedUrl(t.image_path, 3600);
-          if (data?.signedUrl) entries[t.id] = data.signedUrl;
+          const url = await resolveElearningMediaUrl(supabase, t.image_path);
+          if (url) entries[t.id] = url;
         })
       );
-      if (!cancelled) setImageUrls(entries);
+      if (!cancelled) {
+        setImageUrls(entries);
+        setImagesReady(true);
+      }
     }
-    load();
+    void load();
     return () => {
       cancelled = true;
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [targets.map((t) => t.image_path).join('|')]);
+  }, [supabase, targets]);
 
   function check() {
     const ok = targets.every((t) => {
@@ -381,10 +396,12 @@ function ImageMatchPlayer({
         Glissez chaque mot vers l&apos;image correspondante
       </p>
       <MatchBoard
+        imageMode
+        imagePlaceholder={imagesReady ? 'Indispo.' : 'Image…'}
         targets={targets.map((t) => ({
           id: t.id,
           label: t.word,
-          imageUrl: imageUrls[t.id],
+          imageUrl: imageUrls[t.id] ?? null,
         }))}
         sources={sources}
         assignments={assignments}
@@ -393,6 +410,13 @@ function ImageMatchPlayer({
           setCorrect(null);
         }}
       />
+      {imagesReady &&
+        targets.some((t) => t.image_path && !imageUrls[t.id]) && (
+          <p className="text-xs text-amber-600">
+            Certaines images n&apos;ont pas pu être chargées. Vérifiez qu&apos;elles
+            sont bien enregistrées dans le bucket elearning-media.
+          </p>
+        )}
       <Button
         className="bg-flehub-green hover:bg-flehub-green/90 text-white"
         onClick={check}

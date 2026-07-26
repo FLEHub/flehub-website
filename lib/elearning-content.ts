@@ -65,3 +65,64 @@ export function getYoutubeEmbedUrl(urlOrId: string): string | null {
   if (!id) return null;
   return `https://www.youtube.com/embed/${id}`;
 }
+
+/** Normalize a storage object key (strip bucket prefix / leading slash). */
+export function normalizeStorageObjectPath(raw: string): string {
+  let path = raw.trim();
+  if (!path) return '';
+  if (path.startsWith('/')) path = path.slice(1);
+  const prefix = `${MEDIA_BUCKET}/`;
+  if (path.startsWith(prefix)) path = path.slice(prefix.length);
+  return path;
+}
+
+/**
+ * Read an image reference from an image_match pair.
+ * Accepts the canonical `image_path` plus common aliases.
+ */
+export function pickImageMatchPath(pair: Record<string, unknown>): string {
+  const candidates = [
+    pair.image_path,
+    pair.imagePath,
+    pair.image,
+    pair.path,
+    pair.url,
+  ];
+  for (const value of candidates) {
+    if (typeof value === 'string' && value.trim()) return value.trim();
+  }
+  return '';
+}
+
+/**
+ * Turn a stored path or absolute URL into a browser-displayable URL.
+ * Private bucket `elearning-media` → signed URL; absolute http(s) → as-is.
+ */
+export async function resolveElearningMediaUrl(
+  supabase: {
+    storage: {
+      from: (bucket: string) => {
+        createSignedUrl: (
+          path: string,
+          expiresIn: number
+        ) => Promise<{ data: { signedUrl: string } | null; error: unknown }>;
+      };
+    };
+  },
+  raw: string,
+  expiresIn = 3600
+): Promise<string | null> {
+  const value = raw.trim();
+  if (!value) return null;
+  if (/^https?:\/\//i.test(value) || value.startsWith('blob:')) return value;
+
+  const path = normalizeStorageObjectPath(value);
+  if (!path) return null;
+
+  const { data, error } = await supabase.storage
+    .from(MEDIA_BUCKET)
+    .createSignedUrl(path, expiresIn);
+
+  if (error || !data?.signedUrl) return null;
+  return data.signedUrl;
+}

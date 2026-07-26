@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
@@ -125,6 +125,8 @@ export default function TeacherLessonEditPage() {
   const [exForm, setExForm] = useState<ExerciseFormState>(emptyExerciseForm());
   const [exFormError, setExFormError] = useState<string | null>(null);
   const [deleteExerciseId, setDeleteExerciseId] = useState<string | null>(null);
+  const exFormRef = useRef(exForm);
+  exFormRef.current = exForm;
 
   const loadData = useCallback(async () => {
     if (!moduleId || !lessonId) return;
@@ -356,7 +358,7 @@ export default function TeacherLessonEditPage() {
       return;
     }
 
-    const contentPayload = buildExerciseContent(exType, exForm);
+    const contentPayload = buildExerciseContent(exType, exFormRef.current);
     setExFormError(null);
     setSaving(true);
     try {

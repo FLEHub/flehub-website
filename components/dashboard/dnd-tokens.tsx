@@ -254,11 +254,17 @@ export function TokenSorter({
 }
 
 interface MatchBoardProps {
-  targets: { id: string; label: string; imageUrl?: string }[];
+  targets: { id: string; label: string; imageUrl?: string | null }[];
   sources: DnDToken[];
   /** Map targetId -> sourceId */
   assignments: Record<string, string | null>;
   onAssign: (targetId: string, sourceId: string | null) => void;
+  /**
+   * When true, left column always renders an image slot (img or placeholder).
+   * Never falls back to showing the word label as the target visual.
+   */
+  imageMode?: boolean;
+  imagePlaceholder?: string;
   className?: string;
 }
 
@@ -268,6 +274,8 @@ export function MatchBoard({
   sources,
   assignments,
   onAssign,
+  imageMode = false,
+  imagePlaceholder = 'Image…',
   className,
 }: MatchBoardProps) {
   const [draggingId, setDraggingId] = useState<string | null>(null);
@@ -393,14 +401,25 @@ export function MatchBoard({
               }}
             >
               <div className="flex-1 min-w-0">
-                {target.imageUrl ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img
-                    src={target.imageUrl}
-                    alt={target.label}
-                    className="h-16 w-16 object-cover rounded-md border border-gray-100 bg-white pointer-events-none"
-                    draggable={false}
-                  />
+                {imageMode || target.imageUrl ? (
+                  target.imageUrl ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img
+                      src={target.imageUrl}
+                      alt={target.label || 'Image'}
+                      className="h-20 w-20 object-cover rounded-md border border-gray-100 bg-white pointer-events-none"
+                      draggable={false}
+                    />
+                  ) : (
+                    <div
+                      className="h-20 w-20 rounded-md border border-dashed border-gray-200 bg-white flex items-center justify-center"
+                      aria-label="Image en cours de chargement"
+                    >
+                      <span className="text-[10px] text-gray-400 text-center px-1">
+                        {imagePlaceholder}
+                      </span>
+                    </div>
+                  )
                 ) : (
                   <p className="text-sm font-medium text-gray-800">{target.label}</p>
                 )}
