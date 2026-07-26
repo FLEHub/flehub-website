@@ -40,7 +40,6 @@ type ModuleRow = {
 type SequenceRow = {
   id: string;
   title: string;
-  description: string | null;
   order_index: number;
 };
 
@@ -126,9 +125,10 @@ export default function LearnerModulePage() {
       }
       setEnrolled(true);
 
+      // elearning_sequences has no description column (id, module_id, title, order_index, created_at)
       const { data: seqs, error: seqErr } = await supabase
         .from('elearning_sequences')
-        .select('id, title, description, order_index')
+        .select('id, title, order_index')
         .eq('module_id', moduleId)
         .order('order_index', { ascending: true });
       if (seqErr) throw seqErr;
@@ -191,7 +191,16 @@ export default function LearnerModulePage() {
         return firstIncomplete?.id ?? null;
       });
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Erreur de chargement');
+      const message =
+        err instanceof Error
+          ? err.message
+          : typeof err === 'object' &&
+              err !== null &&
+              'message' in err &&
+              typeof (err as { message: unknown }).message === 'string'
+            ? (err as { message: string }).message
+            : 'Erreur de chargement';
+      setError(message);
     } finally {
       setLoading(false);
     }
