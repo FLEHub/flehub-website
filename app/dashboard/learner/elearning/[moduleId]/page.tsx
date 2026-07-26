@@ -125,7 +125,6 @@ export default function LearnerModulePage() {
       }
       setEnrolled(true);
 
-      // elearning_sequences has no description column (id, module_id, title, order_index, created_at)
       const { data: seqs, error: seqErr } = await supabase
         .from('elearning_sequences')
         .select('id, title, order_index')
