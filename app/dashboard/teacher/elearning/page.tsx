@@ -346,11 +346,20 @@ export default function TeacherElearningPage() {
                 type="number"
                 min={0}
                 step={1}
+                inputMode="numeric"
                 value={form.price_rwf}
-                onChange={(e) => setForm({ ...form, price_rwf: e.target.value })}
+                onChange={(e) => {
+                  const raw = e.target.value;
+                  if (raw === '') {
+                    setForm({ ...form, price_rwf: '' });
+                    return;
+                  }
+                  const n = Math.max(0, Math.floor(Number(raw)));
+                  setForm({ ...form, price_rwf: Number.isFinite(n) ? String(n) : '0' });
+                }}
                 placeholder="0"
               />
-              <p className="text-xs text-gray-400">0 = module gratuit (inscription directe)</p>
+              <p className="text-xs text-gray-400">0 = module gratuit</p>
             </div>
             <div className="flex items-center justify-between rounded-lg border border-gray-100 px-3 py-2">
               <div>
