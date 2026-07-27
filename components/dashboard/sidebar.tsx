@@ -60,6 +60,7 @@ const navByRole: Record<Role, NavItem[]> = {
     { label: 'Exam Papers', href: '/dashboard/school/exams', icon: BookOpenCheck },
     { label: 'Exam Results', href: '/dashboard/school/results', icon: ClipboardList },
     { label: 'Certificates', href: '/dashboard/school/certificates', icon: Award },
+    { label: 'Subscription', href: '/dashboard/school/subscription', icon: DollarSign },
     { label: 'Settings', href: '/dashboard/school/settings', icon: Settings },
   ],
   teacher: [

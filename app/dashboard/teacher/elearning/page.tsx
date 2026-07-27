@@ -35,6 +35,7 @@ interface ElearningModule {
   description: string | null;
   cefr_level: CEFR | null;
   published: boolean;
+  price_rwf: number;
   created_at: string;
 }
 
@@ -54,6 +55,7 @@ const emptyForm = {
   description: '',
   cefr_level: '' as CEFR | '',
   published: false,
+  price_rwf: '0',
 };
 
 export default function TeacherElearningPage() {
@@ -91,11 +93,16 @@ export default function TeacherElearningPage() {
 
       const { data } = await supabase
         .from('elearning_modules')
-        .select('id, title, description, cefr_level, published, created_at')
+        .select('id, title, description, cefr_level, published, price_rwf, created_at')
         .eq('teacher_id', teacher.id)
         .order('created_at', { ascending: false });
 
-      setModules((data as ElearningModule[]) ?? []);
+      setModules(
+        ((data as ElearningModule[]) ?? []).map((m) => ({
+          ...m,
+          price_rwf: Number(m.price_rwf ?? 0),
+        }))
+      );
     } catch (err) {
       console.error(err);
     } finally {
@@ -116,6 +123,7 @@ export default function TeacherElearningPage() {
       description: mod.description ?? '',
       cefr_level: mod.cefr_level ?? '',
       published: mod.published,
+      price_rwf: String(mod.price_rwf ?? 0),
     });
     setDialogOpen(true);
   }
@@ -124,11 +132,13 @@ export default function TeacherElearningPage() {
     if (!teacherId || !form.title) return;
     setSaving(true);
     try {
+      const price = Math.max(0, Math.floor(Number(form.price_rwf) || 0));
       const payload = {
         title: form.title.trim(),
         description: form.description.trim() || null,
         cefr_level: form.cefr_level || null,
         published: form.published,
+        price_rwf: price,
         updated_at: new Date().toISOString(),
       };
 
@@ -236,6 +246,11 @@ export default function TeacherElearningPage() {
                       {mod.cefr_level}
                     </Badge>
                   )}
+                  <Badge variant="outline" className="text-xs text-gray-600">
+                    {mod.price_rwf > 0
+                      ? `${mod.price_rwf.toLocaleString('fr-RW')} RWF`
+                      : 'Gratuit'}
+                  </Badge>
                 </div>
                 <Button
                   asChild
@@ -323,6 +338,28 @@ export default function TeacherElearningPage() {
                   ))}
                 </SelectContent>
               </Select>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="price_rwf">Prix (RWF)</Label>
+              <Input
+                id="price_rwf"
+                type="number"
+                min={0}
+                step={1}
+                inputMode="numeric"
+                value={form.price_rwf}
+                onChange={(e) => {
+                  const raw = e.target.value;
+                  if (raw === '') {
+                    setForm({ ...form, price_rwf: '' });
+                    return;
+                  }
+                  const n = Math.max(0, Math.floor(Number(raw)));
+                  setForm({ ...form, price_rwf: Number.isFinite(n) ? String(n) : '0' });
+                }}
+                placeholder="0"
+              />
+              <p className="text-xs text-gray-400">0 = module gratuit</p>
             </div>
             <div className="flex items-center justify-between rounded-lg border border-gray-100 px-3 py-2">
               <div>
