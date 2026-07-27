@@ -25,7 +25,6 @@ interface ModuleCard {
   teacher_name: string;
   enrolled: boolean;
   progress_percent: number;
-  price_rwf: number;
 }
 
 const cefrColors: Record<string, string> = {
@@ -72,7 +71,6 @@ export default function LearnerElearningModulesPage() {
           title,
           description,
           cefr_level,
-          price_rwf,
           teacher_id,
           teachers (
             profiles ( full_name )
@@ -167,7 +165,6 @@ export default function LearnerElearningModulesPage() {
             teacher_name: profiles?.full_name ?? 'Enseignant',
             enrolled: enrolledSet.has(m.id),
             progress_percent,
-            price_rwf: Number(m.price_rwf ?? 0),
           };
         })
       );
@@ -198,30 +195,6 @@ export default function LearnerElearningModulesPage() {
     } catch (err) {
       console.error(err);
     } finally {
-      setBusyId(null);
-    }
-  }
-
-  async function payAndEnroll(moduleId: string) {
-    if (!learnerId) return;
-    setBusyId(moduleId);
-    try {
-      const res = await fetch('/api/payments/module/initiate', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ moduleId }),
-      });
-      const json = await res.json();
-      if (!res.ok) {
-        throw new Error(json?.error || 'Impossible de démarrer le paiement');
-      }
-      if (json.checkout_url) {
-        window.location.href = json.checkout_url as string;
-        return;
-      }
-      throw new Error('Lien de paiement manquant');
-    } catch (err) {
-      console.error(err);
       setBusyId(null);
     }
   }
@@ -336,20 +309,6 @@ export default function LearnerElearningModulesPage() {
                       Continuer
                     </Link>
                   </Button>
-                ) : mod.price_rwf > 0 ? (
-                  <div className="space-y-2">
-                    <p className="text-sm font-semibold text-gray-800">
-                      {mod.price_rwf.toLocaleString('fr-RW')} RWF
-                    </p>
-                    <Button
-                      size="sm"
-                      className="w-full bg-flehub-green hover:bg-flehub-green/90 text-white"
-                      disabled={busyId === mod.id}
-                      onClick={() => payAndEnroll(mod.id)}
-                    >
-                      {busyId === mod.id ? 'Redirection…' : 'Payer et s\'inscrire'}
-                    </Button>
-                  </div>
                 ) : (
                   <Button
                     size="sm"
