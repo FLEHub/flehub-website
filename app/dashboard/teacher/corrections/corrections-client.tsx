@@ -35,6 +35,7 @@ const MEDIA_BUCKET = 'elearning-media';
 
 interface PendingSubmission {
   id: string;
+  kind: 'lesson' | 'exercise_audio';
   content: string;
   teacher_feedback: string | null;
   highlights: TextHighlight[];
@@ -43,8 +44,9 @@ interface PendingSubmission {
   learner_name: string;
   module_id: string;
   module_title: string;
-  competency: 'PE' | 'PO' | string;
+  competency: 'PE' | 'PO' | 'AUDIO' | string;
   lesson_title: string;
+  exercise_title?: string;
 }
 
 interface PendingCapsule {
@@ -198,6 +200,7 @@ export default function TeacherCorrectionsClient() {
             };
             return {
               id: s.id,
+              kind: 'lesson' as const,
               content: s.content ?? '',
               teacher_feedback: s.teacher_feedback,
               highlights: parseHighlights(s.highlights),
@@ -210,6 +213,80 @@ export default function TeacherCorrectionsClient() {
               lesson_title: lesson.title,
             };
           });
+
+          const { data: audioExercises } = await supabase
+            .from('elearning_exercises')
+            .select('id, title, lesson_id')
+            .eq('exercise_type', 'audio_record')
+            .in('lesson_id', lessonIds);
+
+          const audioExerciseList = audioExercises ?? [];
+          const audioExerciseIds = audioExerciseList.map((e) => e.id);
+          const audioExerciseMap = new Map(
+            audioExerciseList.map((e) => [
+              e.id,
+              {
+                title: e.title as string,
+                lesson_id: e.lesson_id as string,
+              },
+            ])
+          );
+
+          if (audioExerciseIds.length > 0) {
+            const { data: audioSubs } = await supabase
+              .from('exercise_audio_submissions')
+              .select(
+                `
+                id,
+                audio_path,
+                teacher_feedback,
+                submitted_at,
+                learner_id,
+                exercise_id,
+                learners (
+                  profiles ( full_name )
+                )
+              `
+              )
+              .eq('validated', false)
+              .in('exercise_id', audioExerciseIds)
+              .order('submitted_at', { ascending: true });
+
+            const audioPending: PendingSubmission[] = (audioSubs ?? []).map(
+              (s: any) => {
+                const ex = audioExerciseMap.get(s.exercise_id) ?? {
+                  title: '',
+                  lesson_id: '',
+                };
+                const lesson = lessonMap.get(ex.lesson_id) ?? {
+                  title: '',
+                  competency: '',
+                  module_id: '',
+                };
+                return {
+                  id: s.id,
+                  kind: 'exercise_audio' as const,
+                  content: s.audio_path ?? '',
+                  teacher_feedback: s.teacher_feedback,
+                  highlights: [],
+                  submitted_at: s.submitted_at,
+                  learner_id: s.learner_id,
+                  learner_name: nestedName(s),
+                  module_id: lesson.module_id,
+                  module_title: moduleTitleMap.get(lesson.module_id) ?? 'Module',
+                  competency: 'AUDIO',
+                  lesson_title: lesson.title,
+                  exercise_title: ex.title,
+                };
+              }
+            );
+
+            pendingSubs = [...pendingSubs, ...audioPending].sort(
+              (a, b) =>
+                new Date(a.submitted_at).getTime() -
+                new Date(b.submitted_at).getTime()
+            );
+          }
         }
       }
 
@@ -282,7 +359,10 @@ export default function TeacherCorrectionsClient() {
     setHighlights(sub.highlights);
     setAudioUrl(null);
 
-    if (sub.competency === 'PO' && sub.content) {
+    if (
+      (sub.competency === 'PO' || sub.kind === 'exercise_audio') &&
+      sub.content
+    ) {
       const { data } = await supabase.storage
         .from(MEDIA_BUCKET)
         .createSignedUrl(sub.content, 3600);
@@ -294,22 +374,34 @@ export default function TeacherCorrectionsClient() {
     if (!activeSubmission) return;
     setSaving(true);
     try {
-      const payload: Record<string, unknown> = {
-        teacher_feedback: feedback.trim() || null,
-        validated: true,
-        validated_at: new Date().toISOString(),
-      };
+      if (activeSubmission.kind === 'exercise_audio') {
+        const { error } = await supabase
+          .from('exercise_audio_submissions')
+          .update({
+            teacher_feedback: feedback.trim() || null,
+            validated: true,
+            validated_at: new Date().toISOString(),
+          })
+          .eq('id', activeSubmission.id);
+        if (error) throw error;
+      } else {
+        const payload: Record<string, unknown> = {
+          teacher_feedback: feedback.trim() || null,
+          validated: true,
+          validated_at: new Date().toISOString(),
+        };
 
-      if (activeSubmission.competency === 'PE') {
-        payload.highlights = highlights;
+        if (activeSubmission.competency === 'PE') {
+          payload.highlights = highlights;
+        }
+
+        const { error } = await supabase
+          .from('elearning_submissions')
+          .update(payload)
+          .eq('id', activeSubmission.id);
+
+        if (error) throw error;
       }
-
-      const { error } = await supabase
-        .from('elearning_submissions')
-        .update(payload)
-        .eq('id', activeSubmission.id);
-
-      if (error) throw error;
 
       setActiveSubmission(null);
       setAudioUrl(null);
@@ -395,7 +487,8 @@ export default function TeacherCorrectionsClient() {
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Corrections</h1>
           <p className="text-gray-500 text-sm mt-1">
-            Corrigez les copies PE/PO et validez les capsules vidéo
+            Corrigez les copies PE/PO, les enregistrements audio et validez les
+            capsules vidéo
           </p>
         </div>
         {!loading && (
@@ -458,7 +551,9 @@ export default function TeacherCorrectionsClient() {
             <div className="flex flex-col items-center justify-center py-16 text-gray-400">
               <CheckCheck className="w-12 h-12 mb-3 opacity-40" />
               <p className="text-lg font-medium">Aucune copie en attente</p>
-              <p className="text-sm">Les soumissions PE et PO apparaîtront ici</p>
+              <p className="text-sm">
+                Les soumissions PE, PO et audio d&apos;exercice apparaîtront ici
+              </p>
             </div>
           ) : (
             filteredSubmissions.map((sub) => (
@@ -472,7 +567,9 @@ export default function TeacherCorrectionsClient() {
                         className={
                           sub.competency === 'PE'
                             ? 'bg-orange-100 text-orange-700'
-                            : 'bg-teal-100 text-teal-700'
+                            : sub.competency === 'AUDIO'
+                              ? 'bg-violet-100 text-violet-700'
+                              : 'bg-teal-100 text-teal-700'
                         }
                       >
                         {sub.competency === 'PE' ? (
@@ -480,12 +577,15 @@ export default function TeacherCorrectionsClient() {
                         ) : (
                           <Mic className="w-3 h-3 mr-1 inline" />
                         )}
-                        {sub.competency || '—'}
+                        {sub.competency === 'AUDIO'
+                          ? 'Audio'
+                          : sub.competency || '—'}
                       </Badge>
                     </div>
                     <p className="text-sm text-gray-600 truncate">
                       {sub.module_title}
                       {sub.lesson_title ? ` · ${sub.lesson_title}` : ''}
+                      {sub.exercise_title ? ` · ${sub.exercise_title}` : ''}
                     </p>
                     <p className="text-xs text-gray-400">
                       Soumise le {formatDate(sub.submitted_at)}
@@ -571,7 +671,11 @@ export default function TeacherCorrectionsClient() {
           <DialogHeader>
             <DialogTitle>
               Corriger — {activeSubmission?.learner_name}
-              {activeSubmission?.competency ? ` (${activeSubmission.competency})` : ''}
+              {activeSubmission?.competency === 'AUDIO'
+                ? ' (Audio)'
+                : activeSubmission?.competency
+                  ? ` (${activeSubmission.competency})`
+                  : ''}
             </DialogTitle>
           </DialogHeader>
 
@@ -579,7 +683,12 @@ export default function TeacherCorrectionsClient() {
             <div className="space-y-4 py-2">
               <p className="text-sm text-gray-500">
                 {activeSubmission.module_title}
-                {activeSubmission.lesson_title ? ` · ${activeSubmission.lesson_title}` : ''}
+                {activeSubmission.lesson_title
+                  ? ` · ${activeSubmission.lesson_title}`
+                  : ''}
+                {activeSubmission.exercise_title
+                  ? ` · ${activeSubmission.exercise_title}`
+                  : ''}
               </p>
 
               {activeSubmission.competency === 'PE' ? (
@@ -593,7 +702,11 @@ export default function TeacherCorrectionsClient() {
                 </div>
               ) : (
                 <div className="space-y-2">
-                  <Label>Enregistrement oral</Label>
+                  <Label>
+                    {activeSubmission.kind === 'exercise_audio'
+                      ? 'Enregistrement audio'
+                      : 'Enregistrement oral'}
+                  </Label>
                   {audioUrl ? (
                     <audio controls className="w-full" src={audioUrl}>
                       Votre navigateur ne prend pas en charge l&apos;audio.
@@ -641,7 +754,11 @@ export default function TeacherCorrectionsClient() {
               disabled={saving}
               onClick={validateSubmission}
             >
-              {saving ? 'Validation…' : 'Valider la correction'}
+              {saving
+                ? 'Validation…'
+                : activeSubmission?.kind === 'exercise_audio'
+                  ? 'Valider'
+                  : 'Valider la correction'}
             </Button>
           </DialogFooter>
         </DialogContent>

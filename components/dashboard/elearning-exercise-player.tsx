@@ -19,7 +19,9 @@ import {
   shuffleArray,
   type DnDToken,
 } from '@/components/dashboard/dnd-tokens';
-import { CheckCircle2, RotateCcw, XCircle } from 'lucide-react';
+import { AudioRecorder } from '@/components/dashboard/audio-recorder';
+import { MEDIA_BUCKET } from '@/lib/elearning-content';
+import { CheckCircle2, Loader2, RotateCcw, XCircle } from 'lucide-react';
 
 export interface PlayableExercise {
   id: string;
@@ -30,6 +32,7 @@ export interface PlayableExercise {
 
 interface ElearningExercisePlayerProps {
   exercise: PlayableExercise;
+  learnerId?: string | null;
   onResult?: (result: { correct: boolean | null; detail?: string }) => void;
 }
 
@@ -40,6 +43,7 @@ function asStringArray(value: unknown): string[] {
 
 export function ElearningExercisePlayer({
   exercise,
+  learnerId,
   onResult,
 }: ElearningExercisePlayerProps) {
   const type = exercise.exercise_type;
@@ -72,6 +76,14 @@ export function ElearningExercisePlayer({
       )}
       {type === 'short_answer' && (
         <ShortAnswerPlayer content={content} onResult={onResult} />
+      )}
+      {type === 'audio_record' && (
+        <AudioRecordPlayer
+          exerciseId={exercise.id}
+          learnerId={learnerId}
+          content={content}
+          onResult={onResult}
+        />
       )}
     </div>
   );
@@ -690,6 +702,118 @@ function ShortAnswerPlayer({
       <p className="text-xs text-gray-400">
         Cette réponse sera corrigée manuellement par l&apos;enseignant.
       </p>
+    </div>
+  );
+}
+
+function AudioRecordPlayer({
+  exerciseId,
+  learnerId,
+  content,
+  onResult,
+}: {
+  exerciseId: string;
+  learnerId?: string | null;
+  content: Record<string, unknown>;
+  onResult?: ElearningExercisePlayerProps['onResult'];
+}) {
+  const supabase = useMemo(() => createClient(), []);
+  const instructions =
+    typeof content.instructions === 'string'
+      ? content.instructions
+      : typeof content.prompt === 'string'
+        ? content.prompt
+        : '';
+
+  const [blob, setBlob] = useState<Blob | null>(null);
+  const [submitting, setSubmitting] = useState(false);
+  const [submitted, setSubmitted] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  async function submit() {
+    if (!blob || !learnerId) {
+      setError(
+        !learnerId
+          ? 'Profil apprenant introuvable.'
+          : 'Enregistrez un audio avant de soumettre.'
+      );
+      return;
+    }
+    setSubmitting(true);
+    setError(null);
+    try {
+      const path = `exercise-audio/${exerciseId}/${learnerId}.webm`;
+      const { error: upErr } = await supabase.storage
+        .from(MEDIA_BUCKET)
+        .upload(path, blob, {
+          upsert: true,
+          contentType: blob.type || 'audio/webm',
+        });
+      if (upErr) throw upErr;
+
+      const now = new Date().toISOString();
+      const { data: existing } = await supabase
+        .from('exercise_audio_submissions')
+        .select('id')
+        .eq('exercise_id', exerciseId)
+        .eq('learner_id', learnerId)
+        .maybeSingle();
+
+      if (existing) {
+        const { error: updErr } = await supabase
+          .from('exercise_audio_submissions')
+          .update({
+            audio_path: path,
+            teacher_feedback: null,
+            validated: false,
+            submitted_at: now,
+            validated_at: null,
+          })
+          .eq('id', existing.id);
+        if (updErr) throw updErr;
+      } else {
+        const { error: insErr } = await supabase
+          .from('exercise_audio_submissions')
+          .insert({
+            exercise_id: exerciseId,
+            learner_id: learnerId,
+            audio_path: path,
+            submitted_at: now,
+          });
+        if (insErr) throw insErr;
+      }
+
+      setSubmitted(true);
+      onResult?.({ correct: null, detail: path });
+    } catch (err) {
+      console.error(err);
+      setError(err instanceof Error ? err.message : 'Échec de l’envoi audio');
+    } finally {
+      setSubmitting(false);
+    }
+  }
+
+  return (
+    <div className="space-y-4">
+      <p className="text-sm text-gray-800 whitespace-pre-wrap">{instructions}</p>
+      <AudioRecorder
+        disabled={submitting || submitted}
+        onBlobChange={setBlob}
+      />
+      <Button
+        className="bg-flehub-green hover:bg-flehub-green/90 text-white"
+        disabled={!blob || submitting || submitted || !learnerId}
+        onClick={() => void submit()}
+      >
+        {submitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+        {submitted ? 'Soumis à l’enseignant' : 'Soumettre à l’enseignant'}
+      </Button>
+      {submitted && (
+        <p className="text-xs text-flehub-green">
+          Audio envoyé. Votre enseignant pourra l’écouter et commenter.
+        </p>
+      )}
+      {error && <p className="text-sm text-red-600">{error}</p>}
     </div>
   );
 }
