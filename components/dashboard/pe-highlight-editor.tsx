@@ -186,3 +186,46 @@ export function PeHighlightEditor({ content, highlights, onChange }: PeHighlight
     </div>
   );
 }
+
+/** Read-only PE text with teacher error highlights (learner view). */
+export function PeHighlightViewer({
+  content,
+  highlights,
+}: {
+  content: string;
+  highlights: TextHighlight[];
+}) {
+  const normalized = normalizeHighlights(highlights, content.length);
+  const segments: Array<{ text: string; highlighted: boolean }> = [];
+  let cursor = 0;
+  normalized.forEach((h) => {
+    if (h.start > cursor) {
+      segments.push({ text: content.slice(cursor, h.start), highlighted: false });
+    }
+    segments.push({ text: content.slice(h.start, h.end), highlighted: true });
+    cursor = h.end;
+  });
+  if (cursor < content.length) {
+    segments.push({ text: content.slice(cursor), highlighted: false });
+  }
+  if (segments.length === 0) {
+    segments.push({ text: content, highlighted: false });
+  }
+
+  return (
+    <div className="rounded-lg border border-gray-200 bg-gray-50 p-4 text-sm text-gray-800 whitespace-pre-wrap leading-relaxed">
+      {segments.map((seg, i) =>
+        seg.highlighted ? (
+          <mark
+            key={i}
+            className="bg-red-100 text-red-900 rounded-sm px-0.5 underline decoration-wavy decoration-red-400"
+          >
+            {seg.text}
+          </mark>
+        ) : (
+          <span key={i}>{seg.text}</span>
+        )
+      )}
+    </div>
+  );
+}
