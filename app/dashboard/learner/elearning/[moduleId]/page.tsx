@@ -25,6 +25,10 @@ import { Progress } from '@/components/ui/progress';
 import { Textarea } from '@/components/ui/textarea';
 import { LessonContentView } from '@/components/dashboard/lesson-content-view';
 import {
+  PeHighlightViewer,
+  type TextHighlight,
+} from '@/components/dashboard/pe-highlight-editor';
+import {
   ElearningExercisePlayer,
   type PlayableExercise,
 } from '@/components/dashboard/elearning-exercise-player';
@@ -67,6 +71,26 @@ type ProgressRow = {
   completed_at: string | null;
 };
 
+type SubmissionStatus = {
+  content: string;
+  validated: boolean;
+  teacher_feedback: string | null;
+  highlights: TextHighlight[];
+};
+
+function parseHighlights(raw: unknown): TextHighlight[] {
+  if (!Array.isArray(raw)) return [];
+  return raw
+    .filter(
+      (h): h is TextHighlight =>
+        !!h &&
+        typeof h === 'object' &&
+        typeof (h as TextHighlight).start === 'number' &&
+        typeof (h as TextHighlight).end === 'number'
+    )
+    .map((h) => ({ start: h.start, end: h.end }));
+}
+
 export default function LearnerModulePage() {
   const params = useParams();
   const moduleId = params.moduleId as string;
@@ -86,11 +110,10 @@ export default function LearnerModulePage() {
   const [enrolled, setEnrolled] = useState(false);
   const [peText, setPeText] = useState('');
   const [poFile, setPoFile] = useState<File | null>(null);
-  const [submissionStatus, setSubmissionStatus] = useState<{
-    content: string;
-    validated: boolean;
-    teacher_feedback: string | null;
-  } | null>(null);
+  const [poAudioUrl, setPoAudioUrl] = useState<string | null>(null);
+  const [submissionStatus, setSubmissionStatus] = useState<SubmissionStatus | null>(
+    null
+  );
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -264,6 +287,7 @@ export default function LearnerModulePage() {
       setSubmissionStatus(null);
       setPeText('');
       setPoFile(null);
+      setPoAudioUrl(null);
       return;
     }
 
@@ -271,23 +295,34 @@ export default function LearnerModulePage() {
     (async () => {
       const { data } = await supabase
         .from('elearning_submissions')
-        .select('content, validated, teacher_feedback')
+        .select('content, validated, teacher_feedback, highlights')
         .eq('learner_id', learnerId)
         .eq('lesson_id', selectedLesson.id)
         .maybeSingle();
       if (cancelled) return;
       if (data) {
+        const content = data.content ?? '';
         setSubmissionStatus({
-          content: data.content ?? '',
+          content,
           validated: !!data.validated,
           teacher_feedback: data.teacher_feedback,
+          highlights: parseHighlights(data.highlights),
         });
         if (selectedLesson.competency === 'PE') {
-          setPeText(data.content ?? '');
+          setPeText(content);
+          setPoAudioUrl(null);
+        } else if (content) {
+          const { data: signed } = await supabase.storage
+            .from(MEDIA_BUCKET)
+            .createSignedUrl(content, 3600);
+          if (!cancelled) setPoAudioUrl(signed?.signedUrl ?? null);
+        } else {
+          setPoAudioUrl(null);
         }
       } else {
         setSubmissionStatus(null);
         setPeText('');
+        setPoAudioUrl(null);
       }
       setPoFile(null);
     })();
@@ -392,6 +427,7 @@ export default function LearnerModulePage() {
             content,
             validated: false,
             teacher_feedback: null,
+            highlights: [],
             submitted_at: now,
             validated_at: null,
           })
@@ -414,6 +450,7 @@ export default function LearnerModulePage() {
         content,
         validated: false,
         teacher_feedback: null,
+        highlights: [],
       });
       await markLessonComplete(selectedLesson.id);
     } catch (err) {
@@ -600,60 +637,105 @@ export default function LearnerModulePage() {
                     </CardTitle>
                   </CardHeader>
                   <CardContent className="space-y-3">
-                    {submissionStatus?.validated && (
-                      <div className="rounded-md border border-flehub-green/30 bg-flehub-green-light/40 px-3 py-2 text-sm text-flehub-green">
-                        Validée par l&apos;enseignant
-                        {submissionStatus.teacher_feedback
-                          ? ` — ${submissionStatus.teacher_feedback}`
-                          : ''}
+                    {submissionStatus?.validated ? (
+                      <div className="space-y-4">
+                        <div className="rounded-md border border-flehub-green/30 bg-flehub-green-light/40 px-3 py-2 text-sm text-flehub-green">
+                          Validée par l&apos;enseignant
+                        </div>
+
+                        {selectedLesson.competency === 'PE' ? (
+                          <div className="space-y-2">
+                            <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                              Votre texte
+                            </p>
+                            <PeHighlightViewer
+                              content={submissionStatus.content}
+                              highlights={submissionStatus.highlights}
+                            />
+                          </div>
+                        ) : (
+                          <div className="space-y-2">
+                            <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                              Votre enregistrement
+                            </p>
+                            {poAudioUrl ? (
+                              <audio controls className="w-full" src={poAudioUrl}>
+                                Votre navigateur ne prend pas en charge l&apos;audio.
+                              </audio>
+                            ) : (
+                              <p className="text-sm text-muted-foreground">
+                                Impossible de charger l&apos;audio.
+                              </p>
+                            )}
+                          </div>
+                        )}
+
+                        <div className="space-y-1 rounded-md border border-gray-100 bg-gray-50 px-3 py-3">
+                          <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                            Commentaire de l&apos;enseignant
+                          </p>
+                          <p className="text-sm text-gray-800 whitespace-pre-wrap">
+                            {submissionStatus.teacher_feedback?.trim()
+                              ? submissionStatus.teacher_feedback
+                              : 'Aucun commentaire.'}
+                          </p>
+                        </div>
                       </div>
-                    )}
-                    {submissionStatus && !submissionStatus.validated && (
-                      <p className="text-sm text-muted-foreground">
-                        Déjà envoyée — en attente de correction.
-                      </p>
-                    )}
-                    {selectedLesson.competency === 'PE' ? (
-                      <Textarea
-                        value={peText}
-                        onChange={(e) => setPeText(e.target.value)}
-                        rows={8}
-                        placeholder="Écrivez votre texte…"
-                        disabled={submissionStatus?.validated}
-                      />
                     ) : (
-                      <div className="space-y-2">
-                        <label className="flex items-center gap-2 text-sm text-muted-foreground">
-                          <Mic className="h-4 w-4" />
-                          Fichier audio (mp3, wav, webm…)
-                        </label>
-                        <input
-                          type="file"
-                          accept="audio/*"
-                          disabled={submissionStatus?.validated}
-                          onChange={(e) =>
-                            setPoFile(e.target.files?.[0] ?? null)
-                          }
-                        />
-                        {submissionStatus?.content && !poFile && (
-                          <p className="text-xs text-muted-foreground">
-                            Audio déjà déposé. Choisissez un nouveau fichier pour
-                            remplacer.
+                      <>
+                        {submissionStatus && !submissionStatus.validated && (
+                          <p className="text-sm text-muted-foreground">
+                            En attente de correction de l&apos;enseignant
                           </p>
                         )}
-                      </div>
-                    )}
-                    {!submissionStatus?.validated && (
-                      <Button
-                        className="bg-flehub-green hover:bg-flehub-green/90 text-white"
-                        disabled={saving}
-                        onClick={() => void submitPePo()}
-                      >
-                        {saving && (
-                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        {selectedLesson.competency === 'PE' ? (
+                          <Textarea
+                            value={peText}
+                            onChange={(e) => setPeText(e.target.value)}
+                            rows={8}
+                            placeholder="Écrivez votre texte…"
+                          />
+                        ) : (
+                          <div className="space-y-2">
+                            <label className="flex items-center gap-2 text-sm text-muted-foreground">
+                              <Mic className="h-4 w-4" />
+                              Fichier audio (mp3, wav, webm…)
+                            </label>
+                            <input
+                              type="file"
+                              accept="audio/*"
+                              onChange={(e) =>
+                                setPoFile(e.target.files?.[0] ?? null)
+                              }
+                            />
+                            {submissionStatus?.content && !poFile && (
+                              <>
+                                {poAudioUrl ? (
+                                  <audio controls className="w-full" src={poAudioUrl}>
+                                    Votre navigateur ne prend pas en charge
+                                    l&apos;audio.
+                                  </audio>
+                                ) : (
+                                  <p className="text-xs text-muted-foreground">
+                                    Audio déjà déposé. Choisissez un nouveau fichier
+                                    pour remplacer.
+                                  </p>
+                                )}
+                              </>
+                            )}
+                          </div>
                         )}
-                        Envoyer
-                      </Button>
+                        <Button
+                          className="bg-flehub-green hover:bg-flehub-green/90 text-white"
+                          disabled={saving}
+                          onClick={() => void submitPePo()}
+                        >
+                          {saving && (
+                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                          )}
+                          Envoyer
+                        </Button>
+                      </>
                     )}
                   </CardContent>
                 </Card>
