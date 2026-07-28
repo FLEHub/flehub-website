@@ -82,6 +82,14 @@ interface Certificate {
   verification_code: string;
 }
 
+interface ModuleAssignment {
+  id: string;
+  module_id: string;
+  module_title: string;
+  start_date: string;
+  end_date: string;
+}
+
 const cefrColors: Record<CEFR, string> = {
   A1: 'bg-green-100 text-green-700',
   A2: 'bg-lime-100 text-lime-700',
@@ -102,6 +110,7 @@ export default function LearnerDashboard() {
   const [upcomingExams, setUpcomingExams] = useState<ExamSession[]>([]);
   const [competencyProgress, setCompetencyProgress] = useState<CompetencyProgress[]>([]);
   const [certificates, setCertificates] = useState<Certificate[]>([]);
+  const [moduleAssignments, setModuleAssignments] = useState<ModuleAssignment[]>([]);
   const [loading, setLoading] = useState(true);
 
   // Payment modal
@@ -139,6 +148,35 @@ export default function LearnerDashboard() {
       if (!learner) return;
       setLearnerId(learner.id);
       setCefrLevel(learner.cefr_level);
+
+      const { data: assignmentRows } = await supabase
+        .from('elearning_module_assignments')
+        .select(
+          `
+          id,
+          module_id,
+          start_date,
+          end_date,
+          elearning_modules ( title )
+        `
+        )
+        .eq('learner_id', learner.id)
+        .order('end_date', { ascending: true });
+
+      setModuleAssignments(
+        (assignmentRows ?? []).map((row: any) => {
+          const mod = Array.isArray(row.elearning_modules)
+            ? row.elearning_modules[0]
+            : row.elearning_modules;
+          return {
+            id: row.id,
+            module_id: row.module_id,
+            module_title: mod?.title ?? 'Module',
+            start_date: row.start_date,
+            end_date: row.end_date,
+          };
+        })
+      );
 
       // Fetch courses assigned (published courses matching learner's level)
       const { data: coursesData } = await supabase
@@ -347,6 +385,91 @@ export default function LearnerDashboard() {
           </Card>
         ))}
       </div>
+
+      {/* Assigned eLearning modules */}
+      <Card>
+        <CardHeader className="flex flex-row items-center justify-between pb-2">
+          <CardTitle className="text-base font-semibold">
+            Modules assignés
+          </CardTitle>
+          <Button
+            variant="ghost"
+            size="sm"
+            className="text-flehub-green text-xs"
+            onClick={() => (window.location.href = '/dashboard/learner/elearning')}
+          >
+            Voir les modules <ArrowRight className="w-3 h-3 ml-1" />
+          </Button>
+        </CardHeader>
+        <CardContent>
+          {loading ? (
+            <div className="space-y-2">
+              {Array.from({ length: 2 }).map((_, i) => (
+                <Skeleton key={i} className="h-14 w-full rounded-lg" />
+              ))}
+            </div>
+          ) : moduleAssignments.length === 0 ? (
+            <p className="text-sm text-gray-400 py-4 text-center">
+              Aucun module ne vous a encore été assigné par un enseignant.
+            </p>
+          ) : (
+            <div className="space-y-2">
+              {moduleAssignments.map((a) => {
+                const end = new Date(a.end_date);
+                const today = new Date();
+                today.setHours(0, 0, 0, 0);
+                const expired = end < today;
+                const endLabel = end.toLocaleDateString('fr-FR', {
+                  day: 'numeric',
+                  month: 'long',
+                  year: 'numeric',
+                });
+                return (
+                  <div
+                    key={a.id}
+                    className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 p-3 rounded-lg border border-gray-100 hover:border-flehub-green/30 transition-colors"
+                  >
+                    <div className="min-w-0">
+                      <p className="font-medium text-sm text-gray-900 truncate">
+                        {a.module_title}
+                      </p>
+                      <p className="text-xs text-gray-500 mt-0.5 flex items-center gap-1">
+                        <Calendar className="w-3 h-3" />
+                        {expired
+                          ? `Accès terminé le ${endLabel}`
+                          : `À terminer avant le ${endLabel}`}
+                      </p>
+                    </div>
+                    <div className="flex items-center gap-2 shrink-0">
+                      <Badge
+                        variant="secondary"
+                        className={
+                          expired
+                            ? 'bg-red-50 text-red-600'
+                            : 'bg-flehub-green-light text-flehub-green'
+                        }
+                      >
+                        {expired ? 'Expiré' : 'En cours'}
+                      </Badge>
+                      {!expired && (
+                        <Button
+                          size="sm"
+                          className="bg-flehub-green hover:bg-flehub-green/90 text-white"
+                          onClick={() =>
+                            (window.location.href = `/dashboard/learner/elearning/${a.module_id}`)
+                          }
+                        >
+                          Ouvrir
+                        </Button>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </CardContent>
+      </Card>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Available Courses */}
