@@ -39,6 +39,8 @@ export interface Teacher {
   qualifications?: string;
   specializations: string[];
   mobile_money_number?: string;
+  certificate_name?: string;
+  signature_path?: string;
   created_at: string;
 }
 
