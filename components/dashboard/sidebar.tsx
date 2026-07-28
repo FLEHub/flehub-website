@@ -69,6 +69,7 @@ const navByRole: Record<Role, NavItem[]> = {
     { label: 'Corrections', href: '/dashboard/teacher/corrections', icon: PenSquare },
     { label: 'Learners', href: '/dashboard/teacher/learners', icon: UserCheck },
     { label: 'Messages', href: '/dashboard/teacher/messages', icon: MessageSquare },
+    { label: 'Settings', href: '/dashboard/teacher/settings', icon: Settings },
   ],
   learner: [
     { label: 'Dashboard', href: '/dashboard/learner', icon: LayoutDashboard },
