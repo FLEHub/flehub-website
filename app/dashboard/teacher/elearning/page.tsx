@@ -266,16 +266,6 @@ export default function TeacherElearningPage() {
                     <Trash2 className="w-3.5 h-3.5" />
                   </Button>
                 </div>
-                <Button
-                  asChild
-                  variant="outline"
-                  size="sm"
-                  className="text-xs border-flehub-green text-flehub-green hover:bg-flehub-green-light"
-                >
-                  <Link href={`/dashboard/teacher/corrections?module=${mod.id}&tab=capsules`}>
-                    Capsules à valider
-                  </Link>
-                </Button>
               </CardContent>
             </Card>
           ))}

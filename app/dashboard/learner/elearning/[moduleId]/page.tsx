@@ -11,7 +11,6 @@ import {
   Loader2,
   Mic,
   Play,
-  Video,
 } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
 import { getCurrentLearnerId } from '@/lib/learner-session';
@@ -521,12 +520,6 @@ export default function LearnerModulePage() {
             </p>
           )}
         </div>
-        <Button variant="outline" asChild>
-          <Link href={`/dashboard/learner/elearning/${moduleId}/capsule`}>
-            <Video className="mr-2 h-4 w-4" />
-            Capsule vidéo
-          </Link>
-        </Button>
       </div>
 
       <div className="space-y-2">
