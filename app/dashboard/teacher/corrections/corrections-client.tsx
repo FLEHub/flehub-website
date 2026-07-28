@@ -16,20 +16,11 @@ import {
   DialogTitle,
   DialogFooter,
 } from '@/components/ui/dialog';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
   PeHighlightEditor,
   type TextHighlight,
 } from '@/components/dashboard/pe-highlight-editor';
-import {
-  CheckCheck,
-  FileText,
-  Mic,
-  PenSquare,
-  Trash2,
-  Video,
-  Award,
-} from 'lucide-react';
+import { CheckCheck, FileText, Mic } from 'lucide-react';
 
 const MEDIA_BUCKET = 'elearning-media';
 
@@ -47,16 +38,6 @@ interface PendingSubmission {
   competency: 'PE' | 'PO' | 'AUDIO' | string;
   lesson_title: string;
   exercise_title?: string;
-}
-
-interface PendingCapsule {
-  id: string;
-  content: string;
-  submitted_at: string;
-  learner_id: string;
-  learner_name: string;
-  module_id: string;
-  module_title: string;
 }
 
 function parseHighlights(raw: unknown): TextHighlight[] {
@@ -90,13 +71,10 @@ export default function TeacherCorrectionsClient() {
   const searchParams = useSearchParams();
 
   const initialModule = searchParams.get('module') ?? 'all';
-  const initialTab = searchParams.get('tab') === 'capsules' ? 'capsules' : 'copies';
 
-  const [tab, setTab] = useState(initialTab);
   const [moduleFilter, setModuleFilter] = useState(initialModule);
   const [loading, setLoading] = useState(true);
   const [submissions, setSubmissions] = useState<PendingSubmission[]>([]);
-  const [capsules, setCapsules] = useState<PendingCapsule[]>([]);
   const [modules, setModules] = useState<{ id: string; title: string }[]>([]);
 
   const [activeSubmission, setActiveSubmission] = useState<PendingSubmission | null>(null);
@@ -104,10 +82,6 @@ export default function TeacherCorrectionsClient() {
   const [highlights, setHighlights] = useState<TextHighlight[]>([]);
   const [audioUrl, setAudioUrl] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
-
-  const [activeCapsule, setActiveCapsule] = useState<PendingCapsule | null>(null);
-  const [videoUrl, setVideoUrl] = useState<string | null>(null);
-  const [capsuleBusy, setCapsuleBusy] = useState(false);
 
   const loadData = useCallback(async () => {
     try {
@@ -136,7 +110,6 @@ export default function TeacherCorrectionsClient() {
 
       if (moduleIds.length === 0) {
         setSubmissions([]);
-        setCapsules([]);
         return;
       }
 
@@ -290,36 +263,7 @@ export default function TeacherCorrectionsClient() {
         }
       }
 
-      const { data: capsuleRows } = await supabase
-        .from('elearning_capsules')
-        .select(
-          `
-          id,
-          content,
-          submitted_at,
-          learner_id,
-          module_id,
-          learners (
-            profiles ( full_name )
-          )
-        `
-        )
-        .eq('validated', false)
-        .in('module_id', moduleIds)
-        .order('submitted_at', { ascending: true });
-
-      const pendingCapsules: PendingCapsule[] = (capsuleRows ?? []).map((c: any) => ({
-        id: c.id,
-        content: c.content ?? '',
-        submitted_at: c.submitted_at,
-        learner_id: c.learner_id,
-        learner_name: nestedName(c),
-        module_id: c.module_id,
-        module_title: moduleTitleMap.get(c.module_id) ?? 'Module',
-      }));
-
       setSubmissions(pendingSubs);
-      setCapsules(pendingCapsules);
     } catch (err) {
       console.error(err);
     } finally {
@@ -333,9 +277,8 @@ export default function TeacherCorrectionsClient() {
   }, [loadData]);
 
   useEffect(() => {
-    setTab(initialTab);
     setModuleFilter(initialModule);
-  }, [initialTab, initialModule]);
+  }, [initialModule]);
 
   const filteredSubmissions = useMemo(
     () =>
@@ -343,14 +286,6 @@ export default function TeacherCorrectionsClient() {
         ? submissions
         : submissions.filter((s) => s.module_id === moduleFilter),
     [submissions, moduleFilter]
-  );
-
-  const filteredCapsules = useMemo(
-    () =>
-      moduleFilter === 'all'
-        ? capsules
-        : capsules.filter((c) => c.module_id === moduleFilter),
-    [capsules, moduleFilter]
   );
 
   async function openSubmission(sub: PendingSubmission) {
@@ -413,65 +348,6 @@ export default function TeacherCorrectionsClient() {
     }
   }
 
-  async function openCapsule(cap: PendingCapsule) {
-    setActiveCapsule(cap);
-    setVideoUrl(null);
-    if (cap.content) {
-      const { data } = await supabase.storage
-        .from(MEDIA_BUCKET)
-        .createSignedUrl(cap.content, 3600);
-      setVideoUrl(data?.signedUrl ?? null);
-    }
-  }
-
-  async function validateCapsule(cap: PendingCapsule) {
-    setCapsuleBusy(true);
-    try {
-      const now = new Date().toISOString();
-      const { error: updateErr } = await supabase
-        .from('elearning_capsules')
-        .update({ validated: true, validated_at: now })
-        .eq('id', cap.id);
-
-      if (updateErr) throw updateErr;
-
-      const { error: badgeErr } = await supabase.from('elearning_badges').insert({
-        capsule_id: cap.id,
-        module_id: cap.module_id,
-        learner_id: cap.learner_id,
-        awarded_at: now,
-      });
-
-      if (badgeErr) throw badgeErr;
-
-      setActiveCapsule(null);
-      setVideoUrl(null);
-      await loadData();
-    } catch (err) {
-      console.error(err);
-    } finally {
-      setCapsuleBusy(false);
-    }
-  }
-
-  async function deleteCapsuleMedia(cap: PendingCapsule) {
-    setCapsuleBusy(true);
-    try {
-      if (cap.content) {
-        await supabase.storage.from(MEDIA_BUCKET).remove([cap.content]);
-      }
-      const { error } = await supabase.from('elearning_capsules').delete().eq('id', cap.id);
-      if (error) throw error;
-      setActiveCapsule(null);
-      setVideoUrl(null);
-      await loadData();
-    } catch (err) {
-      console.error(err);
-    } finally {
-      setCapsuleBusy(false);
-    }
-  }
-
   const formatDate = (iso: string) =>
     new Date(iso).toLocaleString('fr-FR', {
       day: 'numeric',
@@ -487,21 +363,14 @@ export default function TeacherCorrectionsClient() {
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Corrections</h1>
           <p className="text-gray-500 text-sm mt-1">
-            Corrigez les copies PE/PO, les enregistrements audio et validez les
-            capsules vidéo
+            Corrigez les copies PE/PO et les enregistrements audio
           </p>
         </div>
         {!loading && (
-          <div className="flex gap-2">
-            <Badge variant="secondary" className="bg-flehub-green-light text-flehub-green">
-              {filteredSubmissions.length} copie
-              {filteredSubmissions.length !== 1 ? 's' : ''}
-            </Badge>
-            <Badge variant="secondary" className="bg-orange-50 text-orange-700">
-              {filteredCapsules.length} capsule
-              {filteredCapsules.length !== 1 ? 's' : ''}
-            </Badge>
-          </div>
+          <Badge variant="secondary" className="bg-flehub-green-light text-flehub-green">
+            {filteredSubmissions.length} copie
+            {filteredSubmissions.length !== 1 ? 's' : ''}
+          </Badge>
         )}
       </div>
 
@@ -530,133 +399,64 @@ export default function TeacherCorrectionsClient() {
         </div>
       )}
 
-      <Tabs value={tab} onValueChange={setTab}>
-        <TabsList>
-          <TabsTrigger value="copies" className="gap-1.5">
-            <PenSquare className="w-3.5 h-3.5" />
-            Copies à corriger
-          </TabsTrigger>
-          <TabsTrigger value="capsules" className="gap-1.5">
-            <Video className="w-3.5 h-3.5" />
-            Capsules à valider
-          </TabsTrigger>
-        </TabsList>
-
-        <TabsContent value="copies" className="mt-4 space-y-3">
-          {loading ? (
-            Array.from({ length: 5 }).map((_, i) => (
-              <Skeleton key={i} className="h-20 w-full rounded-xl" />
-            ))
-          ) : filteredSubmissions.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-16 text-gray-400">
-              <CheckCheck className="w-12 h-12 mb-3 opacity-40" />
-              <p className="text-lg font-medium">Aucune copie en attente</p>
-              <p className="text-sm">
-                Les soumissions PE, PO et audio d&apos;exercice apparaîtront ici
-              </p>
-            </div>
-          ) : (
-            filteredSubmissions.map((sub) => (
-              <Card key={sub.id} className="card-hover">
-                <CardContent className="py-4 flex flex-col sm:flex-row sm:items-center gap-3 justify-between">
-                  <div className="min-w-0 space-y-1">
-                    <div className="flex items-center gap-2 flex-wrap">
-                      <span className="font-medium text-gray-900">{sub.learner_name}</span>
-                      <Badge
-                        variant="secondary"
-                        className={
-                          sub.competency === 'PE'
-                            ? 'bg-orange-100 text-orange-700'
-                            : sub.competency === 'AUDIO'
-                              ? 'bg-violet-100 text-violet-700'
-                              : 'bg-teal-100 text-teal-700'
-                        }
-                      >
-                        {sub.competency === 'PE' ? (
-                          <FileText className="w-3 h-3 mr-1 inline" />
-                        ) : (
-                          <Mic className="w-3 h-3 mr-1 inline" />
-                        )}
-                        {sub.competency === 'AUDIO'
-                          ? 'Audio'
-                          : sub.competency || '—'}
-                      </Badge>
-                    </div>
-                    <p className="text-sm text-gray-600 truncate">
-                      {sub.module_title}
-                      {sub.lesson_title ? ` · ${sub.lesson_title}` : ''}
-                      {sub.exercise_title ? ` · ${sub.exercise_title}` : ''}
-                    </p>
-                    <p className="text-xs text-gray-400">
-                      Soumise le {formatDate(sub.submitted_at)}
-                    </p>
-                  </div>
-                  <Button
-                    className="bg-flehub-green hover:bg-flehub-green/90 text-white shrink-0"
-                    onClick={() => openSubmission(sub)}
-                  >
-                    Corriger
-                  </Button>
-                </CardContent>
-              </Card>
-            ))
-          )}
-        </TabsContent>
-
-        <TabsContent value="capsules" className="mt-4 space-y-3">
-          {loading ? (
-            Array.from({ length: 4 }).map((_, i) => (
-              <Skeleton key={i} className="h-20 w-full rounded-xl" />
-            ))
-          ) : filteredCapsules.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-16 text-gray-400">
-              <Video className="w-12 h-12 mb-3 opacity-40" />
-              <p className="text-lg font-medium">Aucune capsule à valider</p>
-              <p className="text-sm">Les vidéos finales des apprenants apparaîtront ici</p>
-            </div>
-          ) : (
-            filteredCapsules.map((cap) => (
-              <Card key={cap.id} className="card-hover">
-                <CardContent className="py-4 flex flex-col sm:flex-row sm:items-center gap-3 justify-between">
-                  <div className="min-w-0 space-y-1">
-                    <span className="font-medium text-gray-900">{cap.learner_name}</span>
-                    <p className="text-sm text-gray-600 truncate">{cap.module_title}</p>
-                    <p className="text-xs text-gray-400">
-                      Soumise le {formatDate(cap.submitted_at)}
-                    </p>
-                  </div>
-                  <div className="flex flex-wrap gap-2 shrink-0">
-                    <Button
-                      variant="outline"
-                      className="border-flehub-green text-flehub-green hover:bg-flehub-green-light"
-                      onClick={() => openCapsule(cap)}
+      <section className="space-y-3">
+        {loading ? (
+          Array.from({ length: 5 }).map((_, i) => (
+            <Skeleton key={i} className="h-20 w-full rounded-xl" />
+          ))
+        ) : filteredSubmissions.length === 0 ? (
+          <div className="flex flex-col items-center justify-center py-16 text-gray-400">
+            <CheckCheck className="w-12 h-12 mb-3 opacity-40" />
+            <p className="text-lg font-medium">Aucune copie en attente</p>
+            <p className="text-sm">
+              Les soumissions PE, PO et audio d&apos;exercice apparaîtront ici
+            </p>
+          </div>
+        ) : (
+          filteredSubmissions.map((sub) => (
+            <Card key={sub.id} className="card-hover">
+              <CardContent className="py-4 flex flex-col sm:flex-row sm:items-center gap-3 justify-between">
+                <div className="min-w-0 space-y-1">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <span className="font-medium text-gray-900">{sub.learner_name}</span>
+                    <Badge
+                      variant="secondary"
+                      className={
+                        sub.competency === 'PE'
+                          ? 'bg-orange-100 text-orange-700'
+                          : sub.competency === 'AUDIO'
+                            ? 'bg-violet-100 text-violet-700'
+                            : 'bg-teal-100 text-teal-700'
+                      }
                     >
-                      <Video className="w-4 h-4 mr-1" />
-                      Voir la vidéo
-                    </Button>
-                    <Button
-                      className="bg-flehub-green hover:bg-flehub-green/90 text-white"
-                      disabled={capsuleBusy}
-                      onClick={() => validateCapsule(cap)}
-                    >
-                      <Award className="w-4 h-4 mr-1" />
-                      Valider → Badge
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      className="text-red-500 hover:bg-red-50"
-                      disabled={capsuleBusy}
-                      onClick={() => deleteCapsuleMedia(cap)}
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </Button>
+                      {sub.competency === 'PE' ? (
+                        <FileText className="w-3 h-3 mr-1 inline" />
+                      ) : (
+                        <Mic className="w-3 h-3 mr-1 inline" />
+                      )}
+                      {sub.competency === 'AUDIO' ? 'Audio' : sub.competency || '—'}
+                    </Badge>
                   </div>
-                </CardContent>
-              </Card>
-            ))
-          )}
-        </TabsContent>
-      </Tabs>
+                  <p className="text-sm text-gray-600 truncate">
+                    {sub.module_title}
+                    {sub.lesson_title ? ` · ${sub.lesson_title}` : ''}
+                    {sub.exercise_title ? ` · ${sub.exercise_title}` : ''}
+                  </p>
+                  <p className="text-xs text-gray-400">
+                    Soumise le {formatDate(sub.submitted_at)}
+                  </p>
+                </div>
+                <Button
+                  className="bg-flehub-green hover:bg-flehub-green/90 text-white shrink-0"
+                  onClick={() => openSubmission(sub)}
+                >
+                  Corriger
+                </Button>
+              </CardContent>
+            </Card>
+          ))
+        )}
+      </section>
 
       <Dialog
         open={!!activeSubmission}
@@ -764,58 +564,6 @@ export default function TeacherCorrectionsClient() {
         </DialogContent>
       </Dialog>
 
-      <Dialog
-        open={!!activeCapsule}
-        onOpenChange={(open) => {
-          if (!open) {
-            setActiveCapsule(null);
-            setVideoUrl(null);
-          }
-        }}
-      >
-        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>Capsule — {activeCapsule?.learner_name}</DialogTitle>
-          </DialogHeader>
-          {activeCapsule && (
-            <div className="space-y-4 py-2">
-              <p className="text-sm text-gray-500">{activeCapsule.module_title}</p>
-              {videoUrl ? (
-                <video
-                  controls
-                  className="w-full rounded-lg bg-black max-h-[50vh]"
-                  src={videoUrl}
-                >
-                  Votre navigateur ne prend pas en charge la vidéo.
-                </video>
-              ) : (
-                <p className="text-sm text-gray-400 py-8 text-center">
-                  Impossible de charger la vidéo
-                </p>
-              )}
-            </div>
-          )}
-          <DialogFooter className="flex-col sm:flex-row gap-2">
-            <Button
-              variant="ghost"
-              className="text-red-500 hover:bg-red-50"
-              disabled={capsuleBusy || !activeCapsule}
-              onClick={() => activeCapsule && deleteCapsuleMedia(activeCapsule)}
-            >
-              <Trash2 className="w-4 h-4 mr-1" />
-              Supprimer la vidéo du stockage
-            </Button>
-            <Button
-              className="bg-flehub-green hover:bg-flehub-green/90 text-white"
-              disabled={capsuleBusy || !activeCapsule}
-              onClick={() => activeCapsule && validateCapsule(activeCapsule)}
-            >
-              <Award className="w-4 h-4 mr-1" />
-              Valider → Badge
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
     </div>
   );
 }

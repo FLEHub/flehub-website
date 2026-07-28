@@ -75,7 +75,6 @@ export default function TeacherDashboard() {
 
         let totalLearners = 0;
         let pendingSubmissions = 0;
-        let pendingCapsules = 0;
 
         if (moduleIds.length > 0) {
           const { data: enrollments } = await supabase
@@ -110,14 +109,6 @@ export default function TeacherDashboard() {
               pendingSubmissions = count ?? 0;
             }
           }
-
-          const { count: capsulesCount } = await supabase
-            .from('elearning_capsules')
-            .select('*', { count: 'exact', head: true })
-            .eq('validated', false)
-            .in('module_id', moduleIds);
-
-          pendingCapsules = capsulesCount ?? 0;
         }
 
         const now = new Date().toISOString();
@@ -132,7 +123,7 @@ export default function TeacherDashboard() {
           publishedModules,
           totalLearners,
           upcomingSessions: sessionsCount ?? 0,
-          pendingCorrections: pendingSubmissions + pendingCapsules,
+          pendingCorrections: pendingSubmissions,
         });
 
         const { data: upcomingSessions } = await supabase
