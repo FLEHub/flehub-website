@@ -965,6 +965,28 @@ export default function TeacherLessonEditPage() {
               </div>
             )}
 
+            {exType === 'audio_record' && (
+              <div className="space-y-2 rounded-lg border border-gray-100 bg-gray-50 p-4">
+                <Label htmlFor="ar-instructions">Consigne</Label>
+                <Textarea
+                  id="ar-instructions"
+                  rows={4}
+                  value={exForm.instructions}
+                  onChange={(e) =>
+                    setExForm((prev) => ({
+                      ...prev,
+                      instructions: e.target.value,
+                    }))
+                  }
+                  placeholder="Ex. Présente-toi en 30 secondes"
+                  className="bg-white"
+                />
+                <p className="text-xs text-gray-400">
+                  L&apos;apprenant enregistrera un audio à envoyer pour correction.
+                </p>
+              </div>
+            )}
+
             {exType === 'word_order' && (
               <div className="space-y-3 rounded-lg border border-gray-100 bg-gray-50 p-4">
                 <div className="space-y-2">

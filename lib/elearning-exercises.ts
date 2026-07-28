@@ -7,7 +7,8 @@ export type ExerciseType =
   | 'anagram'
   | 'true_false'
   | 'image_match'
-  | 'find_error';
+  | 'find_error'
+  | 'audio_record';
 
 export const EXERCISE_TYPES: ExerciseType[] = [
   'qcm',
@@ -19,6 +20,7 @@ export const EXERCISE_TYPES: ExerciseType[] = [
   'true_false',
   'image_match',
   'find_error',
+  'audio_record',
 ];
 
 export const exerciseTypeLabels: Record<ExerciseType, string> = {
@@ -31,6 +33,7 @@ export const exerciseTypeLabels: Record<ExerciseType, string> = {
   true_false: 'Vrai ou Faux',
   image_match: 'Association image-mot',
   find_error: "Trouve l'erreur",
+  audio_record: 'Enregistrement audio',
 };
 
 export interface QcmOption {
@@ -68,6 +71,8 @@ export interface ExerciseFormState {
   // find_error
   sentence_with_error: string;
   find_error_correct: string;
+  // audio_record
+  instructions: string;
 }
 
 export function splitWords(sentence: string): string[] {
@@ -105,6 +110,7 @@ export function emptyExerciseForm(): ExerciseFormState {
     ],
     sentence_with_error: '',
     find_error_correct: '',
+    instructions: '',
   };
 }
 
@@ -253,6 +259,16 @@ export function parseExerciseForm(
     };
   }
 
+  if (type === 'audio_record') {
+    const instructions =
+      typeof raw.instructions === 'string'
+        ? raw.instructions
+        : typeof raw.prompt === 'string'
+          ? raw.prompt
+          : '';
+    return { ...base, instructions };
+  }
+
   return base;
 }
 
@@ -314,6 +330,10 @@ export function buildExerciseContent(
         correct_sentence: form.find_error_correct.trim(),
         explanation: form.explanation.trim(),
       };
+    case 'audio_record':
+      return {
+        instructions: form.instructions.trim(),
+      };
     default:
       return {};
   }
@@ -371,6 +391,10 @@ export function validateExerciseForm(
   if (type === 'find_error') {
     if (!form.sentence_with_error.trim()) return 'La phrase avec erreur est obligatoire';
     if (!form.find_error_correct.trim()) return 'La phrase correcte est obligatoire';
+    return null;
+  }
+  if (type === 'audio_record') {
+    if (!form.instructions.trim()) return 'La consigne est obligatoire';
     return null;
   }
   return null;

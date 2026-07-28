@@ -372,7 +372,7 @@ export default function LearnerModulePage() {
     detail?: string;
   }) {
     if (!selectedLesson) return;
-    // short_answer: teacher-style free answer — still advance / complete
+    // short_answer / audio_record: teacher-style manual — still advance / complete
     if (result.correct === false) return;
 
     if (activeExerciseIndex < lessonExercises.length - 1) {
@@ -779,6 +779,7 @@ export default function LearnerModulePage() {
                       <ElearningExercisePlayer
                         key={playerData.id}
                         exercise={playerData}
+                        learnerId={learnerId}
                         onResult={(r) => void handleExerciseResult(r)}
                       />
                     </CardContent>
