@@ -627,7 +627,29 @@ export default function LearnerModulePage() {
                 </CardContent>
               </Card>
 
-              {isPePo ? (
+              {lessonExercises.length > 0 && playerData ? (
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between text-sm text-muted-foreground">
+                    <span>
+                      Exercice {activeExerciseIndex + 1} /{' '}
+                      {lessonExercises.length}
+                    </span>
+                    {progressMap[selectedLesson.id]?.completed_at && (
+                      <Badge variant="secondary">Leçon déjà terminée</Badge>
+                    )}
+                  </div>
+                  <Card>
+                    <CardContent className="pt-6">
+                      <ElearningExercisePlayer
+                        key={playerData.id}
+                        exercise={playerData}
+                        learnerId={learnerId}
+                        onResult={(r) => void handleExerciseResult(r)}
+                      />
+                    </CardContent>
+                  </Card>
+                </div>
+              ) : isPePo ? (
                 <Card>
                   <CardHeader>
                     <CardTitle className="text-base">
@@ -739,7 +761,7 @@ export default function LearnerModulePage() {
                     )}
                   </CardContent>
                 </Card>
-              ) : lessonExercises.length === 0 ? (
+              ) : (
                 <Card>
                   <CardContent className="flex flex-col items-center gap-3 py-10 text-center">
                     <p className="text-sm text-muted-foreground">
@@ -763,29 +785,7 @@ export default function LearnerModulePage() {
                     )}
                   </CardContent>
                 </Card>
-              ) : playerData ? (
-                <div className="space-y-3">
-                  <div className="flex items-center justify-between text-sm text-muted-foreground">
-                    <span>
-                      Exercice {activeExerciseIndex + 1} /{' '}
-                      {lessonExercises.length}
-                    </span>
-                    {progressMap[selectedLesson.id]?.completed_at && (
-                      <Badge variant="secondary">Leçon déjà terminée</Badge>
-                    )}
-                  </div>
-                  <Card>
-                    <CardContent className="pt-6">
-                      <ElearningExercisePlayer
-                        key={playerData.id}
-                        exercise={playerData}
-                        learnerId={learnerId}
-                        onResult={(r) => void handleExerciseResult(r)}
-                      />
-                    </CardContent>
-                  </Card>
-                </div>
-              ) : null}
+              )}
             </>
           )}
         </div>
