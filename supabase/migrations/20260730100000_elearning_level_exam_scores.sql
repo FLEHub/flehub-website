@@ -18,7 +18,7 @@ CREATE TABLE IF NOT EXISTS elearning_level_exam_scores (
     COALESCE(score_co, 0) + COALESCE(score_ce, 0) +
     COALESCE(score_langue, 0)
   ) STORED,
-  created_at timestamptz DEFAULT now(),
+  recorded_at timestamptz DEFAULT now(),
   updated_at timestamptz DEFAULT now(),
   UNIQUE (learner_id, level)
 );

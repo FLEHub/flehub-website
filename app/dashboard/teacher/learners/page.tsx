@@ -359,7 +359,7 @@ export default function TeacherLearnersPage() {
         const { data: scoreRows } = await supabase
           .from('elearning_level_exam_scores')
           .select(
-            'id, learner_id, teacher_id, level, score_po, score_pe, score_co, score_ce, score_langue, total_score, created_at, updated_at'
+            'id, learner_id, teacher_id, level, score_po, score_pe, score_co, score_ce, score_langue, total_score, recorded_at, updated_at'
           )
           .in('learner_id', learnerIdList)
           .order('level', { ascending: true });
@@ -558,7 +558,7 @@ export default function TeacherLearnersPage() {
         .from('elearning_level_exam_scores')
         .upsert(payload, { onConflict: 'learner_id,level' })
         .select(
-          'id, learner_id, teacher_id, level, score_po, score_pe, score_co, score_ce, score_langue, total_score, created_at, updated_at'
+          'id, learner_id, teacher_id, level, score_po, score_pe, score_co, score_ce, score_langue, total_score, recorded_at, updated_at'
         )
         .maybeSingle();
 

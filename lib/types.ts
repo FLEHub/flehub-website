@@ -112,7 +112,7 @@ export interface ElearningLevelExamScore {
   score_ce?: number | null;
   score_langue?: number | null;
   total_score?: number | null;
-  created_at: string;
+  recorded_at: string;
   updated_at: string;
 }
 
