@@ -542,32 +542,28 @@ export default function TeacherLearnersPage() {
 
     try {
       const level = learner.scoreForm.level;
-      const payload = {
-        learner_id: learner.id,
-        teacher_id: teacherId,
-        level,
-        score_po: parseScore(learner.scoreForm.score_po),
-        score_pe: parseScore(learner.scoreForm.score_pe),
-        score_co: parseScore(learner.scoreForm.score_co),
-        score_ce: parseScore(learner.scoreForm.score_ce),
-        score_langue: parseScore(learner.scoreForm.score_langue),
-        updated_at: new Date().toISOString(),
-      };
-
-      const { data, error: upsertErr } = await supabase
-        .from('elearning_level_exam_scores')
-        .upsert(payload, { onConflict: 'learner_id,level' })
-        .select(
-          'id, learner_id, teacher_id, level, score_po, score_pe, score_co, score_ce, score_langue, total_score, recorded_at, updated_at'
-        )
-        .maybeSingle();
+      const { data, error: upsertErr } = await supabase.rpc(
+        'upsert_elearning_level_exam_scores',
+        {
+          p_learner_id: learner.id,
+          p_teacher_id: teacherId,
+          p_level: level,
+          p_score_po: parseScore(learner.scoreForm.score_po),
+          p_score_pe: parseScore(learner.scoreForm.score_pe),
+          p_score_co: parseScore(learner.scoreForm.score_co),
+          p_score_ce: parseScore(learner.scoreForm.score_ce),
+          p_score_langue: parseScore(learner.scoreForm.score_langue),
+        }
+      );
 
       if (upsertErr) throw upsertErr;
-      if (!data) {
+
+      const savedRow = Array.isArray(data) ? data[0] : data;
+      if (!savedRow) {
         throw new Error('Enregistrement impossible — aucune donnée retournée.');
       }
 
-      const saved = data as ElearningLevelExamScore;
+      const saved = savedRow as ElearningLevelExamScore;
       setLearners((prev) =>
         prev.map((l) => {
           if (l.id !== learner.id) return l;
