@@ -290,48 +290,51 @@ export default function TeacherLearnersPage() {
       >();
 
       if (learnerIdList.length > 0) {
-        const { data: learnerRows } = await supabase
-          .from('learners')
-          .select(
-            `
-            id,
-            profile_id,
-            profiles ( full_name, email )
-          `
-          )
-          .in('id', learnerIdList);
-
-        const profileIdsMissing: string[] = [];
-        (learnerRows ?? []).forEach((row: any) => {
-          const fromJoin = profileFromLearner(row);
-          if (fromJoin.full_name || fromJoin.email) {
-            identityByLearner.set(row.id, fromJoin);
-          } else if (row.profile_id) {
-            profileIdsMissing.push(row.profile_id);
-          }
+        // Authoritative: SECURITY DEFINER join learners.profile_id → profiles.full_name
+        // (avoids nested RLS that silently nulls PostgREST embeds)
+        const { data: rpcRows, error: rpcErr } = await supabase.rpc(
+          'teacher_learner_identities',
+          { p_learner_ids: learnerIdList }
+        );
+        if (rpcErr) {
+          console.error('teacher_learner_identities failed:', rpcErr);
+        }
+        ((rpcRows as { learner_id: string; full_name: string; email: string }[]) ??
+          []).forEach((row) => {
+          const name = row.full_name?.trim() || '';
+          const email = row.email?.trim() || '';
+          if (!name && !email) return;
+          identityByLearner.set(row.learner_id, { full_name: name, email });
         });
 
-        // Fallback: direct profiles fetch (same RLS; helps if embed shape differs)
-        if (profileIdsMissing.length > 0) {
-          const { data: profileRows } = await supabase
-            .from('profiles')
-            .select('id, full_name, email')
-            .in('id', profileIdsMissing);
+        // Also select via PostgREST embed (same join) for any ids the RPC missed
+        const missingIds = learnerIdList.filter(
+          (id) => !identityByLearner.get(id)?.full_name
+        );
+        if (missingIds.length > 0) {
+          const { data: learnerRows, error: learnerErr } = await supabase
+            .from('learners')
+            .select(
+              `
+              id,
+              profile_id,
+              profiles (
+                full_name,
+                email
+              )
+            `
+            )
+            .in('id', missingIds);
 
-          const profileById = new Map(
-            (profileRows ?? []).map((p: any) => [
-              p.id as string,
-              {
-                full_name: (p.full_name as string | null)?.trim() || '',
-                email: (p.email as string | null)?.trim() || '',
-              },
-            ])
-          );
+          if (learnerErr) {
+            console.error('learners/profiles join failed:', learnerErr);
+          }
 
           (learnerRows ?? []).forEach((row: any) => {
-            if (identityByLearner.has(row.id)) return;
-            const profile = profileById.get(row.profile_id);
-            if (profile) identityByLearner.set(row.id, profile);
+            const fromJoin = profileFromLearner(row);
+            if (fromJoin.full_name || fromJoin.email) {
+              identityByLearner.set(row.id, fromJoin);
+            }
           });
         }
       }
@@ -339,9 +342,10 @@ export default function TeacherLearnersPage() {
       const learnerMap = new Map<string, LearnerRow>();
       learnerIdList.forEach((learnerId) => {
         const identity = identityByLearner.get(learnerId);
+        const fullName = identity?.full_name?.trim() || '';
         learnerMap.set(learnerId, {
           id: learnerId,
-          full_name: identity?.full_name || 'Apprenant',
+          full_name: fullName || 'Apprenant',
           email: identity?.email || '',
           assignments: assignmentsByLearner.get(learnerId) ?? [],
           selectedModuleId: '',
