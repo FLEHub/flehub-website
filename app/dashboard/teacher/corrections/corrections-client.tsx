@@ -305,6 +305,26 @@ export default function TeacherCorrectionsClient() {
     }
   }
 
+  async function tryAwardModuleBadge(learnerId: string, moduleId: string) {
+    try {
+      const { error } = await supabase.rpc('try_award_module_badge', {
+        p_learner_id: learnerId,
+        p_module_id: moduleId,
+      });
+      if (error) {
+        // Unique violation if already awarded — ignore quietly
+        const code = (error as { code?: string }).code;
+        const msg = (error.message || '').toLowerCase();
+        if (code === '23505' || msg.includes('duplicate') || msg.includes('unique')) {
+          return;
+        }
+        console.error('try_award_module_badge failed:', error);
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  }
+
   async function validateSubmission() {
     if (!activeSubmission) return;
     setSaving(true);
@@ -336,6 +356,17 @@ export default function TeacherCorrectionsClient() {
           .eq('id', activeSubmission.id);
 
         if (error) throw error;
+
+        // Final PE+PO pair for the module → unlock module badge (idempotent)
+        if (
+          activeSubmission.competency === 'PE' ||
+          activeSubmission.competency === 'PO'
+        ) {
+          await tryAwardModuleBadge(
+            activeSubmission.learner_id,
+            activeSubmission.module_id
+          );
+        }
       }
 
       setActiveSubmission(null);
