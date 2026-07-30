@@ -100,6 +100,22 @@ export interface ExamResult {
   created_at: string;
 }
 
+/** Teacher-entered paper exam scores per learner CEFR level */
+export interface ElearningLevelExamScore {
+  id: string;
+  learner_id: string;
+  teacher_id: string;
+  level: CefrLevel;
+  score_po?: number | null;
+  score_pe?: number | null;
+  score_co?: number | null;
+  score_ce?: number | null;
+  score_langue?: number | null;
+  total_score?: number | null;
+  created_at: string;
+  updated_at: string;
+}
+
 export interface Certificate {
   id: string;
   learner_id: string;
