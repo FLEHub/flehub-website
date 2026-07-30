@@ -28,6 +28,7 @@ import {
   Phone,
   Smartphone,
   ArrowRight,
+  Medal,
 } from 'lucide-react';
 
 type CEFR = 'A1' | 'A2' | 'B1' | 'B2' | 'C1' | 'C2';
@@ -90,6 +91,13 @@ interface ModuleAssignment {
   end_date: string;
 }
 
+interface ModuleBadge {
+  id: string;
+  module_id: string;
+  module_title: string;
+  awarded_at: string;
+}
+
 const cefrColors: Record<CEFR, string> = {
   A1: 'bg-green-100 text-green-700',
   A2: 'bg-lime-100 text-lime-700',
@@ -111,6 +119,7 @@ export default function LearnerDashboard() {
   const [competencyProgress, setCompetencyProgress] = useState<CompetencyProgress[]>([]);
   const [certificates, setCertificates] = useState<Certificate[]>([]);
   const [moduleAssignments, setModuleAssignments] = useState<ModuleAssignment[]>([]);
+  const [moduleBadges, setModuleBadges] = useState<ModuleBadge[]>([]);
   const [loading, setLoading] = useState(true);
 
   // Payment modal
@@ -174,6 +183,33 @@ export default function LearnerDashboard() {
             module_title: mod?.title ?? 'Module',
             start_date: row.start_date,
             end_date: row.end_date,
+          };
+        })
+      );
+
+      const { data: badgeRows } = await supabase
+        .from('elearning_module_badges')
+        .select(
+          `
+          id,
+          module_id,
+          awarded_at,
+          elearning_modules ( title )
+        `
+        )
+        .eq('learner_id', learner.id)
+        .order('awarded_at', { ascending: false });
+
+      setModuleBadges(
+        (badgeRows ?? []).map((row: any) => {
+          const mod = Array.isArray(row.elearning_modules)
+            ? row.elearning_modules[0]
+            : row.elearning_modules;
+          return {
+            id: row.id,
+            module_id: row.module_id,
+            module_title: mod?.title ?? 'Module',
+            awarded_at: row.awarded_at,
           };
         })
       );
@@ -470,6 +506,50 @@ export default function LearnerDashboard() {
           )}
         </CardContent>
       </Card>
+
+      {/* Unlocked module badges (PE+PO validated) — only obtained badges */}
+      {!loading && moduleBadges.length > 0 && (
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-base font-semibold flex items-center gap-2">
+              <Medal className="w-4 h-4 text-amber-500" />
+              Badges
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+              {moduleBadges.map((b) => {
+                const awardedLabel = new Date(b.awarded_at).toLocaleDateString(
+                  'fr-FR',
+                  {
+                    day: 'numeric',
+                    month: 'long',
+                    year: 'numeric',
+                  }
+                );
+                return (
+                  <div
+                    key={b.id}
+                    className="flex items-center gap-3 p-3 rounded-lg border border-amber-100 bg-amber-50/40"
+                  >
+                    <div className="w-10 h-10 rounded-full bg-amber-100 flex items-center justify-center shrink-0">
+                      <Medal className="w-5 h-5 text-amber-600" />
+                    </div>
+                    <div className="min-w-0">
+                      <p className="font-medium text-sm text-gray-900 truncate">
+                        {b.module_title}
+                      </p>
+                      <p className="text-xs text-gray-500 mt-0.5">
+                        Obtenu le {awardedLabel}
+                      </p>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Available Courses */}

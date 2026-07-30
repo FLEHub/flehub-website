@@ -116,6 +116,14 @@ export interface ElearningLevelExamScore {
   updated_at: string;
 }
 
+/** Badge unlocked when PE + PO of a module are validated */
+export interface ElearningModuleBadge {
+  id: string;
+  learner_id: string;
+  module_id: string;
+  awarded_at: string;
+}
+
 export interface Certificate {
   id: string;
   learner_id: string;
