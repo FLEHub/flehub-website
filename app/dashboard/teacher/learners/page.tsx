@@ -110,16 +110,20 @@ const CEFR_ORDER: Record<CefrLevel, number> = {
   C2: 5,
 };
 
-function nestedProfile(row: {
+function unwrapOne<T>(value: T | T[] | null | undefined): T | null {
+  if (value == null) return null;
+  return Array.isArray(value) ? (value[0] ?? null) : value;
+}
+
+function profileFromLearner(row: {
   profiles?:
-    | { full_name?: string; email?: string }
-    | { full_name?: string; email?: string }[]
+    | { full_name?: string | null; email?: string | null }
+    | { full_name?: string | null; email?: string | null }[]
     | null;
 }): { full_name: string; email: string } {
-  const profiles = row.profiles;
-  const profile = Array.isArray(profiles) ? profiles[0] : profiles;
+  const profile = unwrapOne(row.profiles);
   return {
-    full_name: profile?.full_name?.trim() || 'Apprenant',
+    full_name: profile?.full_name?.trim() || '',
     email: profile?.email?.trim() || '',
   };
 }
@@ -232,15 +236,7 @@ export default function TeacherLearnersPage() {
             .order('title', { ascending: true }),
           supabase
             .from('learner_teacher_links')
-            .select(
-              `
-              learner_id,
-              learners (
-                id,
-                profiles ( full_name, email )
-              )
-            `
-            )
+            .select('learner_id')
             .eq('teacher_id', teacher.id),
           supabase
             .from('elearning_module_assignments')
@@ -263,13 +259,14 @@ export default function TeacherLearnersPage() {
 
       const assignmentsByLearner = new Map<string, AssignmentRow[]>();
       (assignmentRows ?? []).forEach((row: any) => {
-        const mod = Array.isArray(row.elearning_modules)
-          ? row.elearning_modules[0]
-          : row.elearning_modules;
+        const mod = unwrapOne(row.elearning_modules);
         const item: AssignmentRow = {
           id: row.id,
           module_id: row.module_id,
-          module_title: mod?.title ?? 'Module',
+          module_title:
+            typeof mod?.title === 'string' && mod.title.trim()
+              ? mod.title.trim()
+              : 'Module',
           start_date: row.start_date,
           end_date: row.end_date,
         };
@@ -278,69 +275,89 @@ export default function TeacherLearnersPage() {
         assignmentsByLearner.set(row.learner_id, list);
       });
 
-      const learnerMap = new Map<string, LearnerRow>();
-
-      (links ?? []).forEach((link: any) => {
-        const learner = Array.isArray(link.learners)
-          ? link.learners[0]
-          : link.learners;
-        if (!learner?.id) return;
-        const profile = nestedProfile(learner);
-        learnerMap.set(learner.id, {
-          id: learner.id,
-          full_name: profile.full_name,
-          email: profile.email,
-          assignments: assignmentsByLearner.get(learner.id) ?? [],
-          selectedModuleId: '',
-          examScores: [],
-          scoreForm: { ...EMPTY_SCORE_FORM },
-        });
+      const learnerIds = new Set<string>();
+      (links ?? []).forEach((link: { learner_id: string }) => {
+        if (link.learner_id) learnerIds.add(link.learner_id);
+      });
+      assignmentsByLearner.forEach((_, learnerId) => {
+        learnerIds.add(learnerId);
       });
 
-      // Include learners who have assignments even if the link was removed.
-      assignmentsByLearner.forEach((assignments, learnerId) => {
-        if (learnerMap.has(learnerId)) return;
-        learnerMap.set(learnerId, {
-          id: learnerId,
-          full_name: 'Apprenant',
-          email: '',
-          assignments,
-          selectedModuleId: '',
-          examScores: [],
-          scoreForm: { ...EMPTY_SCORE_FORM },
-        });
-      });
+      const learnerIdList = Array.from(learnerIds);
+      const identityByLearner = new Map<
+        string,
+        { full_name: string; email: string }
+      >();
 
-      // Enrich names for assignment-only learners.
-      const orphanIds = Array.from(learnerMap.values())
-        .filter((l) => l.full_name === 'Apprenant' && !l.email)
-        .map((l) => l.id);
-      if (orphanIds.length > 0) {
-        const { data: orphanLearners } = await supabase
+      if (learnerIdList.length > 0) {
+        const { data: learnerRows } = await supabase
           .from('learners')
-          .select('id, profiles ( full_name, email )')
-          .in('id', orphanIds);
-        (orphanLearners ?? []).forEach((row: any) => {
-          const profile = nestedProfile(row);
-          const existing = learnerMap.get(row.id);
-          if (!existing) return;
-          learnerMap.set(row.id, {
-            ...existing,
-            full_name: profile.full_name,
-            email: profile.email,
-          });
+          .select(
+            `
+            id,
+            profile_id,
+            profiles ( full_name, email )
+          `
+          )
+          .in('id', learnerIdList);
+
+        const profileIdsMissing: string[] = [];
+        (learnerRows ?? []).forEach((row: any) => {
+          const fromJoin = profileFromLearner(row);
+          if (fromJoin.full_name || fromJoin.email) {
+            identityByLearner.set(row.id, fromJoin);
+          } else if (row.profile_id) {
+            profileIdsMissing.push(row.profile_id);
+          }
         });
+
+        // Fallback: direct profiles fetch (same RLS; helps if embed shape differs)
+        if (profileIdsMissing.length > 0) {
+          const { data: profileRows } = await supabase
+            .from('profiles')
+            .select('id, full_name, email')
+            .in('id', profileIdsMissing);
+
+          const profileById = new Map(
+            (profileRows ?? []).map((p: any) => [
+              p.id as string,
+              {
+                full_name: (p.full_name as string | null)?.trim() || '',
+                email: (p.email as string | null)?.trim() || '',
+              },
+            ])
+          );
+
+          (learnerRows ?? []).forEach((row: any) => {
+            if (identityByLearner.has(row.id)) return;
+            const profile = profileById.get(row.profile_id);
+            if (profile) identityByLearner.set(row.id, profile);
+          });
+        }
       }
 
-      const learnerIds = Array.from(learnerMap.keys());
+      const learnerMap = new Map<string, LearnerRow>();
+      learnerIdList.forEach((learnerId) => {
+        const identity = identityByLearner.get(learnerId);
+        learnerMap.set(learnerId, {
+          id: learnerId,
+          full_name: identity?.full_name || 'Apprenant',
+          email: identity?.email || '',
+          assignments: assignmentsByLearner.get(learnerId) ?? [],
+          selectedModuleId: '',
+          examScores: [],
+          scoreForm: { ...EMPTY_SCORE_FORM },
+        });
+      });
+
       const scoresByLearner = new Map<string, ElearningLevelExamScore[]>();
-      if (learnerIds.length > 0) {
+      if (learnerIdList.length > 0) {
         const { data: scoreRows } = await supabase
           .from('elearning_level_exam_scores')
           .select(
             'id, learner_id, teacher_id, level, score_po, score_pe, score_co, score_ce, score_langue, total_score, created_at, updated_at'
           )
-          .in('learner_id', learnerIds)
+          .in('learner_id', learnerIdList)
           .order('level', { ascending: true });
         ((scoreRows as ElearningLevelExamScore[]) ?? []).forEach((row) => {
           const list = scoresByLearner.get(row.learner_id) ?? [];
@@ -696,8 +713,11 @@ export default function TeacherLearnersPage() {
                   </div>
                 </CardHeader>
                 <CardContent className="space-y-5">
-                  {/* Module assignments */}
-                  <div className="space-y-4">
+                  {/* Module assignments — always separate from the learner title */}
+                  <div className="space-y-3">
+                    <p className="text-xs font-semibold uppercase tracking-wide text-gray-500">
+                      Modules assignés
+                    </p>
                     {learner.assignments.length > 0 ? (
                       <ul className="space-y-2">
                         {learner.assignments.map((a) => (
