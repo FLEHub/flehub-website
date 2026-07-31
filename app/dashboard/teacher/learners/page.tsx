@@ -617,7 +617,27 @@ export default function TeacherLearnersPage() {
         throw new Error('Enregistrement impossible — aucune donnée retournée.');
       }
 
-      const saved = savedRow as ElearningLevelExamScore;
+      // RPC returns out_* columns to avoid PL/pgSQL name collisions with table cols
+      const row = savedRow as Record<string, unknown>;
+      const saved: ElearningLevelExamScore = {
+        id: String(row.out_id ?? row.id ?? ''),
+        learner_id: String(row.out_learner_id ?? row.learner_id ?? ''),
+        teacher_id: String(row.out_teacher_id ?? row.teacher_id ?? ''),
+        level: (row.out_level ?? row.level) as CefrLevel,
+        score_po: (row.out_score_po ?? row.score_po ?? null) as number | null,
+        score_pe: (row.out_score_pe ?? row.score_pe ?? null) as number | null,
+        score_co: (row.out_score_co ?? row.score_co ?? null) as number | null,
+        score_ce: (row.out_score_ce ?? row.score_ce ?? null) as number | null,
+        score_langue: (row.out_score_langue ?? row.score_langue ?? null) as
+          | number
+          | null,
+        total_score: (row.out_total_score ?? row.total_score ?? null) as
+          | number
+          | null,
+        recorded_at: String(row.out_recorded_at ?? row.recorded_at ?? ''),
+        updated_at: String(row.out_updated_at ?? row.updated_at ?? ''),
+      };
+
       setLearners((prev) =>
         prev.map((l) => {
           if (l.id !== learner.id) return l;
