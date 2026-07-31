@@ -77,10 +77,13 @@ interface CompetencyProgress {
 
 interface Certificate {
   id: string;
+  source: 'official' | 'elearning';
   cefr_level: CEFR;
   issued_at: string;
   certificate_number: string;
-  verification_code: string;
+  verification_code?: string;
+  pdf_path?: string | null;
+  pdf_url?: string | null;
 }
 
 interface ModuleAssignment {
@@ -253,16 +256,23 @@ export default function LearnerDashboard() {
         .select('*', { count: 'exact', head: true })
         .eq('learner_id', learner.id);
 
-      const { count: certCount } = await supabase
-        .from('certificates')
-        .select('*', { count: 'exact', head: true })
-        .eq('learner_id', learner.id);
+      const [{ count: certCount }, { count: elearningCertCount }] =
+        await Promise.all([
+          supabase
+            .from('certificates')
+            .select('*', { count: 'exact', head: true })
+            .eq('learner_id', learner.id),
+          supabase
+            .from('elearning_certificates')
+            .select('*', { count: 'exact', head: true })
+            .eq('learner_id', learner.id),
+        ]);
 
       setStats({
         coursesInProgress: inProgressCount ?? 0,
         exercisesCompleted: exCompleted ?? 0,
         examsTaken: examsTaken ?? 0,
-        certificates: certCount ?? 0,
+        certificates: (certCount ?? 0) + (elearningCertCount ?? 0),
       });
 
       // Upcoming exam sessions
@@ -293,20 +303,51 @@ export default function LearnerDashboard() {
       );
       setCompetencyProgress(progData);
 
-      // Certificates
-      const { data: certsData } = await supabase
-        .from('certificates')
-        .select('id, issued_at, verification_code, certificate_number, cefr_level')
-        .eq('learner_id', learner.id)
-        .order('issued_at', { ascending: false });
+      // Certificates (official + elearning level)
+      const [{ data: certsData }, { data: elearningCertsData }] =
+        await Promise.all([
+          supabase
+            .from('certificates')
+            .select(
+              'id, issued_at, verification_code, certificate_number, cefr_level, pdf_url'
+            )
+            .eq('learner_id', learner.id)
+            .order('issued_at', { ascending: false }),
+          supabase
+            .from('elearning_certificates')
+            .select(
+              'id, level, certificate_number, pdf_path, issue_date'
+            )
+            .eq('learner_id', learner.id)
+            .order('issue_date', { ascending: false }),
+        ]);
 
-      const certsMapped: Certificate[] = (certsData ?? []).map((c: any) => ({
+      const officialMapped: Certificate[] = (certsData ?? []).map((c: any) => ({
         id: c.id,
+        source: 'official' as const,
         cefr_level: c.cefr_level ?? 'A1',
         issued_at: c.issued_at,
-        certificate_number: c.certificate_number ?? c.id.slice(0, 8).toUpperCase(),
+        certificate_number:
+          c.certificate_number ?? c.id.slice(0, 8).toUpperCase(),
         verification_code: c.verification_code ?? '',
+        pdf_url: c.pdf_url ?? null,
       }));
+
+      const elearningMapped: Certificate[] = (elearningCertsData ?? []).map(
+        (c: any) => ({
+          id: c.id,
+          source: 'elearning' as const,
+          cefr_level: c.level ?? 'A1',
+          issued_at: c.issue_date,
+          certificate_number: c.certificate_number,
+          pdf_path: c.pdf_path ?? null,
+        })
+      );
+
+      const certsMapped = [...officialMapped, ...elearningMapped].sort(
+        (a, b) =>
+          new Date(b.issued_at).getTime() - new Date(a.issued_at).getTime()
+      );
       setCertificates(certsMapped);
     } catch (err) {
       console.error(err);
@@ -713,14 +754,14 @@ export default function LearnerDashboard() {
         {/* Certificates */}
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-base font-semibold">My Certificates</CardTitle>
+            <CardTitle className="text-base font-semibold">Certificats</CardTitle>
             <Button
               variant="ghost"
               size="sm"
               className="text-flehub-green text-xs"
               onClick={() => (window.location.href = '/dashboard/learner/certificates')}
             >
-              View all <ArrowRight className="w-3 h-3 ml-1" />
+              Voir tout <ArrowRight className="w-3 h-3 ml-1" />
             </Button>
           </CardHeader>
           <CardContent className="space-y-3">
@@ -729,26 +770,30 @@ export default function LearnerDashboard() {
             ) : certificates.length === 0 ? (
               <div className="text-center py-6 text-gray-400">
                 <Award className="w-8 h-8 mx-auto mb-2 opacity-40" />
-                <p className="text-sm">No certificates yet</p>
-                <p className="text-xs mt-1">Pass an exam to earn your first certificate</p>
+                <p className="text-sm">Aucun certificat</p>
+                <p className="text-xs mt-1">
+                  Validez un niveau avec votre enseignant ou réussissez un examen
+                </p>
               </div>
             ) : (
               certificates.slice(0, 3).map((cert) => (
                 <div
-                  key={cert.id}
+                  key={`${cert.source}-${cert.id}`}
                   className="flex items-center justify-between gap-2 p-3 rounded-lg border border-amber-100 bg-amber-50"
                 >
                   <div className="flex items-center gap-2">
                     <Award className="w-5 h-5 text-amber-600 shrink-0" />
                     <div>
                       <div className="flex items-center gap-1.5">
-                        <span className="font-medium text-sm text-gray-900">DELF {cert.cefr_level}</span>
+                        <span className="font-medium text-sm text-gray-900">
+                          Niveau {cert.cefr_level}
+                        </span>
                         <Badge className={`text-xs ${cefrColors[cert.cefr_level]}`} variant="secondary">
                           {cert.cefr_level}
                         </Badge>
                       </div>
                       <p className="text-xs text-gray-500">
-                        {new Date(cert.issued_at).toLocaleDateString('en-RW')} · #{cert.certificate_number}
+                        {new Date(cert.issued_at).toLocaleDateString('fr-FR')} · #{cert.certificate_number}
                       </p>
                     </div>
                   </div>
@@ -756,7 +801,27 @@ export default function LearnerDashboard() {
                     size="sm"
                     variant="outline"
                     className="text-xs h-7 shrink-0"
-                    onClick={() => alert('PDF generation coming soon')}
+                    onClick={async () => {
+                      if (cert.source === 'elearning' && cert.pdf_path) {
+                        const { data } = await supabase.storage
+                          .from('elearning-certificates')
+                          .createSignedUrl(cert.pdf_path, 3600);
+                        if (data?.signedUrl) {
+                          const a = document.createElement('a');
+                          a.href = data.signedUrl;
+                          a.download = `${cert.certificate_number}.pdf`;
+                          a.target = '_blank';
+                          a.rel = 'noopener noreferrer';
+                          a.click();
+                          return;
+                        }
+                      }
+                      if (cert.source === 'official' && cert.pdf_url) {
+                        window.open(cert.pdf_url, '_blank', 'noopener,noreferrer');
+                        return;
+                      }
+                      window.location.href = '/dashboard/learner/certificates';
+                    }}
                   >
                     <Download className="w-3 h-3 mr-1" />
                     PDF

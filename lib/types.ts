@@ -124,6 +124,20 @@ export interface ElearningModuleBadge {
   awarded_at: string;
 }
 
+/** Level certificate for teacher-followed learners (outside school exam flow) */
+export interface ElearningCertificate {
+  id: string;
+  learner_id: string;
+  teacher_id: string;
+  exam_score_id: string;
+  level: CefrLevel;
+  certificate_number: string;
+  pdf_path: string | null;
+  issue_date: string;
+  created_at?: string;
+  updated_at?: string;
+}
+
 export interface Certificate {
   id: string;
   learner_id: string;

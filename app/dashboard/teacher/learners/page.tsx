@@ -2,8 +2,17 @@
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { createClient } from '@/lib/supabase/client';
-import type { CefrLevel, ElearningLevelExamScore } from '@/lib/types';
+import type {
+  CefrLevel,
+  ElearningCertificate,
+  ElearningLevelExamScore,
+} from '@/lib/types';
 import { CEFR_LEVELS } from '@/lib/types';
+import {
+  generateElearningCertificateNumber,
+  generateElearningCertificatePdf,
+  loadImageAsDataUrl,
+} from '@/lib/certificates/elearning-pdf';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -26,9 +35,12 @@ import {
 } from '@/components/ui/select';
 import {
   AlertTriangle,
+  Award,
   BookOpen,
   Calendar,
   ClipboardList,
+  Download,
+  RefreshCw,
   Save,
   Trash2,
   UserCheck,
@@ -65,6 +77,7 @@ interface LearnerRow {
   assignments: AssignmentRow[];
   selectedModuleId: string;
   examScores: ElearningLevelExamScore[];
+  certificates: ElearningCertificate[];
   scoreForm: ScoreForm;
 }
 
@@ -182,6 +195,17 @@ function sortExamScores(scores: ElearningLevelExamScore[]) {
   );
 }
 
+function hasCompleteScores(score: ElearningLevelExamScore | undefined): boolean {
+  if (!score) return false;
+  return (
+    score.score_po != null &&
+    score.score_pe != null &&
+    score.score_co != null &&
+    score.score_ce != null &&
+    score.score_langue != null
+  );
+}
+
 export default function TeacherLearnersPage() {
   const supabase = createClient();
 
@@ -199,6 +223,11 @@ export default function TeacherLearnersPage() {
     assignmentId: string;
     learnerId: string;
     moduleTitle: string;
+  } | null>(null);
+  const [regenTarget, setRegenTarget] = useState<{
+    learner: LearnerRow;
+    score: ElearningLevelExamScore;
+    existing: ElearningCertificate;
   } | null>(null);
 
   const moduleMap = useMemo(
@@ -350,23 +379,39 @@ export default function TeacherLearnersPage() {
           assignments: assignmentsByLearner.get(learnerId) ?? [],
           selectedModuleId: '',
           examScores: [],
+          certificates: [],
           scoreForm: { ...EMPTY_SCORE_FORM },
         });
       });
 
       const scoresByLearner = new Map<string, ElearningLevelExamScore[]>();
+      const certsByLearner = new Map<string, ElearningCertificate[]>();
       if (learnerIdList.length > 0) {
-        const { data: scoreRows } = await supabase
-          .from('elearning_level_exam_scores')
-          .select(
-            'id, learner_id, teacher_id, level, score_po, score_pe, score_co, score_ce, score_langue, total_score, recorded_at, updated_at'
-          )
-          .in('learner_id', learnerIdList)
-          .order('level', { ascending: true });
+        const [{ data: scoreRows }, { data: certRows }] = await Promise.all([
+          supabase
+            .from('elearning_level_exam_scores')
+            .select(
+              'id, learner_id, teacher_id, level, score_po, score_pe, score_co, score_ce, score_langue, total_score, recorded_at, updated_at'
+            )
+            .in('learner_id', learnerIdList)
+            .order('level', { ascending: true }),
+          supabase
+            .from('elearning_certificates')
+            .select(
+              'id, learner_id, teacher_id, exam_score_id, level, certificate_number, pdf_path, issue_date, created_at, updated_at'
+            )
+            .in('learner_id', learnerIdList)
+            .order('issue_date', { ascending: false }),
+        ]);
         ((scoreRows as ElearningLevelExamScore[]) ?? []).forEach((row) => {
           const list = scoresByLearner.get(row.learner_id) ?? [];
           list.push(row);
           scoresByLearner.set(row.learner_id, list);
+        });
+        ((certRows as ElearningCertificate[]) ?? []).forEach((row) => {
+          const list = certsByLearner.get(row.learner_id) ?? [];
+          list.push(row);
+          certsByLearner.set(row.learner_id, list);
         });
       }
 
@@ -376,6 +421,15 @@ export default function TeacherLearnersPage() {
         learnerMap.set(learnerId, {
           ...existing,
           examScores: sortExamScores(scores),
+        });
+      });
+
+      certsByLearner.forEach((certs, learnerId) => {
+        const existing = learnerMap.get(learnerId);
+        if (!existing) return;
+        learnerMap.set(learnerId, {
+          ...existing,
+          certificates: certs,
         });
       });
 
@@ -625,6 +679,258 @@ export default function TeacherLearnersPage() {
     }
   }
 
+  async function generateCertificate(
+    learner: LearnerRow,
+    score: ElearningLevelExamScore,
+    options?: { replaceExisting?: ElearningCertificate }
+  ) {
+    if (!teacherId) return;
+    if (!hasCompleteScores(score)) {
+      setInfoByLearner((prev) => ({
+        ...prev,
+        [learner.id]:
+          'Les 5 notes (PO, PE, CO, CE, Langue) doivent être enregistrées avant de générer le certificat.',
+      }));
+      return;
+    }
+
+    const existing =
+      options?.replaceExisting ??
+      learner.certificates.find((c) => c.level === score.level);
+
+    if (existing && !options?.replaceExisting) {
+      setRegenTarget({ learner, score, existing });
+      return;
+    }
+
+    setBusyKey(`cert-${learner.id}-${score.level}`);
+    setInfoByLearner((prev) => {
+      const next = { ...prev };
+      delete next[learner.id];
+      return next;
+    });
+    setSuccessByLearner((prev) => {
+      const next = { ...prev };
+      delete next[learner.id];
+      return next;
+    });
+
+    try {
+      const { data: teacherRow, error: teacherErr } = await supabase
+        .from('teachers')
+        .select('id, certificate_name, signature_path')
+        .eq('id', teacherId)
+        .maybeSingle();
+      if (teacherErr) throw teacherErr;
+
+      const teacherName =
+        teacherRow?.certificate_name?.trim() ||
+        'Enseignant';
+
+      let teacherSignatureDataUrl: string | null = null;
+      if (teacherRow?.signature_path) {
+        const { data: signed } = await supabase.storage
+          .from('teacher-signatures')
+          .createSignedUrl(teacherRow.signature_path, 3600);
+        if (signed?.signedUrl) {
+          teacherSignatureDataUrl = await loadImageAsDataUrl(signed.signedUrl);
+        }
+      }
+
+      let orgName = 'FLEHub';
+      let adminSignatoryName: string | null = null;
+      let adminLogoDataUrl: string | null = null;
+      let adminSignatureDataUrl: string | null = null;
+      try {
+        const { data: orgSettings } = await supabase
+          .from('org_settings')
+          .select('org_name, logo_url, signature_url, admin_signatory_name')
+          .limit(1)
+          .maybeSingle();
+        if (orgSettings) {
+          orgName = orgSettings.org_name?.trim() || 'FLEHub';
+          adminSignatoryName =
+            orgSettings.admin_signatory_name?.trim() || null;
+          const [adminLogo, adminSig] = await Promise.all([
+            orgSettings.logo_url
+              ? loadImageAsDataUrl(orgSettings.logo_url)
+              : Promise.resolve(null),
+            orgSettings.signature_url
+              ? loadImageAsDataUrl(orgSettings.signature_url)
+              : Promise.resolve(null),
+          ]);
+          adminLogoDataUrl = adminLogo;
+          adminSignatureDataUrl = adminSig;
+        }
+      } catch {
+        // Continue without admin branding.
+      }
+
+      const certNumber =
+        existing?.certificate_number ?? generateElearningCertificateNumber();
+      const issueDate = new Date().toISOString().split('T')[0]!;
+      const pdfPath = `${learner.id}/${score.level}.pdf`;
+
+      const pdfBlob = await generateElearningCertificatePdf({
+        studentName: learner.full_name || 'Apprenant',
+        cefrLevel: score.level,
+        certificateNumber: certNumber,
+        issueDate,
+        scores: {
+          score_po: score.score_po ?? null,
+          score_pe: score.score_pe ?? null,
+          score_co: score.score_co ?? null,
+          score_ce: score.score_ce ?? null,
+          score_langue: score.score_langue ?? null,
+          total_score: Number(score.total_score ?? 0),
+        },
+        orgName,
+        adminSignatoryName,
+        adminLogoDataUrl,
+        adminSignatureDataUrl,
+        teacherName,
+        teacherSignatureDataUrl,
+      });
+
+      const { error: uploadErr } = await supabase.storage
+        .from('elearning-certificates')
+        .upload(pdfPath, pdfBlob, {
+          contentType: 'application/pdf',
+          upsert: true,
+        });
+      if (uploadErr) {
+        throw new Error(`Échec de l’upload du PDF : ${uploadErr.message}`);
+      }
+
+      let saved: ElearningCertificate;
+      if (existing) {
+        const { data: updated, error: updateErr } = await supabase
+          .from('elearning_certificates')
+          .update({
+            teacher_id: teacherId,
+            exam_score_id: score.id,
+            certificate_number: certNumber,
+            pdf_path: pdfPath,
+            issue_date: issueDate,
+            updated_at: new Date().toISOString(),
+          })
+          .eq('id', existing.id)
+          .select(
+            'id, learner_id, teacher_id, exam_score_id, level, certificate_number, pdf_path, issue_date, created_at, updated_at'
+          )
+          .single();
+        if (updateErr) throw updateErr;
+        saved = updated as ElearningCertificate;
+      } else {
+        const { data: inserted, error: insertErr } = await supabase
+          .from('elearning_certificates')
+          .insert({
+            learner_id: learner.id,
+            teacher_id: teacherId,
+            exam_score_id: score.id,
+            level: score.level,
+            certificate_number: certNumber,
+            pdf_path: pdfPath,
+            issue_date: issueDate,
+          })
+          .select(
+            'id, learner_id, teacher_id, exam_score_id, level, certificate_number, pdf_path, issue_date, created_at, updated_at'
+          )
+          .single();
+
+        if (insertErr) {
+          if (isUniqueViolation(insertErr)) {
+            setInfoByLearner((prev) => ({
+              ...prev,
+              [learner.id]: `Un certificat ${score.level} existe déjà pour cet apprenant. Vous pouvez le régénérer pour le remplacer.`,
+            }));
+            const { data: conflict } = await supabase
+              .from('elearning_certificates')
+              .select(
+                'id, learner_id, teacher_id, exam_score_id, level, certificate_number, pdf_path, issue_date, created_at, updated_at'
+              )
+              .eq('learner_id', learner.id)
+              .eq('level', score.level)
+              .maybeSingle();
+            if (conflict) {
+              setLearners((prev) =>
+                prev.map((l) => {
+                  if (l.id !== learner.id) return l;
+                  const without = l.certificates.filter(
+                    (c) => c.level !== score.level
+                  );
+                  return {
+                    ...l,
+                    certificates: [conflict as ElearningCertificate, ...without],
+                  };
+                })
+              );
+              setRegenTarget({
+                learner: {
+                  ...learner,
+                  certificates: [
+                    conflict as ElearningCertificate,
+                    ...learner.certificates.filter(
+                      (c) => c.level !== score.level
+                    ),
+                  ],
+                },
+                score,
+                existing: conflict as ElearningCertificate,
+              });
+            }
+            return;
+          }
+          throw insertErr;
+        }
+        saved = inserted as ElearningCertificate;
+      }
+
+      setLearners((prev) =>
+        prev.map((l) => {
+          if (l.id !== learner.id) return l;
+          const without = l.certificates.filter((c) => c.level !== saved.level);
+          return { ...l, certificates: [saved, ...without] };
+        })
+      );
+      setSuccessByLearner((prev) => ({
+        ...prev,
+        [learner.id]: existing
+          ? `Certificat ${score.level} régénéré (${certNumber}).`
+          : `Certificat ${score.level} généré (${certNumber}).`,
+      }));
+      setRegenTarget(null);
+    } catch (err) {
+      console.error(err);
+      setInfoByLearner((prev) => ({
+        ...prev,
+        [learner.id]:
+          err instanceof Error
+            ? err.message
+            : 'Impossible de générer le certificat',
+      }));
+    } finally {
+      setBusyKey(null);
+    }
+  }
+
+  async function downloadCertificate(cert: ElearningCertificate) {
+    if (!cert.pdf_path) return;
+    const { data, error: dlErr } = await supabase.storage
+      .from('elearning-certificates')
+      .createSignedUrl(cert.pdf_path, 3600);
+    if (dlErr || !data?.signedUrl) {
+      setError('Impossible de télécharger le certificat.');
+      return;
+    }
+    const a = document.createElement('a');
+    a.href = data.signedUrl;
+    a.download = `${cert.certificate_number}.pdf`;
+    a.target = '_blank';
+    a.rel = 'noopener noreferrer';
+    a.click();
+  }
+
   const availableModulesFor = (learner: LearnerRow) => {
     const assigned = new Set(learner.assignments.map((a) => a.module_id));
     return modules.filter((m) => !assigned.has(m.id));
@@ -681,6 +987,13 @@ export default function TeacherLearnersPage() {
                 )
               : undefined;
             const savingScores = busyKey === `scores-${learner.id}`;
+            const canGenerateCert = hasCompleteScores(selectedScore);
+            const existingCert = selectedScore
+              ? learner.certificates.find((c) => c.level === selectedScore.level)
+              : undefined;
+            const generatingCert =
+              !!selectedScore &&
+              busyKey === `cert-${learner.id}-${selectedScore.level}`;
 
             return (
               <Card key={learner.id}>
@@ -950,6 +1263,53 @@ export default function TeacherLearnersPage() {
                             : 'Enregistrer les notes'}
                       </Button>
                     </div>
+
+                    {canGenerateCert && selectedScore && (
+                      <div className="rounded-lg border border-[#00A550]/25 bg-[#E6F5EE]/50 px-3 py-3 space-y-2">
+                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                          <div>
+                            <p className="text-sm font-semibold text-gray-900 flex items-center gap-1.5">
+                              <Award className="w-4 h-4 text-[#00A550]" />
+                              Certificat niveau {selectedScore.level}
+                            </p>
+                            <p className="text-xs text-gray-500 mt-0.5">
+                              {existingCert
+                                ? `Déjà délivré le ${formatDate(existingCert.issue_date)} — ${existingCert.certificate_number}`
+                                : 'Les 5 notes sont enregistrées. Vous pouvez générer le certificat.'}
+                            </p>
+                          </div>
+                          <div className="flex flex-wrap gap-2">
+                            {existingCert?.pdf_path && (
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => void downloadCertificate(existingCert)}
+                              >
+                                <Download className="w-3.5 h-3.5 mr-1" />
+                                Télécharger
+                              </Button>
+                            )}
+                            <Button
+                              size="sm"
+                              className="bg-[#00A550] hover:bg-[#008040] text-white"
+                              disabled={generatingCert}
+                              onClick={() =>
+                                void generateCertificate(learner, selectedScore)
+                              }
+                            >
+                              {generatingCert ? (
+                                <RefreshCw className="w-3.5 h-3.5 mr-1 animate-spin" />
+                              ) : (
+                                <Award className="w-3.5 h-3.5 mr-1" />
+                              )}
+                              {existingCert
+                                ? 'Régénérer le certificat'
+                                : 'Générer le certificat'}
+                            </Button>
+                          </div>
+                        </div>
+                      </div>
+                    )}
                   </div>
 
                   {successByLearner[learner.id] && (
@@ -993,6 +1353,48 @@ export default function TeacherLearnersPage() {
               onClick={() => void confirmRemove()}
             >
               Retirer
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog
+        open={!!regenTarget}
+        onOpenChange={(open) => {
+          if (!open) setRegenTarget(null);
+        }}
+      >
+        <DialogContent className="max-w-sm">
+          <DialogHeader>
+            <DialogTitle>Certificat déjà existant</DialogTitle>
+          </DialogHeader>
+          <p className="text-sm text-gray-500">
+            Un certificat {regenTarget?.score.level} (
+            {regenTarget?.existing.certificate_number}) existe déjà pour{' '}
+            {regenTarget?.learner.full_name}. Souhaitez-vous le régénérer et
+            remplacer le PDF ?
+          </p>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setRegenTarget(null)}>
+              Annuler
+            </Button>
+            <Button
+              className="bg-[#00A550] hover:bg-[#008040] text-white"
+              disabled={
+                !!regenTarget &&
+                busyKey ===
+                  `cert-${regenTarget.learner.id}-${regenTarget.score.level}`
+              }
+              onClick={() => {
+                if (!regenTarget) return;
+                void generateCertificate(
+                  regenTarget.learner,
+                  regenTarget.score,
+                  { replaceExisting: regenTarget.existing }
+                );
+              }}
+            >
+              Régénérer
             </Button>
           </DialogFooter>
         </DialogContent>
