@@ -60,6 +60,7 @@ END $$;
 
 -- ---------------------------------------------------------------------------
 -- Authoritative upsert — never references created_at
+-- RETURNS TABLE uses out_* names to avoid PL/pgSQL collisions with table cols
 -- ---------------------------------------------------------------------------
 CREATE OR REPLACE FUNCTION public.upsert_elearning_level_exam_scores(
   p_learner_id uuid,
@@ -72,18 +73,18 @@ CREATE OR REPLACE FUNCTION public.upsert_elearning_level_exam_scores(
   p_score_langue numeric DEFAULT NULL
 )
 RETURNS TABLE (
-  id uuid,
-  learner_id uuid,
-  teacher_id uuid,
-  level text,
-  score_po numeric,
-  score_pe numeric,
-  score_co numeric,
-  score_ce numeric,
-  score_langue numeric,
-  total_score numeric,
-  recorded_at timestamptz,
-  updated_at timestamptz
+  out_id uuid,
+  out_learner_id uuid,
+  out_teacher_id uuid,
+  out_level text,
+  out_score_po numeric,
+  out_score_pe numeric,
+  out_score_co numeric,
+  out_score_ce numeric,
+  out_score_langue numeric,
+  out_total_score numeric,
+  out_recorded_at timestamptz,
+  out_updated_at timestamptz
 )
 LANGUAGE plpgsql
 SECURITY DEFINER
