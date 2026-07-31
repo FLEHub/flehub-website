@@ -76,6 +76,7 @@ const navByRole: Record<Role, NavItem[]> = {
     { label: 'eLearning', href: '/dashboard/learner/elearning', icon: BookOpen },
     { label: 'Enseignants', href: '/dashboard/learner/elearning/teachers', icon: GraduationCap },
     { label: 'Sessions', href: '/dashboard/learner/elearning/sessions', icon: Video },
+    { label: 'Certificats', href: '/dashboard/learner/certificates', icon: Award },
   ],
 }
 
