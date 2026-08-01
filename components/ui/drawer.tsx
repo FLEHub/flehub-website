@@ -28,7 +28,7 @@ const DrawerOverlay = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <DrawerPrimitive.Overlay
     ref={ref}
-    className={cn('fixed inset-0 z-50 bg-black/80', className)}
+    className={cn('flehub-modal-overlay fixed inset-0 z-50', className)}
     {...props}
   />
 ));
@@ -43,7 +43,7 @@ const DrawerContent = React.forwardRef<
     <DrawerPrimitive.Content
       ref={ref}
       className={cn(
-        'fixed inset-x-0 bottom-0 z-50 mt-24 flex h-auto flex-col rounded-t-[10px] border bg-background',
+        'flehub-modal-panel fixed inset-x-0 bottom-0 z-[51] mt-24 flex h-auto flex-col rounded-t-[10px] border border-gray-200 bg-white text-gray-900',
         className
       )}
       {...props}
