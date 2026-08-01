@@ -70,3 +70,12 @@
 .sidebar-link.active {
   @apply bg-[#E8F8F0] text-[#00A550] font-semibold;
 }
+
+/* Modal primitives: opaque panel + dimmed backdrop (do not rely on theme tokens) */
+.flehub-modal-overlay {
+  background-color: rgba(0, 0, 0, 0.6);
+}
+.flehub-modal-panel {
+  background-color: #ffffff;
+  color: #111827;
+}
