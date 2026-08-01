@@ -9,8 +9,3 @@ ALTER TABLE org_settings
 -- School branding: stamp stored as path in school-assets (same pattern as signature/logo)
 ALTER TABLE school_settings
   ADD COLUMN IF NOT EXISTS stamp_path text;
-
--- School examiner / director gender for certificate titles
-ALTER TABLE school_settings
-  ADD COLUMN IF NOT EXISTS examiner_gender text
-    CHECK (examiner_gender IS NULL OR examiner_gender IN ('M', 'F'));
