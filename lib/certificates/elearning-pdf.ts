@@ -73,6 +73,7 @@ export interface ElearningCertificatePdfParams {
   adminSignatoryName: string | null
   adminLogoDataUrl: string | null
   adminSignatureDataUrl: string | null
+  adminStampDataUrl?: string | null
   teacherName: string | null
   teacherSignatureDataUrl: string | null
 }
@@ -224,6 +225,23 @@ export async function generateElearningCertificatePdf(
   const rightX = pageW * 0.72
   const lineY = pageH - 42
   const lineHalfW = 40
+  const stampSize = 16
+
+  // Admin stamp above admin signature (left block)
+  if (params.adminStampDataUrl) {
+    try {
+      doc.addImage(
+        params.adminStampDataUrl,
+        imageFormatFromDataUrl(params.adminStampDataUrl),
+        leftX - stampSize / 2,
+        lineY - 40,
+        stampSize,
+        stampSize
+      )
+    } catch {
+      // Continue without admin stamp.
+    }
+  }
 
   if (params.adminSignatureDataUrl) {
     try {
