@@ -761,26 +761,31 @@ export default function TeacherLearnersPage() {
       let adminSignatoryName: string | null = null;
       let adminLogoDataUrl: string | null = null;
       let adminSignatureDataUrl: string | null = null;
+      let adminStampDataUrl: string | null = null;
       try {
         const { data: orgSettings } = await supabase
           .from('org_settings')
-          .select('org_name, logo_url, signature_url, admin_signatory_name')
+          .select('org_name, logo_url, signature_url, stamp_url, admin_signatory_name')
           .limit(1)
           .maybeSingle();
         if (orgSettings) {
           orgName = orgSettings.org_name?.trim() || 'FLEHub';
           adminSignatoryName =
             orgSettings.admin_signatory_name?.trim() || null;
-          const [adminLogo, adminSig] = await Promise.all([
+          const [adminLogo, adminSig, adminStamp] = await Promise.all([
             orgSettings.logo_url
               ? loadImageAsDataUrl(orgSettings.logo_url)
               : Promise.resolve(null),
             orgSettings.signature_url
               ? loadImageAsDataUrl(orgSettings.signature_url)
               : Promise.resolve(null),
+            orgSettings.stamp_url
+              ? loadImageAsDataUrl(orgSettings.stamp_url)
+              : Promise.resolve(null),
           ]);
           adminLogoDataUrl = adminLogo;
           adminSignatureDataUrl = adminSig;
+          adminStampDataUrl = adminStamp;
         }
       } catch {
         // Continue without admin branding.
@@ -808,6 +813,7 @@ export default function TeacherLearnersPage() {
         adminSignatoryName,
         adminLogoDataUrl,
         adminSignatureDataUrl,
+        adminStampDataUrl,
         teacherName,
         teacherSignatureDataUrl,
       });

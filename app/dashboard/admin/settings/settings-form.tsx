@@ -8,6 +8,13 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
+import {
   Upload,
   CheckCircle2,
   AlertCircle,
@@ -17,7 +24,10 @@ import {
   Phone,
   PenLine,
   User,
+  Stamp,
 } from 'lucide-react'
+
+type AdminGender = 'M' | 'F'
 
 interface OrgSettings {
   id: string
@@ -26,7 +36,9 @@ interface OrgSettings {
   contact_phone: string | null
   logo_url: string | null
   signature_url: string | null
+  stamp_url: string | null
   admin_signatory_name: string | null
+  admin_gender: AdminGender | null
   updated_at: string
 }
 
@@ -34,9 +46,15 @@ interface Props {
   initialSettings: OrgSettings | null
 }
 
-type UploadField = 'logo_url' | 'signature_url'
+type UploadField = 'logo_url' | 'signature_url' | 'stamp_url'
 
 type Toast = { type: 'success' | 'error'; message: string } | null
+
+const UPLOAD_LABELS: Record<UploadField, string> = {
+  logo_url: 'Logo',
+  signature_url: 'Signature',
+  stamp_url: 'Cachet',
+}
 
 function ImageUploadCard({
   label,
@@ -123,7 +141,9 @@ export function AdminSettingsForm({ initialSettings }: Props) {
       contact_phone: null,
       logo_url: null,
       signature_url: null,
+      stamp_url: null,
       admin_signatory_name: null,
+      admin_gender: null,
       updated_at: new Date().toISOString(),
     }
   )
@@ -161,7 +181,7 @@ export function AdminSettingsForm({ initialSettings }: Props) {
       if (dbError) throw dbError
 
       setSettings((prev) => ({ ...prev, [field]: publicUrl }))
-      showToast('success', `${field === 'logo_url' ? 'Logo' : 'Signature'} updated successfully.`)
+      showToast('success', `${UPLOAD_LABELS[field]} updated successfully.`)
     } catch (err) {
       showToast('error', `Upload failed: ${(err as Error).message}`)
     } finally {
@@ -178,6 +198,7 @@ export function AdminSettingsForm({ initialSettings }: Props) {
           contact_email: settings.contact_email,
           contact_phone: settings.contact_phone,
           admin_signatory_name: settings.admin_signatory_name,
+          admin_gender: settings.admin_gender,
           updated_at: new Date().toISOString(),
         })
         .eq('id', settings.id)
@@ -266,18 +287,46 @@ export function AdminSettingsForm({ initialSettings }: Props) {
             </div>
           </div>
 
-          <div className="space-y-1.5">
-            <Label htmlFor="admin_signatory_name" className="text-sm font-medium text-gray-700 flex items-center gap-1.5">
-              <User className="w-3.5 h-3.5 text-gray-400" />
-              Nom du signataire
-            </Label>
-            <Input
-              id="admin_signatory_name"
-              value={settings.admin_signatory_name ?? ''}
-              onChange={(e) => setSettings((p) => ({ ...p, admin_signatory_name: e.target.value || null }))}
-              placeholder="Nom de la personne qui signe les certificats"
-              className="border-gray-200 focus:border-[#00A550] focus:ring-[#00A550]/20"
-            />
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="space-y-1.5">
+              <Label htmlFor="admin_signatory_name" className="text-sm font-medium text-gray-700 flex items-center gap-1.5">
+                <User className="w-3.5 h-3.5 text-gray-400" />
+                Nom du signataire
+              </Label>
+              <Input
+                id="admin_signatory_name"
+                value={settings.admin_signatory_name ?? ''}
+                onChange={(e) => setSettings((p) => ({ ...p, admin_signatory_name: e.target.value || null }))}
+                placeholder="Nom de la personne qui signe les certificats"
+                className="border-gray-200 focus:border-[#00A550] focus:ring-[#00A550]/20"
+              />
+            </div>
+
+            <div className="space-y-1.5">
+              <Label htmlFor="admin_gender" className="text-sm font-medium text-gray-700">
+                Genre
+              </Label>
+              <Select
+                value={settings.admin_gender ?? undefined}
+                onValueChange={(value: AdminGender) =>
+                  setSettings((p) => ({ ...p, admin_gender: value }))
+                }
+              >
+                <SelectTrigger
+                  id="admin_gender"
+                  className="border-gray-200 focus:border-[#00A550] focus:ring-[#00A550]/20"
+                >
+                  <SelectValue placeholder="Sélectionner" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="M">Homme</SelectItem>
+                  <SelectItem value="F">Femme</SelectItem>
+                </SelectContent>
+              </Select>
+              <p className="text-xs text-gray-400">
+                Affiché comme « Directeur » ou « Directrice » sur les certificats école.
+              </p>
+            </div>
           </div>
 
           <div className="flex justify-end pt-2">
@@ -308,7 +357,7 @@ export function AdminSettingsForm({ initialSettings }: Props) {
           </div>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-8">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-8">
             <ImageUploadCard
               label="Official Logo"
               description="PNG or JPG — displayed at the top of certificates."
@@ -326,6 +375,15 @@ export function AdminSettingsForm({ initialSettings }: Props) {
               uploading={uploadingField === 'signature_url'}
               onUpload={(file) => uploadImage(file, 'signature_url')}
               icon={PenLine}
+            />
+            <ImageUploadCard
+              label="Cachet"
+              description="PNG — tampon officiel affiché au-dessus de la signature."
+              current={settings.stamp_url}
+              accept="image/png,image/jpeg,image/jpg"
+              uploading={uploadingField === 'stamp_url'}
+              onUpload={(file) => uploadImage(file, 'stamp_url')}
+              icon={Stamp}
             />
           </div>
         </CardContent>

@@ -16,6 +16,7 @@ import {
   User,
   ImageIcon,
   GraduationCap,
+  Stamp,
 } from 'lucide-react'
 
 interface SchoolSettings {
@@ -24,6 +25,7 @@ interface SchoolSettings {
   examiner_name: string
   examiner_signature_path: string | null
   school_logo_path: string | null
+  stamp_path: string | null
 }
 
 export default function SchoolSettingsPage() {
@@ -40,9 +42,11 @@ export default function SchoolSettingsPage() {
 
   const sigInputRef = useRef<HTMLInputElement>(null)
   const logoInputRef = useRef<HTMLInputElement>(null)
+  const stampInputRef = useRef<HTMLInputElement>(null)
 
   const [signatureUrl, setSignatureUrl] = useState<string | null>(null)
   const [logoUrl, setLogoUrl] = useState<string | null>(null)
+  const [stampUrl, setStampUrl] = useState<string | null>(null)
 
   const getSchoolId = useCallback(async () => {
     const { data: { user } } = await supabase.auth.getUser()
@@ -59,10 +63,20 @@ export default function SchoolSettingsPage() {
       if (data.examiner_signature_path) {
         const { data: urlData } = await supabase.storage.from('school-assets').createSignedUrl(data.examiner_signature_path, 3600)
         setSignatureUrl(urlData?.signedUrl ?? null)
+      } else {
+        setSignatureUrl(null)
       }
       if (data.school_logo_path) {
         const { data: urlData } = await supabase.storage.from('school-assets').createSignedUrl(data.school_logo_path, 3600)
         setLogoUrl(urlData?.signedUrl ?? null)
+      } else {
+        setLogoUrl(null)
+      }
+      if (data.stamp_path) {
+        const { data: urlData } = await supabase.storage.from('school-assets').createSignedUrl(data.stamp_path, 3600)
+        setStampUrl(urlData?.signedUrl ?? null)
+      } else {
+        setStampUrl(null)
       }
     }
   }, [supabase])
@@ -104,7 +118,7 @@ export default function SchoolSettingsPage() {
     }
   }
 
-  const uploadAsset = async (file: File, assetKey: 'signature' | 'logo') => {
+  const uploadAsset = async (file: File, assetKey: 'signature' | 'logo' | 'stamp') => {
     if (!schoolId) return
     setUploadingKey(assetKey)
     setError(null)
@@ -114,7 +128,12 @@ export default function SchoolSettingsPage() {
       const { error: upErr } = await supabase.storage.from('school-assets').upload(path, file, { upsert: true })
       if (upErr) throw upErr
 
-      const fieldName = assetKey === 'signature' ? 'examiner_signature_path' : 'school_logo_path'
+      const fieldName =
+        assetKey === 'signature'
+          ? 'examiner_signature_path'
+          : assetKey === 'logo'
+            ? 'school_logo_path'
+            : 'stamp_path'
       if (settings?.id) {
         const { error: err } = await supabase.from('school_settings').update({ [fieldName]: path, updated_at: new Date().toISOString() }).eq('id', settings.id)
         if (err) throw err
@@ -126,7 +145,8 @@ export default function SchoolSettingsPage() {
       // get preview URL
       const { data: urlData } = await supabase.storage.from('school-assets').createSignedUrl(path, 3600)
       if (assetKey === 'signature') setSignatureUrl(urlData?.signedUrl ?? null)
-      else setLogoUrl(urlData?.signedUrl ?? null)
+      else if (assetKey === 'logo') setLogoUrl(urlData?.signedUrl ?? null)
+      else setStampUrl(urlData?.signedUrl ?? null)
 
       await loadSettings(schoolId)
     } catch (err) {
@@ -253,6 +273,40 @@ export default function SchoolSettingsPage() {
                 ? <RefreshCw className="w-3.5 h-3.5 animate-spin mr-1.5" />
                 : <Upload className="w-3.5 h-3.5 mr-1.5" />}
               {uploadingKey === 'logo' ? 'Uploading…' : logoUrl ? 'Replace Logo' : 'Upload PNG/JPG'}
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* School Stamp */}
+      <Card className="border-0 shadow-sm">
+        <CardHeader className="pb-3">
+          <div className="flex items-center gap-2">
+            <div className="w-8 h-8 rounded-lg bg-purple-50 flex items-center justify-center">
+              <Stamp className="w-4 h-4 text-purple-600" />
+            </div>
+            <CardTitle className="text-base font-semibold">Cachet de l&apos;école</CardTitle>
+          </div>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <p className="text-sm text-gray-500">
+            Upload a PNG or JPG of the school stamp (tampon). Displayed above the admin signature on certificates.
+          </p>
+          {stampUrl && (
+            <div className="border border-gray-200 rounded-lg p-4 bg-gray-50 w-fit">
+              <img src={stampUrl} alt="School stamp" className="h-20 object-contain" />
+            </div>
+          )}
+          <div>
+            <input ref={stampInputRef} type="file" accept="image/png,image/jpeg,image/jpg" className="hidden"
+              onChange={(e) => { const f = e.target.files?.[0]; if (f) uploadAsset(f, 'stamp') }} />
+            <Button variant="outline" onClick={() => stampInputRef.current?.click()}
+              disabled={uploadingKey === 'stamp'}
+              className="border-gray-200 hover:border-[#00A550] hover:text-[#00A550]">
+              {uploadingKey === 'stamp'
+                ? <RefreshCw className="w-3.5 h-3.5 animate-spin mr-1.5" />
+                : <Upload className="w-3.5 h-3.5 mr-1.5" />}
+              {uploadingKey === 'stamp' ? 'Uploading…' : stampUrl ? 'Replace Stamp' : 'Upload PNG/JPG'}
             </Button>
           </div>
         </CardContent>

@@ -115,10 +115,13 @@ async function generateCertificatePdf(params: {
   examinerName: string | null
   schoolLogoDataUrl: string | null
   examinerSignatureDataUrl: string | null
+  schoolStampDataUrl: string | null
   orgName: string
   adminSignatoryName: string | null
+  adminGender: 'M' | 'F' | null
   adminLogoDataUrl: string | null
   adminSignatureDataUrl: string | null
+  adminStampDataUrl: string | null
 }): Promise<Blob> {
   const doc = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' })
   const pageW = doc.internal.pageSize.getWidth()
@@ -242,6 +245,7 @@ async function generateCertificatePdf(params: {
   const rightX = pageW * 0.72
   const lineY = pageH - 42
   const lineHalfW = 40
+  const stampSize = 14
 
   if (params.examinerSignatureDataUrl) {
     try {
@@ -258,7 +262,31 @@ async function generateCertificatePdf(params: {
     }
   }
 
-  // Admin zone (right): signature above the line (logo is in the header)
+  // Admin zone (right): stamps side-by-side above signature
+  const stamps: string[] = []
+  if (params.adminStampDataUrl) stamps.push(params.adminStampDataUrl)
+  if (params.schoolStampDataUrl) stamps.push(params.schoolStampDataUrl)
+  if (stamps.length > 0) {
+    const gap = 3
+    const totalW = stamps.length * stampSize + (stamps.length - 1) * gap
+    let stampX = rightX - totalW / 2
+    for (const stamp of stamps) {
+      try {
+        doc.addImage(
+          stamp,
+          imageFormatFromDataUrl(stamp),
+          stampX,
+          lineY - 40,
+          stampSize,
+          stampSize,
+        )
+      } catch {
+        // Continue without this stamp.
+      }
+      stampX += stampSize + gap
+    }
+  }
+
   if (params.adminSignatureDataUrl) {
     try {
       doc.addImage(
@@ -279,16 +307,16 @@ async function generateCertificatePdf(params: {
   doc.line(leftX - lineHalfW, lineY, leftX + lineHalfW, lineY)
   doc.line(rightX - lineHalfW, lineY, rightX + lineHalfW, lineY)
 
+  const directorTitle =
+    params.adminGender === 'F' ? 'Directrice' : params.adminGender === 'M' ? 'Directeur' : null
+  const adminName = params.adminSignatoryName?.trim() || 'Administration FLEHub'
+  const adminNameLine = directorTitle ? `${directorTitle}, ${adminName}` : adminName
+
   doc.setFont('helvetica', 'bold')
   doc.setFontSize(10)
   doc.setTextColor(40, 40, 40)
   doc.text(params.examinerName?.trim() || 'Examinateur', leftX, lineY + 6, { align: 'center' })
-  doc.text(
-    params.adminSignatoryName?.trim() || 'Administration FLEHub',
-    rightX,
-    lineY + 6,
-    { align: 'center' },
-  )
+  doc.text(adminNameLine, rightX, lineY + 6, { align: 'center' })
 
   doc.setFont('helvetica', 'normal')
   doc.setFontSize(8)
@@ -417,19 +445,22 @@ export default function SchoolCertificatesPage() {
       let examinerName: string | null = null
       let schoolLogoDataUrl: string | null = null
       let examinerSignatureDataUrl: string | null = null
+      let schoolStampDataUrl: string | null = null
       try {
         const { data: settings } = await supabase
           .from('school_settings')
-          .select('examiner_name, examiner_signature_path, school_logo_path')
+          .select('examiner_name, examiner_signature_path, school_logo_path, stamp_path')
           .eq('school_id', schoolId)
           .maybeSingle()
         examinerName = settings?.examiner_name?.trim() || null
-        const [logoUrl, signatureUrl] = await Promise.all([
+        const [logoUrl, signatureUrl, stampUrl] = await Promise.all([
           resolveAssetDataUrl(settings?.school_logo_path),
           resolveAssetDataUrl(settings?.examiner_signature_path),
+          resolveAssetDataUrl(settings?.stamp_path),
         ])
         schoolLogoDataUrl = logoUrl
         examinerSignatureDataUrl = signatureUrl
+        schoolStampDataUrl = stampUrl
       } catch {
         // Continue PDF generation without school branding assets.
       }
@@ -437,24 +468,32 @@ export default function SchoolCertificatesPage() {
       // Fetch global admin org branding (non-blocking on missing data)
       let orgName = 'FLEHub'
       let adminSignatoryName: string | null = null
+      let adminGender: 'M' | 'F' | null = null
       let adminLogoDataUrl: string | null = null
       let adminSignatureDataUrl: string | null = null
+      let adminStampDataUrl: string | null = null
       try {
         const { data: orgSettings } = await supabase
           .from('org_settings')
-          .select('org_name, logo_url, signature_url, admin_signatory_name')
+          .select('org_name, logo_url, signature_url, stamp_url, admin_signatory_name, admin_gender')
           .limit(1)
           .maybeSingle()
         if (orgSettings) {
           orgName = orgSettings.org_name?.trim() || 'FLEHub'
           adminSignatoryName = orgSettings.admin_signatory_name?.trim() || null
-          // admin-assets bucket is public — logo_url / signature_url are direct public URLs
-          const [adminLogo, adminSig] = await Promise.all([
+          adminGender =
+            orgSettings.admin_gender === 'M' || orgSettings.admin_gender === 'F'
+              ? orgSettings.admin_gender
+              : null
+          // admin-assets bucket is public — logo_url / signature_url / stamp_url are direct public URLs
+          const [adminLogo, adminSig, adminStamp] = await Promise.all([
             orgSettings.logo_url ? loadImageAsDataUrl(orgSettings.logo_url) : Promise.resolve(null),
             orgSettings.signature_url ? loadImageAsDataUrl(orgSettings.signature_url) : Promise.resolve(null),
+            orgSettings.stamp_url ? loadImageAsDataUrl(orgSettings.stamp_url) : Promise.resolve(null),
           ])
           adminLogoDataUrl = adminLogo
           adminSignatureDataUrl = adminSig
+          adminStampDataUrl = adminStamp
         }
       } catch {
         // Continue PDF generation without admin branding assets.
@@ -480,10 +519,13 @@ export default function SchoolCertificatesPage() {
           examinerName,
           schoolLogoDataUrl,
           examinerSignatureDataUrl,
+          schoolStampDataUrl,
           orgName,
           adminSignatoryName,
+          adminGender,
           adminLogoDataUrl,
           adminSignatureDataUrl,
+          adminStampDataUrl,
         })
       } catch {
         throw new Error('Failed to generate certificate PDF.')
