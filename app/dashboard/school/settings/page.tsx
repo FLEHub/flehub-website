@@ -7,6 +7,13 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
+import {
   Settings,
   Upload,
   CheckCircle2,
@@ -19,10 +26,13 @@ import {
   Stamp,
 } from 'lucide-react'
 
+type ExaminerGender = 'M' | 'F'
+
 interface SchoolSettings {
   id: string | null
   school_id: string
   examiner_name: string
+  examiner_gender: ExaminerGender | null
   examiner_signature_path: string | null
   school_logo_path: string | null
   stamp_path: string | null
@@ -34,6 +44,7 @@ export default function SchoolSettingsPage() {
   const [schoolId, setSchoolId] = useState<string | null>(null)
   const [settings, setSettings] = useState<SchoolSettings | null>(null)
   const [examinerName, setExaminerName] = useState('')
+  const [examinerGender, setExaminerGender] = useState<ExaminerGender | null>(null)
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -60,6 +71,11 @@ export default function SchoolSettingsPage() {
     if (data) {
       setSettings(data)
       setExaminerName(data.examiner_name ?? '')
+      setExaminerGender(
+        data.examiner_gender === 'M' || data.examiner_gender === 'F'
+          ? data.examiner_gender
+          : null
+      )
       if (data.examiner_signature_path) {
         const { data: urlData } = await supabase.storage.from('school-assets').createSignedUrl(data.examiner_signature_path, 3600)
         setSignatureUrl(urlData?.signedUrl ?? null)
@@ -101,11 +117,16 @@ export default function SchoolSettingsPage() {
     setError(null)
     setSuccess(false)
     try {
+      const payload = {
+        examiner_name: examinerName.trim(),
+        examiner_gender: examinerGender,
+        updated_at: new Date().toISOString(),
+      }
       if (settings?.id) {
-        const { error: err } = await supabase.from('school_settings').update({ examiner_name: examinerName.trim(), updated_at: new Date().toISOString() }).eq('id', settings.id)
+        const { error: err } = await supabase.from('school_settings').update(payload).eq('id', settings.id)
         if (err) throw err
       } else {
-        const { error: err } = await supabase.from('school_settings').insert({ school_id: schoolId, examiner_name: examinerName.trim() })
+        const { error: err } = await supabase.from('school_settings').insert({ school_id: schoolId, ...payload })
         if (err) throw err
       }
       setSuccess(true)
@@ -204,10 +225,31 @@ export default function SchoolSettingsPage() {
                 />
                 <p className="text-xs text-gray-400">This name appears on issued certificates.</p>
               </div>
+              <div className="space-y-1.5 max-w-sm">
+                <Label htmlFor="examiner-gender">Genre</Label>
+                <Select
+                  value={examinerGender ?? undefined}
+                  onValueChange={(value: ExaminerGender) => setExaminerGender(value)}
+                >
+                  <SelectTrigger
+                    id="examiner-gender"
+                    className="border-gray-200 focus:border-[#00A550]"
+                  >
+                    <SelectValue placeholder="Sélectionner" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="M">Homme</SelectItem>
+                    <SelectItem value="F">Femme</SelectItem>
+                  </SelectContent>
+                </Select>
+                <p className="text-xs text-gray-400">
+                  Affiché comme « Directeur de l&apos;École » ou « Directrice de l&apos;École » sur les certificats.
+                </p>
+              </div>
               <Button onClick={handleSaveName} disabled={saving || !examinerName.trim()}
                 className="bg-[#00A550] hover:bg-[#008040] text-white">
                 {saving ? <RefreshCw className="w-3.5 h-3.5 animate-spin mr-1.5" /> : <Settings className="w-3.5 h-3.5 mr-1.5" />}
-                {saving ? 'Saving…' : 'Save Name'}
+                {saving ? 'Saving…' : 'Save Details'}
               </Button>
             </>
           )}

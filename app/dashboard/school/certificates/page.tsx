@@ -113,6 +113,7 @@ async function generateCertificatePdf(params: {
     total_score: number
   }
   examinerName: string | null
+  examinerGender: 'M' | 'F' | null
   schoolLogoDataUrl: string | null
   examinerSignatureDataUrl: string | null
   schoolStampDataUrl: string | null
@@ -241,11 +242,28 @@ async function generateCertificatePdf(params: {
   doc.text(`Code de vérification : ${params.verificationCode}`, pageW / 2, bodyStartY + 86, { align: 'center' })
 
   // Dual signature zones at the bottom
+  // Left = school director (examiner); right = admin
   const leftX = pageW * 0.28
   const rightX = pageW * 0.72
   const lineY = pageH - 42
   const lineHalfW = 40
-  const stampSize = 14
+  const stampSize = 16
+
+  // School stamp above examiner/director signature (left)
+  if (params.schoolStampDataUrl) {
+    try {
+      doc.addImage(
+        params.schoolStampDataUrl,
+        imageFormatFromDataUrl(params.schoolStampDataUrl),
+        leftX - stampSize / 2,
+        lineY - 40,
+        stampSize,
+        stampSize,
+      )
+    } catch {
+      // Continue without school stamp.
+    }
+  }
 
   if (params.examinerSignatureDataUrl) {
     try {
@@ -262,28 +280,19 @@ async function generateCertificatePdf(params: {
     }
   }
 
-  // Admin zone (right): stamps side-by-side above signature
-  const stamps: string[] = []
-  if (params.adminStampDataUrl) stamps.push(params.adminStampDataUrl)
-  if (params.schoolStampDataUrl) stamps.push(params.schoolStampDataUrl)
-  if (stamps.length > 0) {
-    const gap = 3
-    const totalW = stamps.length * stampSize + (stamps.length - 1) * gap
-    let stampX = rightX - totalW / 2
-    for (const stamp of stamps) {
-      try {
-        doc.addImage(
-          stamp,
-          imageFormatFromDataUrl(stamp),
-          stampX,
-          lineY - 40,
-          stampSize,
-          stampSize,
-        )
-      } catch {
-        // Continue without this stamp.
-      }
-      stampX += stampSize + gap
+  // Admin stamp above admin signature (right)
+  if (params.adminStampDataUrl) {
+    try {
+      doc.addImage(
+        params.adminStampDataUrl,
+        imageFormatFromDataUrl(params.adminStampDataUrl),
+        rightX - stampSize / 2,
+        lineY - 40,
+        stampSize,
+        stampSize,
+      )
+    } catch {
+      // Continue without admin stamp.
     }
   }
 
@@ -307,21 +316,30 @@ async function generateCertificatePdf(params: {
   doc.line(leftX - lineHalfW, lineY, leftX + lineHalfW, lineY)
   doc.line(rightX - lineHalfW, lineY, rightX + lineHalfW, lineY)
 
-  const directorTitle =
+  const schoolDirectorTitle =
+    params.examinerGender === 'F'
+      ? "Directrice de l'École"
+      : params.examinerGender === 'M'
+        ? "Directeur de l'École"
+        : "Directeur de l'École"
+
+  const adminDirectorTitle =
     params.adminGender === 'F' ? 'Directrice' : params.adminGender === 'M' ? 'Directeur' : null
   const adminName = params.adminSignatoryName?.trim() || 'Administration FLEHub'
-  const adminNameLine = directorTitle ? `${directorTitle}, ${adminName}` : adminName
+  const adminNameLine = adminDirectorTitle ? `${adminDirectorTitle}, ${adminName}` : adminName
 
   doc.setFont('helvetica', 'bold')
   doc.setFontSize(10)
   doc.setTextColor(40, 40, 40)
-  doc.text(params.examinerName?.trim() || 'Examinateur', leftX, lineY + 6, { align: 'center' })
+  if (params.examinerName?.trim()) {
+    doc.text(params.examinerName.trim(), leftX, lineY + 6, { align: 'center' })
+  }
   doc.text(adminNameLine, rightX, lineY + 6, { align: 'center' })
 
   doc.setFont('helvetica', 'normal')
   doc.setFontSize(8)
   doc.setTextColor(100, 100, 100)
-  doc.text('Examinateur / Directeur de l\'École', leftX, lineY + 12, { align: 'center' })
+  doc.text(schoolDirectorTitle, leftX, lineY + 12, { align: 'center' })
   doc.text('Administration FLEHub', rightX, lineY + 12, { align: 'center' })
 
   return doc.output('blob')
@@ -443,16 +461,21 @@ export default function SchoolCertificatesPage() {
 
       // Fetch examiner / branding assets from school_settings (non-blocking on missing data)
       let examinerName: string | null = null
+      let examinerGender: 'M' | 'F' | null = null
       let schoolLogoDataUrl: string | null = null
       let examinerSignatureDataUrl: string | null = null
       let schoolStampDataUrl: string | null = null
       try {
         const { data: settings } = await supabase
           .from('school_settings')
-          .select('examiner_name, examiner_signature_path, school_logo_path, stamp_path')
+          .select('examiner_name, examiner_gender, examiner_signature_path, school_logo_path, stamp_path')
           .eq('school_id', schoolId)
           .maybeSingle()
         examinerName = settings?.examiner_name?.trim() || null
+        examinerGender =
+          settings?.examiner_gender === 'M' || settings?.examiner_gender === 'F'
+            ? settings.examiner_gender
+            : null
         const [logoUrl, signatureUrl, stampUrl] = await Promise.all([
           resolveAssetDataUrl(settings?.school_logo_path),
           resolveAssetDataUrl(settings?.examiner_signature_path),
@@ -517,6 +540,7 @@ export default function SchoolCertificatesPage() {
             total_score: result.total_score,
           },
           examinerName,
+          examinerGender,
           schoolLogoDataUrl,
           examinerSignatureDataUrl,
           schoolStampDataUrl,
