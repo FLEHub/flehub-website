@@ -241,58 +241,34 @@ async function generateCertificatePdf(params: {
   doc.text(`Date de délivrance : ${formattedDate}`, pageW / 2, bodyStartY + 80, { align: 'center' })
   doc.text(`Code de vérification : ${params.verificationCode}`, pageW / 2, bodyStartY + 86, { align: 'center' })
 
-  // Dual signature zones at the bottom
-  // Left = school director (examiner); right = admin
-  const leftX = pageW * 0.28
-  const rightX = pageW * 0.72
-  const lineY = pageH - 42
+  // Dual signature zones at the bottom (A4 landscape ≈ 297×210 mm)
+  // Left = school director; right = admin.
+  // Stamps sit on/just above each signature (slight overlap), not near the score line.
+  const leftX = pageW * 0.28 // ≈ 83.2
+  const rightX = pageW * 0.72 // ≈ 213.8
+  const lineY = pageH - 38 // ≈ 172
   const lineHalfW = 40
-  const stampSize = 16
+  const sigW = 36
+  const sigH = 16
+  const sigY = lineY - 18 // ≈ 154
+  const stampSize = 22
+  // Stamp overlaps the top ~10 mm of the signature (tampon sur document signé)
+  const stampOverlap = 10
+  const stampY = sigY - stampSize + stampOverlap // ≈ 142
 
-  // School stamp above examiner/director signature (left)
-  if (params.schoolStampDataUrl) {
-    try {
-      doc.addImage(
-        params.schoolStampDataUrl,
-        imageFormatFromDataUrl(params.schoolStampDataUrl),
-        leftX - stampSize / 2,
-        lineY - 40,
-        stampSize,
-        stampSize,
-      )
-    } catch {
-      // Continue without school stamp.
-    }
-  }
-
+  // Signatures first, then stamps on top so the cachet visually overlays the ink
   if (params.examinerSignatureDataUrl) {
     try {
       doc.addImage(
         params.examinerSignatureDataUrl,
         imageFormatFromDataUrl(params.examinerSignatureDataUrl),
-        leftX - 18,
-        lineY - 22,
-        36,
-        18,
+        leftX - sigW / 2,
+        sigY,
+        sigW,
+        sigH,
       )
     } catch {
       // Continue without signature image.
-    }
-  }
-
-  // Admin stamp above admin signature (right)
-  if (params.adminStampDataUrl) {
-    try {
-      doc.addImage(
-        params.adminStampDataUrl,
-        imageFormatFromDataUrl(params.adminStampDataUrl),
-        rightX - stampSize / 2,
-        lineY - 40,
-        stampSize,
-        stampSize,
-      )
-    } catch {
-      // Continue without admin stamp.
     }
   }
 
@@ -301,13 +277,45 @@ async function generateCertificatePdf(params: {
       doc.addImage(
         params.adminSignatureDataUrl,
         imageFormatFromDataUrl(params.adminSignatureDataUrl),
-        rightX - 18,
-        lineY - 22,
-        36,
-        18,
+        rightX - sigW / 2,
+        sigY,
+        sigW,
+        sigH,
       )
     } catch {
       // Continue without admin signature image.
+    }
+  }
+
+  // School stamp — same horizontal center as left signature
+  if (params.schoolStampDataUrl) {
+    try {
+      doc.addImage(
+        params.schoolStampDataUrl,
+        imageFormatFromDataUrl(params.schoolStampDataUrl),
+        leftX - stampSize / 2, // ≈ 72.2
+        stampY,
+        stampSize,
+        stampSize,
+      )
+    } catch {
+      // Continue without school stamp.
+    }
+  }
+
+  // Admin stamp — same horizontal center as right signature
+  if (params.adminStampDataUrl) {
+    try {
+      doc.addImage(
+        params.adminStampDataUrl,
+        imageFormatFromDataUrl(params.adminStampDataUrl),
+        rightX - stampSize / 2, // ≈ 202.8
+        stampY,
+        stampSize,
+        stampSize,
+      )
+    } catch {
+      // Continue without admin stamp.
     }
   }
 
