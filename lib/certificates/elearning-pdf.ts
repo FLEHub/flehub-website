@@ -1,5 +1,10 @@
 import { jsPDF } from 'jspdf'
 import type { CefrLevel } from '@/lib/types'
+import {
+  DEFAULT_ORG_SHORT_NAME,
+  DEFAULT_ORG_TAGLINE,
+  adminOrgLabel,
+} from '@/lib/org-branding'
 
 const CEFR_LABELS: Record<CefrLevel, string> = {
   A1: 'Débutant',
@@ -70,6 +75,8 @@ export interface ElearningCertificatePdfParams {
     total_score: number
   }
   orgName: string
+  orgShortName?: string | null
+  orgTagline?: string | null
   adminSignatoryName: string | null
   adminLogoDataUrl: string | null
   adminSignatureDataUrl: string | null
@@ -118,7 +125,10 @@ export async function generateElearningCertificatePdf(
     }
   }
 
-  const brandName = params.orgName.trim() || 'FLEHub'
+  const shortName = params.orgShortName?.trim() || DEFAULT_ORG_SHORT_NAME
+  const tagline = params.orgTagline?.trim() || DEFAULT_ORG_TAGLINE
+  const brandName = params.orgName.trim() || shortName
+  const adminLabel = adminOrgLabel(shortName)
   doc.setFont('helvetica', 'bold')
   doc.setFontSize(26)
   doc.setTextColor(0, 165, 80)
@@ -282,7 +292,7 @@ export async function generateElearningCertificatePdf(
   doc.setFontSize(10)
   doc.setTextColor(40, 40, 40)
   doc.text(
-    params.adminSignatoryName?.trim() || 'Administration FLEHub',
+    params.adminSignatoryName?.trim() || adminLabel,
     leftX,
     lineY + 6,
     { align: 'center' }
@@ -297,8 +307,13 @@ export async function generateElearningCertificatePdf(
   doc.setFont('helvetica', 'normal')
   doc.setFontSize(8)
   doc.setTextColor(100, 100, 100)
-  doc.text('Administration FLEHub', leftX, lineY + 12, { align: 'center' })
+  doc.text(adminLabel, leftX, lineY + 12, { align: 'center' })
   doc.text('Enseignant', rightX, lineY + 12, { align: 'center' })
+
+  // Full organization name at the very bottom
+  doc.setFontSize(7)
+  doc.setTextColor(120, 120, 120)
+  doc.text(tagline, pageW / 2, pageH - 14, { align: 'center' })
 
   return doc.output('blob')
 }

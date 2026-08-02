@@ -84,9 +84,10 @@ const navByRole: Record<Role, NavItem[]> = {
 interface SidebarProps {
   role: Role
   profile: Profile
+  orgShortName?: string
 }
 
-export function Sidebar({ role, profile }: SidebarProps) {
+export function Sidebar({ role, profile, orgShortName = 'MFK' }: SidebarProps) {
   const pathname = usePathname()
   const router = useRouter()
   const supabase = createClient()
@@ -142,7 +143,7 @@ export function Sidebar({ role, profile }: SidebarProps) {
             <GraduationCap className="w-5 h-5 text-white" />
           </div>
           {!collapsed && (
-            <span className="font-bold text-lg text-gray-900 truncate">FLEHub</span>
+            <span className="font-bold text-lg text-gray-900 truncate">{orgShortName}</span>
           )}
         </Link>
         {/* Desktop collapse toggle */}

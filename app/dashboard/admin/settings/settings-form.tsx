@@ -32,6 +32,8 @@ type AdminGender = 'M' | 'F'
 interface OrgSettings {
   id: string
   org_name: string
+  org_short_name: string
+  org_tagline: string
   contact_email: string | null
   contact_phone: string | null
   logo_url: string | null
@@ -133,20 +135,20 @@ function ImageUploadCard({
 
 export function AdminSettingsForm({ initialSettings }: Props) {
   const supabase = createClient()
-  const [settings, setSettings] = useState<OrgSettings>(
-    initialSettings ?? {
-      id: '',
-      org_name: 'FLEHub',
-      contact_email: null,
-      contact_phone: null,
-      logo_url: null,
-      signature_url: null,
-      stamp_url: null,
-      admin_signatory_name: null,
-      admin_gender: null,
-      updated_at: new Date().toISOString(),
-    }
-  )
+  const [settings, setSettings] = useState<OrgSettings>(() => ({
+    id: initialSettings?.id ?? '',
+    org_name: initialSettings?.org_name ?? 'MFK',
+    org_short_name: initialSettings?.org_short_name ?? 'MFK',
+    org_tagline: initialSettings?.org_tagline ?? 'Maison de la Francophonie Kigali',
+    contact_email: initialSettings?.contact_email ?? null,
+    contact_phone: initialSettings?.contact_phone ?? null,
+    logo_url: initialSettings?.logo_url ?? null,
+    signature_url: initialSettings?.signature_url ?? null,
+    stamp_url: initialSettings?.stamp_url ?? null,
+    admin_signatory_name: initialSettings?.admin_signatory_name ?? null,
+    admin_gender: initialSettings?.admin_gender ?? null,
+    updated_at: initialSettings?.updated_at ?? new Date().toISOString(),
+  }))
   const [uploadingField, setUploadingField] = useState<UploadField | null>(null)
   const [toast, setToast] = useState<Toast>(null)
   const [isPending, startTransition] = useTransition()
@@ -195,6 +197,8 @@ export function AdminSettingsForm({ initialSettings }: Props) {
         .from('org_settings')
         .update({
           org_name: settings.org_name,
+          org_short_name: settings.org_short_name,
+          org_tagline: settings.org_tagline,
           contact_email: settings.contact_email,
           contact_phone: settings.contact_phone,
           admin_signatory_name: settings.admin_signatory_name,
@@ -242,17 +246,46 @@ export function AdminSettingsForm({ initialSettings }: Props) {
           </div>
         </CardHeader>
         <CardContent className="space-y-5">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="space-y-1.5">
+              <Label htmlFor="org_short_name" className="text-sm font-medium text-gray-700">
+                Nom court (marque)
+              </Label>
+              <Input
+                id="org_short_name"
+                value={settings.org_short_name ?? ''}
+                onChange={(e) => setSettings((p) => ({ ...p, org_short_name: e.target.value }))}
+                placeholder="MFK"
+                className="border-gray-200 focus:border-[#00A550] focus:ring-[#00A550]/20"
+              />
+              <p className="text-xs text-gray-400">Affiché dans la sidebar, login et certificats (ex. Administration MFK).</p>
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="org_name" className="text-sm font-medium text-gray-700">
+                Organization Name
+              </Label>
+              <Input
+                id="org_name"
+                value={settings.org_name}
+                onChange={(e) => setSettings((p) => ({ ...p, org_name: e.target.value }))}
+                placeholder="MFK"
+                className="border-gray-200 focus:border-[#00A550] focus:ring-[#00A550]/20"
+              />
+            </div>
+          </div>
+
           <div className="space-y-1.5">
-            <Label htmlFor="org_name" className="text-sm font-medium text-gray-700">
-              Organization Name
+            <Label htmlFor="org_tagline" className="text-sm font-medium text-gray-700">
+              Nom complet / tagline
             </Label>
             <Input
-              id="org_name"
-              value={settings.org_name}
-              onChange={(e) => setSettings((p) => ({ ...p, org_name: e.target.value }))}
-              placeholder="FLEHub"
+              id="org_tagline"
+              value={settings.org_tagline ?? ''}
+              onChange={(e) => setSettings((p) => ({ ...p, org_tagline: e.target.value }))}
+              placeholder="Maison de la Francophonie Kigali"
               className="border-gray-200 focus:border-[#00A550] focus:ring-[#00A550]/20"
             />
+            <p className="text-xs text-gray-400">Affiché en bas des certificats et sur le portail.</p>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">

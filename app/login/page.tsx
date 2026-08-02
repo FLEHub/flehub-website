@@ -68,7 +68,7 @@ export default function LoginPage() {
             <div className="w-14 h-14 bg-white/20 rounded-2xl flex items-center justify-center backdrop-blur-sm">
               <GraduationCap className="w-8 h-8 text-white" />
             </div>
-            <span className="text-3xl font-extrabold">FLEHub</span>
+            <span className="text-3xl font-extrabold">MFK</span>
           </div>
           <h2 className="text-3xl font-bold mb-4 leading-snug">
             Bienvenue sur votre espace d&apos;apprentissage
@@ -99,7 +99,7 @@ export default function LoginPage() {
             <GraduationCap className="w-5 h-5 text-white" />
           </div>
           <span className="text-xl font-bold text-gray-900">
-            FLE<span className="text-flehub-green">Hub</span>
+            <span className="text-flehub-green font-extrabold">MFK</span>
           </span>
         </div>
 
@@ -217,7 +217,7 @@ export default function LoginPage() {
 
           <div className="my-7 flex items-center gap-3">
             <div className="flex-1 h-px bg-gray-200" />
-            <span className="text-xs text-gray-400 font-medium">Nouveau sur FLEHub ?</span>
+            <span className="text-xs text-gray-400 font-medium">Nouveau sur MFK ?</span>
             <div className="flex-1 h-px bg-gray-200" />
           </div>
 
