@@ -6,6 +6,7 @@ import { GraduationCap, BookOpen, Users, ArrowLeft, ArrowRight, CheckCircle, Ale
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { createClient } from '@/lib/supabase/client';
+import { BrandMark } from '@/components/brand-mark';
 import {
   getProvinces,
   getDistrictsByProvince,
@@ -350,14 +351,14 @@ export default function RegisterPage() {
         <div className="relative z-10 max-w-sm text-center">
           {/* Logo */}
           <div className="flex items-center justify-center gap-3 mb-10">
-            <div className="w-14 h-14 bg-white/20 rounded-2xl flex items-center justify-center backdrop-blur-sm">
+            <div className="w-14 h-14 bg-white/20 rounded-2xl flex items-center justify-center backdrop-blur-sm flex-shrink-0">
               <GraduationCap className="w-8 h-8 text-white" />
             </div>
-            <span className="text-3xl font-extrabold">MFK</span>
+            <BrandMark size="lg" variant="onDark" align="left" />
           </div>
 
           <h2 className="text-3xl font-bold mb-4 leading-snug">
-            Rejoignez la communauté MFK
+            Rejoignez la communauté
           </h2>
           <p className="text-white/75 text-base leading-relaxed mb-10">
             Créez votre compte en quelques minutes et commencez votre parcours vers la maîtrise du français.
@@ -388,12 +389,10 @@ export default function RegisterPage() {
       <div className="flex-1 flex flex-col items-center justify-center px-6 py-10 bg-white overflow-y-auto">
         {/* Mobile logo */}
         <div className="lg:hidden flex items-center gap-2.5 mb-6">
-          <div className="w-9 h-9 bg-flehub-green rounded-lg flex items-center justify-center">
+          <div className="w-9 h-9 bg-flehub-green rounded-lg flex items-center justify-center flex-shrink-0">
             <GraduationCap className="w-5 h-5 text-white" />
           </div>
-          <span className="text-xl font-bold text-gray-900">
-            <span className="text-flehub-green font-extrabold">MFK</span>
-          </span>
+          <BrandMark size="md" className="[&>p:first-child]:text-flehub-green" />
         </div>
 
         <div className="w-full max-w-lg">

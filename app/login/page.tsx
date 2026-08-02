@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { GraduationCap, Eye, EyeOff, AlertCircle, Clock, ArrowRight } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { BrandMark } from '@/components/brand-mark';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -65,10 +66,10 @@ export default function LoginPage() {
 
         <div className="relative z-10 max-w-md text-center">
           <div className="flex items-center justify-center gap-3 mb-10">
-            <div className="w-14 h-14 bg-white/20 rounded-2xl flex items-center justify-center backdrop-blur-sm">
+            <div className="w-14 h-14 bg-white/20 rounded-2xl flex items-center justify-center backdrop-blur-sm flex-shrink-0">
               <GraduationCap className="w-8 h-8 text-white" />
             </div>
-            <span className="text-3xl font-extrabold">MFK</span>
+            <BrandMark size="lg" variant="onDark" align="left" />
           </div>
           <h2 className="text-3xl font-bold mb-4 leading-snug">
             Bienvenue sur votre espace d&apos;apprentissage
@@ -95,12 +96,10 @@ export default function LoginPage() {
       {/* Right Panel — Form */}
       <div className="flex-1 flex flex-col items-center justify-center px-6 py-12 bg-white">
         <div className="lg:hidden flex items-center gap-2.5 mb-8">
-          <div className="w-9 h-9 bg-flehub-green rounded-lg flex items-center justify-center">
+          <div className="w-9 h-9 bg-flehub-green rounded-lg flex items-center justify-center flex-shrink-0">
             <GraduationCap className="w-5 h-5 text-white" />
           </div>
-          <span className="text-xl font-bold text-gray-900">
-            <span className="text-flehub-green font-extrabold">MFK</span>
-          </span>
+          <BrandMark size="md" className="[&>p:first-child]:text-flehub-green" />
         </div>
 
         <div className="w-full max-w-md">
@@ -217,7 +216,7 @@ export default function LoginPage() {
 
           <div className="my-7 flex items-center gap-3">
             <div className="flex-1 h-px bg-gray-200" />
-            <span className="text-xs text-gray-400 font-medium">Nouveau sur MFK ?</span>
+            <span className="text-xs text-gray-400 font-medium">Nouveau sur MFK — Maison de la Francophonie Kigali ?</span>
             <div className="flex-1 h-px bg-gray-200" />
           </div>
 

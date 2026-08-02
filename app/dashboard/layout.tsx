@@ -57,6 +57,7 @@ export default async function DashboardLayout({
         role={safeProfile.role}
         profile={safeProfile}
         orgShortName={branding.orgShortName}
+        orgTagline={branding.orgTagline}
       />
 
       {/* Main area */}

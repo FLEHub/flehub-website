@@ -29,6 +29,8 @@ import {
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
+import { BrandMark } from '@/components/brand-mark'
+import { DEFAULT_ORG_SHORT_NAME, DEFAULT_ORG_TAGLINE } from '@/lib/org-branding'
 
 type Role = 'admin' | 'school' | 'teacher' | 'learner'
 
@@ -85,9 +87,15 @@ interface SidebarProps {
   role: Role
   profile: Profile
   orgShortName?: string
+  orgTagline?: string
 }
 
-export function Sidebar({ role, profile, orgShortName = 'MFK' }: SidebarProps) {
+export function Sidebar({
+  role,
+  profile,
+  orgShortName = DEFAULT_ORG_SHORT_NAME,
+  orgTagline = DEFAULT_ORG_TAGLINE,
+}: SidebarProps) {
   const pathname = usePathname()
   const router = useRouter()
   const supabase = createClient()
@@ -137,13 +145,18 @@ export function Sidebar({ role, profile, orgShortName = 'MFK' }: SidebarProps) {
   const SidebarContent = () => (
     <div className="flex h-full flex-col bg-white border-r border-gray-200 shadow-sm">
       {/* Logo */}
-      <div className="flex h-16 items-center justify-between px-4 border-b border-gray-100">
-        <Link href={`/dashboard/${role}`} className="flex items-center gap-2 min-w-0">
+      <div className="flex min-h-16 items-center justify-between gap-1 px-3 py-2.5 border-b border-gray-100">
+        <Link href={`/dashboard/${role}`} className="flex items-center gap-2 min-w-0 flex-1">
           <div className="flex-shrink-0 flex items-center justify-center w-8 h-8 rounded-lg bg-[#00A550]">
             <GraduationCap className="w-5 h-5 text-white" />
           </div>
           {!collapsed && (
-            <span className="font-bold text-lg text-gray-900 truncate">{orgShortName}</span>
+            <BrandMark
+              shortName={orgShortName}
+              tagline={orgTagline}
+              size="sm"
+              className="min-w-0"
+            />
           )}
         </Link>
         {/* Desktop collapse toggle */}
