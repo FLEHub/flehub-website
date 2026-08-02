@@ -85,7 +85,7 @@ const navByRole: Record<Role, NavItem[]> = {
   ],
   journalist: [
     { label: 'Dashboard', href: '/dashboard/journalist', icon: LayoutDashboard },
-    { label: 'Articles', href: '/dashboard/journalist', icon: Newspaper },
+    { label: 'Articles', href: '/dashboard/journalist/articles', icon: Newspaper },
   ],
 }
 
