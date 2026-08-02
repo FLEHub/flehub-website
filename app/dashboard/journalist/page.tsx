@@ -1,7 +1,9 @@
 import { redirect } from 'next/navigation'
+import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Newspaper } from 'lucide-react'
+import { Button } from '@/components/ui/button'
+import { Newspaper, ArrowRight } from 'lucide-react'
 
 export const dynamic = 'force-dynamic'
 
@@ -43,11 +45,17 @@ export default async function JournalistDashboardPage() {
             <CardTitle className="text-lg">Bienvenue, {firstName}</CardTitle>
           </div>
         </CardHeader>
-        <CardContent>
+        <CardContent className="space-y-4">
           <p className="text-sm text-gray-600 leading-relaxed">
-            Bienvenue, vos articles apparaîtront ici. L&apos;éditeur d&apos;articles sera
-            disponible prochainement.
+            Rédigez, enregistrez en brouillon ou publiez vos articles sur le
+            portail actualités MFK.
           </p>
+          <Button asChild className="bg-[#00A550] hover:bg-[#008040]">
+            <Link href="/dashboard/journalist/articles">
+              Gérer mes articles
+              <ArrowRight className="w-4 h-4 ml-2" />
+            </Link>
+          </Button>
         </CardContent>
       </Card>
     </div>
