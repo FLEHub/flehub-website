@@ -757,7 +757,9 @@ export default function TeacherLearnersPage() {
         }
       }
 
-      let orgName = 'FLEHub';
+      let orgName = 'MFK';
+      let orgShortName = 'MFK';
+      let orgTagline = 'Maison de la Francophonie Kigali';
       let adminSignatoryName: string | null = null;
       let adminLogoDataUrl: string | null = null;
       let adminSignatureDataUrl: string | null = null;
@@ -765,11 +767,17 @@ export default function TeacherLearnersPage() {
       try {
         const { data: orgSettings } = await supabase
           .from('org_settings')
-          .select('org_name, logo_url, signature_url, stamp_url, admin_signatory_name')
+          .select(
+            'org_name, org_short_name, org_tagline, logo_url, signature_url, stamp_url, admin_signatory_name'
+          )
           .limit(1)
           .maybeSingle();
         if (orgSettings) {
-          orgName = orgSettings.org_name?.trim() || 'FLEHub';
+          orgShortName = orgSettings.org_short_name?.trim() || 'MFK';
+          orgTagline =
+            orgSettings.org_tagline?.trim() ||
+            'Maison de la Francophonie Kigali';
+          orgName = orgSettings.org_name?.trim() || orgShortName;
           adminSignatoryName =
             orgSettings.admin_signatory_name?.trim() || null;
           const [adminLogo, adminSig, adminStamp] = await Promise.all([
@@ -810,6 +818,8 @@ export default function TeacherLearnersPage() {
           total_score: Number(score.total_score ?? 0),
         },
         orgName,
+        orgShortName,
+        orgTagline,
         adminSignatoryName,
         adminLogoDataUrl,
         adminSignatureDataUrl,

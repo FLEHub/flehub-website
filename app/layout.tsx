@@ -5,11 +5,11 @@ import { Inter } from 'next/font/google';
 const inter = Inter({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
-  title: 'FLEHub — French Language Examinations Rwanda',
-  description: 'Online French Language (FLE) Examination and Learning Management System for Rwanda. CEFR-aligned certification for A1 to C2.',
+  title: 'MFK — Maison de la Francophonie Kigali',
+  description: 'Maison de la Francophonie Kigali (MFK) — examens et apprentissage du français langue étrangère, certifications CECRL A1 à C2.',
   openGraph: {
-    title: 'FLEHub Rwanda',
-    description: 'French Language Examinations & Learning Platform',
+    title: 'MFK — Maison de la Francophonie Kigali',
+    description: 'Examens et apprentissage du français — Maison de la Francophonie Kigali',
     images: [{ url: 'https://bolt.new/static/og_default.png' }],
   },
 };

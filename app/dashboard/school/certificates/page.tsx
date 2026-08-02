@@ -3,6 +3,11 @@
 import { useState, useEffect, useCallback } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { jsPDF } from 'jspdf'
+import {
+  DEFAULT_ORG_SHORT_NAME,
+  DEFAULT_ORG_TAGLINE,
+  adminOrgLabel,
+} from '@/lib/org-branding'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import {
@@ -118,6 +123,8 @@ async function generateCertificatePdf(params: {
   examinerSignatureDataUrl: string | null
   schoolStampDataUrl: string | null
   orgName: string
+  orgShortName: string
+  orgTagline: string
   adminSignatoryName: string | null
   adminGender: 'M' | 'F' | null
   adminLogoDataUrl: string | null
@@ -171,7 +178,10 @@ async function generateCertificatePdf(params: {
     }
   }
 
-  const brandName = params.orgName.trim() || 'FLEHub'
+  const shortName = params.orgShortName.trim() || DEFAULT_ORG_SHORT_NAME
+  const tagline = params.orgTagline.trim() || DEFAULT_ORG_TAGLINE
+  const brandName = params.orgName.trim() || shortName
+  const adminLabel = adminOrgLabel(shortName)
   doc.setFont('helvetica', 'bold')
   doc.setFontSize(26)
   doc.setTextColor(0, 165, 80)
@@ -332,7 +342,7 @@ async function generateCertificatePdf(params: {
 
   const adminDirectorTitle =
     params.adminGender === 'F' ? 'Directrice' : params.adminGender === 'M' ? 'Directeur' : null
-  const adminName = params.adminSignatoryName?.trim() || 'Administration FLEHub'
+  const adminName = params.adminSignatoryName?.trim() || adminLabel
   const adminNameLine = adminDirectorTitle ? `${adminDirectorTitle}, ${adminName}` : adminName
 
   doc.setFont('helvetica', 'bold')
@@ -347,7 +357,12 @@ async function generateCertificatePdf(params: {
   doc.setFontSize(8)
   doc.setTextColor(100, 100, 100)
   doc.text(schoolDirectorTitle, leftX, lineY + 12, { align: 'center' })
-  doc.text('Administration FLEHub', rightX, lineY + 12, { align: 'center' })
+  doc.text(adminLabel, rightX, lineY + 12, { align: 'center' })
+
+  // Full organization name at the very bottom
+  doc.setFontSize(7)
+  doc.setTextColor(120, 120, 120)
+  doc.text(tagline, pageW / 2, pageH - 14, { align: 'center' })
 
   return doc.output('blob')
 }
@@ -496,7 +511,9 @@ export default function SchoolCertificatesPage() {
       }
 
       // Fetch global admin org branding (non-blocking on missing data)
-      let orgName = 'FLEHub'
+      let orgName = DEFAULT_ORG_SHORT_NAME
+      let orgShortName = DEFAULT_ORG_SHORT_NAME
+      let orgTagline = DEFAULT_ORG_TAGLINE
       let adminSignatoryName: string | null = null
       let adminGender: 'M' | 'F' | null = null
       let adminLogoDataUrl: string | null = null
@@ -505,11 +522,13 @@ export default function SchoolCertificatesPage() {
       try {
         const { data: orgSettings } = await supabase
           .from('org_settings')
-          .select('org_name, logo_url, signature_url, stamp_url, admin_signatory_name, admin_gender')
+          .select('org_name, org_short_name, org_tagline, logo_url, signature_url, stamp_url, admin_signatory_name, admin_gender')
           .limit(1)
           .maybeSingle()
         if (orgSettings) {
-          orgName = orgSettings.org_name?.trim() || 'FLEHub'
+          orgShortName = orgSettings.org_short_name?.trim() || DEFAULT_ORG_SHORT_NAME
+          orgTagline = orgSettings.org_tagline?.trim() || DEFAULT_ORG_TAGLINE
+          orgName = orgSettings.org_name?.trim() || orgShortName
           adminSignatoryName = orgSettings.admin_signatory_name?.trim() || null
           adminGender =
             orgSettings.admin_gender === 'M' || orgSettings.admin_gender === 'F'
@@ -552,6 +571,8 @@ export default function SchoolCertificatesPage() {
           examinerSignatureDataUrl,
           schoolStampDataUrl,
           orgName,
+          orgShortName,
+          orgTagline,
           adminSignatoryName,
           adminGender,
           adminLogoDataUrl,

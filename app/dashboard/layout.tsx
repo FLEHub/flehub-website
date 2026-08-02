@@ -1,9 +1,10 @@
-export const dynamic = 'force-dynamic';
+export const dynamic = 'force-dynamic'
 
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { Sidebar } from '@/components/dashboard/sidebar'
 import { Header } from '@/components/dashboard/header'
+import { normalizeOrgBranding } from '@/lib/org-branding'
 
 export default async function DashboardLayout({
   children,
@@ -36,6 +37,13 @@ export default async function DashboardLayout({
     redirect('/login?reason=account_inactive')
   }
 
+  const { data: orgSettings } = await supabase
+    .from('org_settings')
+    .select('org_name, org_short_name, org_tagline')
+    .limit(1)
+    .maybeSingle()
+  const branding = normalizeOrgBranding(orgSettings)
+
   const safeProfile = {
     full_name: profile.full_name ?? '',
     email: profile.email ?? user.email ?? '',
@@ -45,7 +53,11 @@ export default async function DashboardLayout({
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Sidebar */}
-      <Sidebar role={safeProfile.role} profile={safeProfile} />
+      <Sidebar
+        role={safeProfile.role}
+        profile={safeProfile}
+        orgShortName={branding.orgShortName}
+      />
 
       {/* Main area */}
       <div className="lg:ml-60 flex flex-col min-h-screen transition-all duration-200">

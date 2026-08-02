@@ -28,7 +28,7 @@ export default async function AdminSettingsPage() {
       <div>
         <h1 className="text-2xl font-bold text-gray-900">Organization Settings</h1>
         <p className="text-sm text-gray-500 mt-1">
-          Manage FLEHub branding and contact information used across certificates and documents.
+          Manage MFK branding and contact information used across certificates and documents.
         </p>
       </div>
       <AdminSettingsForm initialSettings={settings} />

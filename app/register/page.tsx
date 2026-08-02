@@ -353,11 +353,11 @@ export default function RegisterPage() {
             <div className="w-14 h-14 bg-white/20 rounded-2xl flex items-center justify-center backdrop-blur-sm">
               <GraduationCap className="w-8 h-8 text-white" />
             </div>
-            <span className="text-3xl font-extrabold">FLEHub</span>
+            <span className="text-3xl font-extrabold">MFK</span>
           </div>
 
           <h2 className="text-3xl font-bold mb-4 leading-snug">
-            Rejoignez la communauté FLEHub
+            Rejoignez la communauté MFK
           </h2>
           <p className="text-white/75 text-base leading-relaxed mb-10">
             Créez votre compte en quelques minutes et commencez votre parcours vers la maîtrise du français.
@@ -392,7 +392,7 @@ export default function RegisterPage() {
             <GraduationCap className="w-5 h-5 text-white" />
           </div>
           <span className="text-xl font-bold text-gray-900">
-            FLE<span className="text-flehub-green">Hub</span>
+            <span className="text-flehub-green font-extrabold">MFK</span>
           </span>
         </div>
 
