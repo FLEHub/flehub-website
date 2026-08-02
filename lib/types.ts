@@ -1,4 +1,13 @@
-export type Role = 'admin' | 'school' | 'teacher' | 'learner';
+export type Role = 'admin' | 'school' | 'teacher' | 'learner' | 'journalist';
+
+export interface Journalist {
+  id: string;
+  profile_id: string;
+  bio?: string;
+  avatar_url?: string;
+  created_at: string;
+  updated_at?: string;
+}
 export type Status = 'pending' | 'approved' | 'rejected' | 'suspended';
 export type CefrLevel = 'A1' | 'A2' | 'B1' | 'B2' | 'C1' | 'C2';
 export type Competency = 'EO' | 'EE' | 'CO' | 'CE' | 'EL';

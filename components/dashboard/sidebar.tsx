@@ -25,6 +25,7 @@ import {
   ClipboardList,
   BookOpenCheck,
   PenSquare,
+  Newspaper,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
@@ -32,7 +33,7 @@ import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { BrandMark } from '@/components/brand-mark'
 import { DEFAULT_ORG_SHORT_NAME, DEFAULT_ORG_TAGLINE } from '@/lib/org-branding'
 
-type Role = 'admin' | 'school' | 'teacher' | 'learner'
+type Role = 'admin' | 'school' | 'teacher' | 'learner' | 'journalist'
 
 interface Profile {
   full_name: string
@@ -50,6 +51,7 @@ const navByRole: Record<Role, NavItem[]> = {
   admin: [
     { label: 'Dashboard', href: '/dashboard/admin', icon: LayoutDashboard },
     { label: 'Users', href: '/dashboard/admin/users', icon: Shield },
+    { label: 'Journalists', href: '/dashboard/admin/journalists', icon: Newspaper },
     { label: 'Exams', href: '/dashboard/admin/exams', icon: FileText },
     { label: 'School Exam Access', href: '/dashboard/admin/school-exam-access', icon: BookOpenCheck },
     { label: 'Calendar', href: '/dashboard/admin/calendar', icon: Calendar },
@@ -80,6 +82,10 @@ const navByRole: Record<Role, NavItem[]> = {
     { label: 'Sessions', href: '/dashboard/learner/elearning/sessions', icon: Video },
     { label: 'Corrections', href: '/dashboard/learner/corrections', icon: PenSquare },
     { label: 'Certificats', href: '/dashboard/learner/certificates', icon: Award },
+  ],
+  journalist: [
+    { label: 'Dashboard', href: '/dashboard/journalist', icon: LayoutDashboard },
+    { label: 'Articles', href: '/dashboard/journalist', icon: Newspaper },
   ],
 }
 

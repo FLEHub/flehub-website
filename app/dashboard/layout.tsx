@@ -47,7 +47,7 @@ export default async function DashboardLayout({
   const safeProfile = {
     full_name: profile.full_name ?? '',
     email: profile.email ?? user.email ?? '',
-    role: (profile.role as 'admin' | 'school' | 'teacher' | 'learner') ?? 'learner',
+    role: (profile.role as 'admin' | 'school' | 'teacher' | 'learner' | 'journalist') ?? 'learner',
   }
 
   return (

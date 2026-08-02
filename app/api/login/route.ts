@@ -74,6 +74,7 @@ export async function POST(request: NextRequest) {
     school: '/dashboard/school',
     teacher: '/dashboard/teacher',
     learner: '/dashboard/learner',
+    journalist: '/dashboard/journalist',
   };
 
   return NextResponse.json(
