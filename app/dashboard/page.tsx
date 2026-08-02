@@ -40,6 +40,8 @@ export default async function DashboardPage() {
       redirect('/dashboard/teacher');
     case 'learner':
       redirect('/dashboard/learner');
+    case 'journalist':
+      redirect('/dashboard/journalist');
     default:
       redirect('/login');
   }

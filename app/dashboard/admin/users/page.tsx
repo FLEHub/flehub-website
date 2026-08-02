@@ -32,7 +32,7 @@ import {
 } from '@/components/ui/dropdown-menu'
 
 type UserStatus = 'pending' | 'approved' | 'rejected' | 'suspended'
-type UserRole = 'admin' | 'school' | 'teacher' | 'learner'
+type UserRole = 'admin' | 'school' | 'teacher' | 'learner' | 'journalist'
 
 interface Profile {
   id: string
@@ -70,6 +70,7 @@ const ROLE_CONFIG: Record<UserRole, { label: string; className: string }> = {
   school: { label: 'School', className: 'bg-blue-50 text-blue-700' },
   teacher: { label: 'Teacher', className: 'bg-teal-50 text-teal-700' },
   learner: { label: 'Learner', className: 'bg-gray-100 text-gray-600' },
+  journalist: { label: 'Journalist', className: 'bg-amber-50 text-amber-700' },
 }
 
 const TABS: { value: string; label: string; role?: UserRole }[] = [
@@ -77,6 +78,7 @@ const TABS: { value: string; label: string; role?: UserRole }[] = [
   { value: 'learner', label: 'Learners', role: 'learner' },
   { value: 'teacher', label: 'Teachers', role: 'teacher' },
   { value: 'school', label: 'Schools', role: 'school' },
+  { value: 'journalist', label: 'Journalists', role: 'journalist' },
   { value: 'admin', label: 'Admins', role: 'admin' },
 ]
 
