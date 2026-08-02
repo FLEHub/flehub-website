@@ -2,6 +2,7 @@ import Link from 'next/link'
 import { GraduationCap, Newspaper, ArrowRight } from 'lucide-react'
 import { createClient } from '@/lib/supabase/server'
 import { normalizeOrgBranding, DEFAULT_ORG_SHORT_NAME, DEFAULT_ORG_TAGLINE } from '@/lib/org-branding'
+import { BrandMark } from '@/components/brand-mark'
 
 export const dynamic = 'force-dynamic'
 
@@ -30,10 +31,7 @@ export default async function HomePage() {
             <div className="w-9 h-9 rounded-lg bg-[#00A550] flex items-center justify-center">
               <GraduationCap className="w-5 h-5 text-white" />
             </div>
-            <div>
-              <p className="font-bold text-lg text-gray-900 leading-none">{shortName}</p>
-              <p className="text-[11px] text-gray-500 leading-tight mt-0.5">{tagline}</p>
-            </div>
+            <BrandMark shortName={shortName} tagline={tagline} size="md" />
           </div>
           <Link
             href="/login"
@@ -51,16 +49,20 @@ export default async function HomePage() {
           </div>
 
           <div className="space-y-3">
-            <h1 className="text-4xl sm:text-5xl font-extrabold tracking-tight text-gray-900">
-              Bienvenue sur {shortName}
-            </h1>
+            <BrandMark
+              shortName={shortName}
+              tagline={tagline}
+              size="lg"
+              align="center"
+              className="[&>p:first-child]:text-4xl sm:[&>p:first-child]:text-5xl [&>p:first-child]:tracking-tight [&>p:last-child]:text-sm sm:[&>p:last-child]:text-base [&>p:last-child]:text-gray-600 [&>p:last-child]:mt-2"
+            />
             <p className="text-base sm:text-lg text-gray-600 leading-relaxed">
-              {tagline}. Portail actualités — le contenu sera bientôt disponible.
+              Bienvenue sur le portail actualités — le contenu sera bientôt disponible.
             </p>
           </div>
 
           <div className="rounded-2xl border border-dashed border-[#00A550]/30 bg-white/70 px-6 py-8 text-sm text-gray-500">
-            Espace actualités MFK (placeholder). Les articles et annonces seront publiés ici.
+            Espace actualités {shortName} (placeholder). Les articles et annonces seront publiés ici.
           </div>
 
           <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
