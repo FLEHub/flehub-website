@@ -5,7 +5,7 @@ import { BrandMark } from '@/components/brand-mark'
 type Props = {
   shortName: string
   tagline: string
-  active?: 'home' | 'actualites' | 'videos'
+  active?: 'home' | 'actualites' | 'videos' | 'reportages'
 }
 
 export function PortalHeader({ shortName, tagline, active }: Props) {
@@ -18,7 +18,7 @@ export function PortalHeader({ shortName, tagline, active }: Props) {
           </div>
           <BrandMark shortName={shortName} tagline={tagline} size="md" />
         </Link>
-        <nav className="flex items-center gap-4 sm:gap-6 text-sm font-medium">
+        <nav className="flex items-center gap-3 sm:gap-5 text-sm font-medium">
           <Link
             href="/actualites"
             className={
@@ -38,6 +38,16 @@ export function PortalHeader({ shortName, tagline, active }: Props) {
             }
           >
             Vidéos
+          </Link>
+          <Link
+            href="/reportages"
+            className={
+              active === 'reportages'
+                ? 'text-[#00A550]'
+                : 'text-gray-600 hover:text-[#00A550] transition-colors'
+            }
+          >
+            Reportages
           </Link>
           <Link
             href="/login"
