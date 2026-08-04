@@ -5,7 +5,7 @@ import { BrandMark } from '@/components/brand-mark'
 type Props = {
   shortName: string
   tagline: string
-  active?: 'home' | 'actualites'
+  active?: 'home' | 'actualites' | 'videos'
 }
 
 export function PortalHeader({ shortName, tagline, active }: Props) {
@@ -28,6 +28,16 @@ export function PortalHeader({ shortName, tagline, active }: Props) {
             }
           >
             Actualités
+          </Link>
+          <Link
+            href="/videos"
+            className={
+              active === 'videos'
+                ? 'text-[#00A550]'
+                : 'text-gray-600 hover:text-[#00A550] transition-colors'
+            }
+          >
+            Vidéos
           </Link>
           <Link
             href="/login"
