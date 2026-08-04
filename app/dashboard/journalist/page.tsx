@@ -3,7 +3,7 @@ import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { Newspaper, Video, ArrowRight } from 'lucide-react'
+import { Newspaper, Video, Mic, ArrowRight } from 'lucide-react'
 
 export const dynamic = 'force-dynamic'
 
@@ -47,8 +47,8 @@ export default async function JournalistDashboardPage() {
         </CardHeader>
         <CardContent className="space-y-4">
           <p className="text-sm text-gray-600 leading-relaxed">
-            Rédigez, enregistrez en brouillon ou publiez vos articles et vidéos
-            YouTube sur le portail MFK.
+            Rédigez, enregistrez en brouillon ou publiez vos articles, vidéos
+            YouTube et reportages audio sur le portail MFK.
           </p>
           <div className="flex flex-wrap gap-3">
             <Button asChild className="bg-[#00A550] hover:bg-[#008040]">
@@ -61,6 +61,12 @@ export default async function JournalistDashboardPage() {
               <Link href="/dashboard/journalist/videos">
                 <Video className="w-4 h-4 mr-2" />
                 Gérer mes vidéos
+              </Link>
+            </Button>
+            <Button asChild variant="outline">
+              <Link href="/dashboard/journalist/reportages">
+                <Mic className="w-4 h-4 mr-2" />
+                Gérer mes reportages
               </Link>
             </Button>
           </div>
