@@ -63,7 +63,7 @@ export default async function HomePage() {
     feed.galleries.length > 0
 
   return (
-    <div className="min-h-screen flex flex-col bg-[#F7FBF8]">
+    <div className="min-h-screen flex flex-col mfk-home-canvas">
       <PortalHeader
         shortName={shortName}
         tagline={tagline}
@@ -115,7 +115,7 @@ export default async function HomePage() {
         </section>
 
         {!hasAnyContent && (
-          <p className="max-w-5xl mx-auto px-6 py-16 text-center text-sm text-gray-500">
+          <p className="max-w-5xl mx-auto px-6 py-16 text-center text-sm text-gray-700 font-medium">
             Aucun contenu publié pour le moment.
           </p>
         )}
@@ -123,7 +123,7 @@ export default async function HomePage() {
         {feed.featured.length > 0 && (
           <HomeSection
             title="À la une"
-            className="bg-white"
+            className="bg-[#9DD9B5]/90"
             accentClassName="bg-[#F59E0B]"
           >
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 sm:gap-6">
@@ -139,10 +139,10 @@ export default async function HomePage() {
             title="Dernières actualités"
             href="/actualites"
             linkLabel="Voir toutes les actualités"
-            className="bg-gradient-to-b from-[#E6F5EE] to-[#F7FBF8]"
-            accentClassName="bg-[#00A550]"
+            className="bg-[#6FCF97]/85"
+            accentClassName="bg-[#007A3D]"
           >
-            <div className="rounded-2xl bg-white/90 border border-[#00A550]/15 shadow-sm p-2 sm:p-3 space-y-1">
+            <div className="rounded-2xl bg-[#E2F6EA]/90 border-[2.5px] border-[#00A550]/40 shadow-sm p-2 sm:p-3 space-y-2">
               {feed.articles.map((item) => (
                 <HomeContentCard key={item.id} item={item} variant="list" />
               ))}
@@ -155,7 +155,7 @@ export default async function HomePage() {
             title="Vidéos à la une"
             href="/videos"
             linkLabel="Voir toutes les vidéos"
-            className="bg-gradient-to-b from-[#EFF6FF] to-white"
+            className="bg-[#93C5FD]/80"
             accentClassName="bg-[#1D7AFC]"
           >
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 sm:gap-6">
@@ -171,8 +171,8 @@ export default async function HomePage() {
             title="Reportages"
             href="/reportages"
             linkLabel="Voir tous les reportages"
-            className="bg-gradient-to-b from-[#FFFBEB] to-[#F7FBF8]"
-            accentClassName="bg-[#F59E0B]"
+            className="bg-[#FCD34D]/75"
+            accentClassName="bg-[#D97706]"
           >
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 sm:gap-6">
               {feed.reportages.map((item) => (
@@ -185,7 +185,7 @@ export default async function HomePage() {
         {feed.series.length > 0 && (
           <HomeSection
             title="Web-séries & Podcasts"
-            className="bg-gradient-to-b from-[#F0FDFA] to-white"
+            className="bg-[#5EEAD4]/75"
             accentClassName="bg-[#0D9488]"
           >
             <div className="flex flex-wrap gap-2 mb-6 -mt-1">
@@ -217,8 +217,8 @@ export default async function HomePage() {
             title="Galerie photo"
             href="/galeries"
             linkLabel="Voir toutes les galeries"
-            className="bg-gradient-to-b from-[#FFF7ED] to-[#F7FBF8]"
-            accentClassName="bg-[#F97316]"
+            className="bg-[#FDBA74]/80"
+            accentClassName="bg-[#EA580C]"
           >
             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-5">
               {feed.galleries.map((item) => (
@@ -231,7 +231,7 @@ export default async function HomePage() {
         <PartnersSection partners={partners} />
       </main>
 
-      <footer className="border-t border-[#00A550]/15 bg-[#003d1f] py-7 text-center text-xs text-white/70">
+      <footer className="bg-[#003d1f] py-7 text-center text-xs text-white/75">
         © {new Date().getFullYear()} {shortName} — {tagline}
       </footer>
     </div>

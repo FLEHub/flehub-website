@@ -3,6 +3,7 @@ import { formatArticleDate } from '@/lib/articles'
 import {
   KIND_ACCENT_BORDER,
   KIND_BADGE_CLASS,
+  KIND_CARD_BG,
   KIND_LABEL,
   type HomeFeedItem,
 } from '@/lib/home-feed'
@@ -14,11 +15,13 @@ type CardProps = {
 }
 
 export function HomeContentCard({ item, variant = 'grid' }: CardProps) {
+  const surface = `${KIND_CARD_BG[item.kind]} ${KIND_ACCENT_BORDER[item.kind]} border-[2.5px]`
+
   if (variant === 'list') {
     return (
       <Link
         href={item.href}
-        className={`group flex gap-4 p-3 sm:p-4 rounded-xl border border-transparent bg-white/80 hover:bg-white hover:shadow-md ${KIND_ACCENT_BORDER[item.kind]} hover:border transition-all duration-200`}
+        className={`group flex gap-4 p-3 sm:p-4 rounded-xl shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 ${surface}`}
       >
         <div className="relative flex-shrink-0 overflow-hidden rounded-lg">
           {item.image_url ? (
@@ -29,7 +32,7 @@ export function HomeContentCard({ item, variant = 'grid' }: CardProps) {
               className="w-28 sm:w-36 h-20 sm:h-24 object-cover transition-transform duration-500 group-hover:scale-[1.04]"
             />
           ) : (
-            <div className="w-28 sm:w-36 h-20 sm:h-24 bg-gradient-to-br from-[#E6F5EE] to-[#FDE68A]/40" />
+            <div className="w-28 sm:w-36 h-20 sm:h-24 bg-gradient-to-br from-[#00A550]/30 to-[#F59E0B]/30" />
           )}
         </div>
         <div className="min-w-0 flex-1 space-y-1.5">
@@ -40,21 +43,21 @@ export function HomeContentCard({ item, variant = 'grid' }: CardProps) {
               {KIND_LABEL[item.kind]}
             </span>
             {item.category_name && (
-              <span className="inline-flex px-2 py-0.5 rounded-md text-[10px] font-semibold bg-[#E6F5EE] text-[#007A3D]">
+              <span className="inline-flex px-2 py-0.5 rounded-md text-[10px] font-semibold bg-white/70 text-[#007A3D] border border-[#00A550]/25">
                 {item.category_name}
               </span>
             )}
             {item.published_at && (
-              <span className="text-gray-500">
+              <span className="text-gray-600">
                 {formatArticleDate(item.published_at)}
               </span>
             )}
           </div>
-          <h3 className="text-base sm:text-lg font-semibold text-gray-900 group-hover:text-[#00A550] transition-colors leading-snug line-clamp-2">
+          <h3 className="text-base sm:text-lg font-semibold text-gray-900 group-hover:text-[#007A3D] transition-colors leading-snug line-clamp-2">
             {item.title}
           </h3>
           {item.excerpt && (
-            <p className="text-sm text-gray-600 line-clamp-2 hidden sm:block">
+            <p className="text-sm text-gray-700 line-clamp-2 hidden sm:block">
               {item.excerpt}
             </p>
           )}
@@ -67,9 +70,9 @@ export function HomeContentCard({ item, variant = 'grid' }: CardProps) {
     return (
       <Link
         href={item.href}
-        className={`group block rounded-xl overflow-hidden bg-white border border-gray-100 shadow-sm hover:shadow-md ${KIND_ACCENT_BORDER[item.kind]} hover:border transition-all duration-200`}
+        className={`group block rounded-xl overflow-hidden shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 ${surface}`}
       >
-        <div className="relative aspect-[4/3] overflow-hidden bg-gradient-to-br from-[#E6F5EE] to-[#FDE68A]/30">
+        <div className="relative aspect-[4/3] overflow-hidden bg-gradient-to-br from-[#00A550]/20 to-[#F97316]/25">
           {item.image_url ? (
             // eslint-disable-next-line @next/next/no-img-element
             <img
@@ -85,7 +88,7 @@ export function HomeContentCard({ item, variant = 'grid' }: CardProps) {
           </span>
         </div>
         <div className="p-2.5 sm:p-3">
-          <h3 className="text-sm font-semibold text-gray-900 group-hover:text-[#00A550] transition-colors leading-snug line-clamp-2">
+          <h3 className="text-sm font-semibold text-gray-900 group-hover:text-[#007A3D] transition-colors leading-snug line-clamp-2">
             {item.title}
           </h3>
         </div>
@@ -99,9 +102,9 @@ export function HomeContentCard({ item, variant = 'grid' }: CardProps) {
   return (
     <Link
       href={item.href}
-      className={`group block rounded-xl overflow-hidden bg-white border border-gray-100 shadow-sm hover:shadow-lg ${KIND_ACCENT_BORDER[item.kind]} hover:border transition-all duration-200`}
+      className={`group block rounded-xl overflow-hidden shadow-sm hover:shadow-lg hover:-translate-y-0.5 transition-all duration-200 ${surface}`}
     >
-      <div className="relative aspect-[16/10] overflow-hidden bg-gradient-to-br from-[#E6F5EE] to-[#BAE6FD]/40">
+      <div className="relative aspect-[16/10] overflow-hidden bg-gradient-to-br from-[#00A550]/20 to-[#1D7AFC]/20">
         {item.image_url ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img
@@ -128,17 +131,17 @@ export function HomeContentCard({ item, variant = 'grid' }: CardProps) {
       <div className="p-3.5 sm:p-4 space-y-1.5">
         <div className="flex flex-wrap items-center gap-2 text-[11px] sm:text-xs">
           {item.category_name && (
-            <span className="inline-flex px-2 py-0.5 rounded-md font-semibold bg-[#E6F5EE] text-[#007A3D]">
+            <span className="inline-flex px-2 py-0.5 rounded-md font-semibold bg-white/70 text-[#007A3D] border border-[#00A550]/25">
               {item.category_name}
             </span>
           )}
           {item.published_at && (
-            <span className="text-gray-500">
+            <span className="text-gray-600">
               {formatArticleDate(item.published_at)}
             </span>
           )}
         </div>
-        <h3 className="text-sm sm:text-base font-semibold text-gray-900 group-hover:text-[#00A550] transition-colors leading-snug line-clamp-2">
+        <h3 className="text-sm sm:text-base font-semibold text-gray-900 group-hover:text-[#007A3D] transition-colors leading-snug line-clamp-2">
           {item.title}
         </h3>
       </div>
