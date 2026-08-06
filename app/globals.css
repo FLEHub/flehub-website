@@ -79,3 +79,27 @@
   background-color: #ffffff;
   color: #111827;
 }
+
+/* Accueil MFK : canvas coloré + motif géométrique subtil */
+.mfk-home-canvas {
+  background-color: #c5ebd6;
+  background-image:
+    radial-gradient(ellipse 80% 50% at 10% 15%, rgba(245, 158, 11, 0.28), transparent 55%),
+    radial-gradient(ellipse 70% 45% at 90% 35%, rgba(29, 122, 252, 0.2), transparent 50%),
+    radial-gradient(ellipse 60% 40% at 50% 85%, rgba(0, 165, 80, 0.35), transparent 55%),
+    linear-gradient(
+      135deg,
+      rgba(255, 255, 255, 0.12) 25%,
+      transparent 25%,
+      transparent 50%,
+      rgba(255, 255, 255, 0.12) 50%,
+      rgba(255, 255, 255, 0.12) 75%,
+      transparent 75%,
+      transparent
+    );
+  background-size:
+    auto,
+    auto,
+    auto,
+    28px 28px;
+}

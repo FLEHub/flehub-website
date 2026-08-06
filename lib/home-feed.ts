@@ -41,12 +41,22 @@ export const KIND_BADGE_CLASS: Record<HomeContentKind, string> = {
 }
 
 export const KIND_ACCENT_BORDER: Record<HomeContentKind, string> = {
-  article: 'group-hover:border-[#00A550]',
-  video: 'group-hover:border-[#1D7AFC]',
-  reportage: 'group-hover:border-[#F59E0B]',
-  gallery: 'group-hover:border-[#F97316]',
-  webseries: 'group-hover:border-[#0EA5E9]',
-  podcast: 'group-hover:border-[#0D9488]',
+  article: 'border-[#00A550]',
+  video: 'border-[#1D7AFC]',
+  reportage: 'border-[#F59E0B]',
+  gallery: 'border-[#F97316]',
+  webseries: 'border-[#0EA5E9]',
+  podcast: 'border-[#0D9488]',
+}
+
+/** Fonds de cartes teintés (jamais blanc uni). */
+export const KIND_CARD_BG: Record<HomeContentKind, string> = {
+  article: 'bg-[#E2F6EA]',
+  video: 'bg-[#DCEBFF]',
+  reportage: 'bg-[#FEF3C7]',
+  gallery: 'bg-[#FFEDD5]',
+  webseries: 'bg-[#E0F2FE]',
+  podcast: 'bg-[#CCFBF1]',
 }
 
 function categoryName(
