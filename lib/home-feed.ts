@@ -30,6 +30,25 @@ export const KIND_LABEL: Record<HomeContentKind, string> = {
   podcast: 'Podcast',
 }
 
+/** Badges vifs et distincts par type de contenu (vert MFK + accents). */
+export const KIND_BADGE_CLASS: Record<HomeContentKind, string> = {
+  article: 'bg-[#00A550] text-white',
+  video: 'bg-[#1D7AFC] text-white',
+  reportage: 'bg-[#F59E0B] text-gray-900',
+  gallery: 'bg-[#F97316] text-white',
+  webseries: 'bg-[#0EA5E9] text-white',
+  podcast: 'bg-[#0D9488] text-white',
+}
+
+export const KIND_ACCENT_BORDER: Record<HomeContentKind, string> = {
+  article: 'group-hover:border-[#00A550]',
+  video: 'group-hover:border-[#1D7AFC]',
+  reportage: 'group-hover:border-[#F59E0B]',
+  gallery: 'group-hover:border-[#F97316]',
+  webseries: 'group-hover:border-[#0EA5E9]',
+  podcast: 'group-hover:border-[#0D9488]',
+}
+
 function categoryName(
   category:
     | { id: string; name: string; slug: string }
