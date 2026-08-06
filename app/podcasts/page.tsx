@@ -1,0 +1,151 @@
+import Link from 'next/link'
+import { createClient } from '@/lib/supabase/server'
+import {
+  normalizeOrgBranding,
+  DEFAULT_ORG_SHORT_NAME,
+  DEFAULT_ORG_TAGLINE,
+} from '@/lib/org-branding'
+import { PortalHeader } from '@/components/portal/portal-header'
+import { SeriesCardLink } from '@/components/portal/series-card-link'
+import type { SeriesType } from '@/lib/series'
+
+export const dynamic = 'force-dynamic'
+
+type Props = {
+  searchParams?: { categorie?: string }
+}
+
+export default async function PodcastsPage({ searchParams }: Props) {
+  const categorySlug = searchParams?.categorie?.trim() || null
+  let branding = normalizeOrgBranding(null)
+  let categories: { id: string; name: string; slug: string }[] = []
+  let items: {
+    id: string
+    title: string
+    slug: string
+    description: string | null
+    cover_image_url: string | null
+    published_at: string | null
+    category_name: string | null
+    episode_count: number
+    type: SeriesType
+  }[] = []
+
+  try {
+    const supabase = await createClient()
+    const { data: org } = await supabase
+      .from('org_settings')
+      .select('org_name, org_short_name, org_tagline')
+      .limit(1)
+      .maybeSingle()
+    branding = normalizeOrgBranding(org)
+
+    const { data: cats } = await supabase
+      .from('article_categories')
+      .select('id, name, slug')
+      .order('name')
+    categories = cats ?? []
+
+    let query = supabase
+      .from('series')
+      .select(
+        'id, type, title, slug, description, cover_image_url, published_at, category:article_categories(id, name, slug), series_episodes(id, status)'
+      )
+      .eq('status', 'published')
+      .eq('type', 'podcast')
+      .order('published_at', { ascending: false })
+
+    if (categorySlug) {
+      const cat = categories.find((c) => c.slug === categorySlug)
+      if (cat) query = query.eq('category_id', cat.id)
+    }
+
+    const { data } = await query
+    items = (data ?? []).map((row) => {
+      const cat = row.category as
+        | { id: string; name: string; slug: string }
+        | { id: string; name: string; slug: string }[]
+        | null
+      const category = Array.isArray(cat) ? cat[0] ?? null : cat
+      const eps = row.series_episodes as { id: string; status: string }[] | null
+      const publishedEps = (eps ?? []).filter((e) => e.status === 'published')
+      return {
+        id: row.id,
+        title: row.title,
+        slug: row.slug,
+        description: row.description,
+        cover_image_url: row.cover_image_url,
+        published_at: row.published_at,
+        category_name: category?.name ?? null,
+        episode_count: publishedEps.length,
+        type: row.type as SeriesType,
+      }
+    })
+  } catch {
+    // Empty if tables unavailable
+  }
+
+  const shortName = branding.orgShortName || DEFAULT_ORG_SHORT_NAME
+  const tagline = branding.orgTagline || DEFAULT_ORG_TAGLINE
+
+  return (
+    <div className="min-h-screen flex flex-col bg-gradient-to-b from-[#E8F8F0] via-white to-gray-50">
+      <PortalHeader shortName={shortName} tagline={tagline} active="podcasts" />
+
+      <main className="flex-1 max-w-5xl w-full mx-auto px-6 py-10 sm:py-14">
+        <div className="mb-8 space-y-2">
+          <h1 className="text-3xl sm:text-4xl font-extrabold text-gray-900 tracking-tight">
+            Podcasts
+          </h1>
+          <p className="text-gray-600 max-w-2xl">
+            Les podcasts publiés sur le portail MFK.
+          </p>
+        </div>
+
+        <div className="flex flex-wrap gap-2 mb-8">
+          <Link
+            href="/podcasts"
+            className={
+              !categorySlug
+                ? 'text-sm font-medium px-3 py-1.5 rounded-lg bg-[#00A550] text-white'
+                : 'text-sm font-medium px-3 py-1.5 rounded-lg bg-white border border-gray-200 text-gray-600 hover:border-[#00A550] hover:text-[#00A550] transition-colors'
+            }
+          >
+            Toutes
+          </Link>
+          {categories.map((c) => (
+            <Link
+              key={c.id}
+              href={`/podcasts?categorie=${c.slug}`}
+              className={
+                categorySlug === c.slug
+                  ? 'text-sm font-medium px-3 py-1.5 rounded-lg bg-[#00A550] text-white'
+                  : 'text-sm font-medium px-3 py-1.5 rounded-lg bg-white border border-gray-200 text-gray-600 hover:border-[#00A550] hover:text-[#00A550] transition-colors'
+              }
+            >
+              {c.name}
+            </Link>
+          ))}
+        </div>
+
+        {items.length === 0 ? (
+          <p className="text-sm text-gray-500 py-12 text-center">
+            {categorySlug
+              ? 'Aucun podcast publié dans cette catégorie.'
+              : 'Aucun podcast publié pour le moment.'}
+          </p>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 sm:gap-6">
+            {items.map((item) => (
+              <SeriesCardLink key={item.id} series={item} />
+            ))}
+          </div>
+        )}
+      </main>
+
+      <footer className="border-t border-gray-100 py-6 text-center text-xs text-gray-400">
+        © {new Date().getFullYear()} {shortName} — {tagline}
+      </footer>
+    </div>
+  )
+}

@@ -28,6 +28,7 @@ import {
   Newspaper,
   Mic,
   Images,
+  Clapperboard,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
@@ -35,7 +36,7 @@ import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { BrandMark } from '@/components/brand-mark'
 import { DEFAULT_ORG_SHORT_NAME, DEFAULT_ORG_TAGLINE } from '@/lib/org-branding'
 
-type Role = 'admin' | 'school' | 'teacher' | 'learner' | 'journalist'
+type Role = 'admin' | 'school' | 'teacher' | 'learner' | 'journalist' | 'creator'
 
 interface Profile {
   full_name: string
@@ -54,6 +55,7 @@ const navByRole: Record<Role, NavItem[]> = {
     { label: 'Dashboard', href: '/dashboard/admin', icon: LayoutDashboard },
     { label: 'Users', href: '/dashboard/admin/users', icon: Shield },
     { label: 'Journalists', href: '/dashboard/admin/journalists', icon: Newspaper },
+    { label: 'Creators', href: '/dashboard/admin/creators', icon: Clapperboard },
     { label: 'Exams', href: '/dashboard/admin/exams', icon: FileText },
     { label: 'School Exam Access', href: '/dashboard/admin/school-exam-access', icon: BookOpenCheck },
     { label: 'Calendar', href: '/dashboard/admin/calendar', icon: Calendar },
@@ -91,6 +93,10 @@ const navByRole: Record<Role, NavItem[]> = {
     { label: 'Vidéos', href: '/dashboard/journalist/videos', icon: Video },
     { label: 'Reportages', href: '/dashboard/journalist/reportages', icon: Mic },
     { label: 'Galeries', href: '/dashboard/journalist/galleries', icon: Images },
+  ],
+  creator: [
+    { label: 'Dashboard', href: '/dashboard/creator', icon: LayoutDashboard },
+    { label: 'Séries', href: '/dashboard/creator/series', icon: Clapperboard },
   ],
 }
 

@@ -140,6 +140,7 @@ export function Header({ title, profile }: HeaderProps) {
     teacher: '/dashboard/teacher',
     learner: '/dashboard/learner',
     journalist: '/dashboard/journalist',
+    creator: '/dashboard/creator',
   }[profile.role] ?? '/dashboard'
 
   return (

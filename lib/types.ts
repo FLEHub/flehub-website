@@ -1,4 +1,4 @@
-export type Role = 'admin' | 'school' | 'teacher' | 'learner' | 'journalist';
+export type Role = 'admin' | 'school' | 'teacher' | 'learner' | 'journalist' | 'creator';
 
 export interface Journalist {
   id: string;
