@@ -5,8 +5,24 @@ import { BrandMark } from '@/components/brand-mark'
 type Props = {
   shortName: string
   tagline: string
-  active?: 'home' | 'actualites' | 'videos' | 'reportages' | 'galeries'
+  active?:
+    | 'home'
+    | 'actualites'
+    | 'videos'
+    | 'reportages'
+    | 'galeries'
+    | 'webseries'
+    | 'podcasts'
 }
+
+const NAV: { href: string; label: string; key: NonNullable<Props['active']> }[] = [
+  { href: '/actualites', label: 'Actualités', key: 'actualites' },
+  { href: '/videos', label: 'Vidéos', key: 'videos' },
+  { href: '/reportages', label: 'Reportages', key: 'reportages' },
+  { href: '/galeries', label: 'Galerie', key: 'galeries' },
+  { href: '/webseries', label: 'Web-séries', key: 'webseries' },
+  { href: '/podcasts', label: 'Podcasts', key: 'podcasts' },
+]
 
 export function PortalHeader({ shortName, tagline, active }: Props) {
   return (
@@ -18,47 +34,20 @@ export function PortalHeader({ shortName, tagline, active }: Props) {
           </div>
           <BrandMark shortName={shortName} tagline={tagline} size="md" />
         </Link>
-        <nav className="flex items-center gap-3 sm:gap-5 text-sm font-medium">
-          <Link
-            href="/actualites"
-            className={
-              active === 'actualites'
-                ? 'text-[#00A550]'
-                : 'text-gray-600 hover:text-[#00A550] transition-colors'
-            }
-          >
-            Actualités
-          </Link>
-          <Link
-            href="/videos"
-            className={
-              active === 'videos'
-                ? 'text-[#00A550]'
-                : 'text-gray-600 hover:text-[#00A550] transition-colors'
-            }
-          >
-            Vidéos
-          </Link>
-          <Link
-            href="/reportages"
-            className={
-              active === 'reportages'
-                ? 'text-[#00A550]'
-                : 'text-gray-600 hover:text-[#00A550] transition-colors'
-            }
-          >
-            Reportages
-          </Link>
-          <Link
-            href="/galeries"
-            className={
-              active === 'galeries'
-                ? 'text-[#00A550]'
-                : 'text-gray-600 hover:text-[#00A550] transition-colors'
-            }
-          >
-            Galerie
-          </Link>
+        <nav className="flex items-center gap-2 sm:gap-3 lg:gap-4 text-xs sm:text-sm font-medium flex-wrap justify-end">
+          {NAV.map((item) => (
+            <Link
+              key={item.key}
+              href={item.href}
+              className={
+                active === item.key
+                  ? 'text-[#00A550]'
+                  : 'text-gray-600 hover:text-[#00A550] transition-colors'
+              }
+            >
+              {item.label}
+            </Link>
+          ))}
           <Link
             href="/login"
             className="text-gray-600 hover:text-[#00A550] transition-colors"

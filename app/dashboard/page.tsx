@@ -42,6 +42,8 @@ export default async function DashboardPage() {
       redirect('/dashboard/learner');
     case 'journalist':
       redirect('/dashboard/journalist');
+    case 'creator':
+      redirect('/dashboard/creator');
     default:
       redirect('/login');
   }
