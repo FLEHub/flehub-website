@@ -16,6 +16,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
+import { Progress } from '@/components/ui/progress'
 import {
   Select,
   SelectContent,
@@ -32,6 +33,39 @@ import {
   Upload,
   X,
 } from 'lucide-react'
+
+/** Nombre d’uploads simultanés vers le bucket (évite de saturer le navigateur). */
+const UPLOAD_CONCURRENCY = 4
+
+/**
+ * Exécute `fn` sur chaque élément avec une concurrence limitée.
+ * Les résultats restent indexés dans l’ordre d’entrée (ordre de sélection).
+ */
+async function mapWithConcurrency<T, R>(
+  items: T[],
+  concurrency: number,
+  fn: (item: T, index: number) => Promise<R>,
+  onProgress?: (done: number) => void
+): Promise<R[]> {
+  const results = new Array<R>(items.length)
+  let nextIndex = 0
+  let done = 0
+
+  const worker = async () => {
+    while (true) {
+      const i = nextIndex
+      nextIndex += 1
+      if (i >= items.length) return
+      results[i] = await fn(items[i], i)
+      done += 1
+      onProgress?.(done)
+    }
+  }
+
+  const poolSize = Math.max(1, Math.min(concurrency, items.length))
+  await Promise.all(Array.from({ length: poolSize }, () => worker()))
+  return results
+}
 
 type LocalPhoto = {
   /** DB id when already persisted; otherwise a client temp id */
@@ -109,7 +143,13 @@ export function GalleryEditor({ initial = null, categories }: Props) {
     null
   )
   const [uploading, setUploading] = useState(false)
+  const [uploadProgress, setUploadProgress] = useState<{
+    done: number
+    total: number
+  } | null>(null)
   const [error, setError] = useState<string | null>(null)
+  const photosRef = useRef(photos)
+  photosRef.current = photos
 
   useEffect(() => {
     if (!initial) return
@@ -130,11 +170,16 @@ export function GalleryEditor({ initial = null, categories }: Props) {
     null
 
   const uploadPhotos = async (files: FileList | File[]) => {
-    const list = Array.from(files)
-    if (list.length === 0) return
+    const list = Array.from(files).filter((f) => f.type.startsWith('image/'))
+    if (list.length === 0) {
+      setError('Sélectionnez au moins une image (jpg, png, webp, gif).')
+      return
+    }
 
     setUploading(true)
+    setUploadProgress({ done: 0, total: list.length })
     setError(null)
+
     try {
       const {
         data: { user },
@@ -148,41 +193,67 @@ export function GalleryEditor({ initial = null, categories }: Props) {
         )
       }
 
-      const uploaded: LocalPhoto[] = []
-      let nextOrder = photos.length
+      const baseOrder = photosRef.current.length
+      const failures: string[] = []
 
-      for (const file of list) {
-        const ext = file.name.split('.').pop()?.toLowerCase() || 'jpg'
-        const path = `${journalistId}/${galleryId}/${crypto.randomUUID()}.${ext}`
-        const { error: upErr } = await supabase.storage
-          .from(GALLERY_PHOTOS_BUCKET)
-          .upload(path, file, { upsert: true })
-        if (upErr) throw upErr
+      const results = await mapWithConcurrency(
+        list,
+        UPLOAD_CONCURRENCY,
+        async (file, index) => {
+          try {
+            const ext = file.name.split('.').pop()?.toLowerCase() || 'jpg'
+            const path = `${journalistId}/${galleryId}/${crypto.randomUUID()}.${ext}`
+            const { error: upErr } = await supabase.storage
+              .from(GALLERY_PHOTOS_BUCKET)
+              .upload(path, file, { upsert: true })
+            if (upErr) throw upErr
 
-        const { data: urlData } = supabase.storage
-          .from(GALLERY_PHOTOS_BUCKET)
-          .getPublicUrl(path)
+            const { data: urlData } = supabase.storage
+              .from(GALLERY_PHOTOS_BUCKET)
+              .getPublicUrl(path)
 
-        uploaded.push({
-          key: crypto.randomUUID(),
-          dbId: null,
-          photo_url: `${urlData.publicUrl}?t=${Date.now()}`,
-          caption: '',
-          sort_order: nextOrder,
-          storagePath: path,
+            const photo: LocalPhoto = {
+              key: crypto.randomUUID(),
+              dbId: null,
+              photo_url: `${urlData.publicUrl}?t=${Date.now()}`,
+              caption: '',
+              sort_order: baseOrder + index,
+              storagePath: path,
+            }
+            return photo
+          } catch (err) {
+            failures.push(
+              `${file.name}: ${(err as Error).message || 'échec d’envoi'}`
+            )
+            return null
+          }
+        },
+        (done) => setUploadProgress({ done, total: list.length })
+      )
+
+      // Conserve l’ordre de sélection (index d’origine), ignore les échecs.
+      const uploaded = results.filter((p): p is LocalPhoto => p !== null)
+
+      if (uploaded.length > 0) {
+        setPhotos((prev) => {
+          const next = [...prev, ...uploaded]
+          return next.map((p, i) => ({ ...p, sort_order: i }))
         })
-        nextOrder += 1
+        setCoverKey((prev) => prev ?? uploaded[0]?.key ?? null)
       }
 
-      setPhotos((prev) => {
-        const next = [...prev, ...uploaded]
-        return next.map((p, i) => ({ ...p, sort_order: i }))
-      })
-      setCoverKey((prev) => prev ?? uploaded[0]?.key ?? null)
+      if (failures.length > 0) {
+        const summary =
+          uploaded.length === 0
+            ? `Aucune photo n’a pu être envoyée (${failures.length} échec${failures.length > 1 ? 's' : ''}).`
+            : `${uploaded.length}/${list.length} photos envoyées. Échecs : ${failures.slice(0, 3).join(' · ')}${failures.length > 3 ? '…' : ''}`
+        setError(summary)
+      }
     } catch (err) {
       setError((err as Error).message)
     } finally {
       setUploading(false)
+      setUploadProgress(null)
     }
   }
 
@@ -411,7 +482,13 @@ export function GalleryEditor({ initial = null, categories }: Props) {
 
       <div className="space-y-3">
         <div className="flex flex-wrap items-center justify-between gap-2">
-          <Label>Photos</Label>
+          <div>
+            <Label>Photos</Label>
+            <p className="text-xs text-gray-500 mt-0.5">
+              Sélectionnez plusieurs fichiers en une seule fois (Ctrl/Cmd ou
+              Shift).
+            </p>
+          </div>
           <div>
             <input
               ref={fileRef}
@@ -437,12 +514,38 @@ export function GalleryEditor({ initial = null, categories }: Props) {
               ) : (
                 <Upload className="w-4 h-4 mr-2" />
               )}
-              Ajouter des photos
+              {uploading && uploadProgress
+                ? `${uploadProgress.done}/${uploadProgress.total} photos`
+                : 'Ajouter des photos'}
             </Button>
           </div>
         </div>
 
-        {photos.length === 0 ? (
+        {uploadProgress && (
+          <div className="rounded-lg border border-[#00A550]/20 bg-[#E6F5EE]/60 px-4 py-3 space-y-2">
+            <div className="flex items-center justify-between gap-3 text-sm text-gray-700">
+              <span className="inline-flex items-center gap-2">
+                <Loader2 className="w-4 h-4 animate-spin text-[#00A550]" />
+                Envoi en cours…
+              </span>
+              <span className="font-medium tabular-nums text-[#00A550]">
+                {uploadProgress.done}/{uploadProgress.total} photos envoyées
+              </span>
+            </div>
+            <Progress
+              value={
+                uploadProgress.total > 0
+                  ? Math.round(
+                      (uploadProgress.done / uploadProgress.total) * 100
+                    )
+                  : 0
+              }
+              className="h-2 bg-white/80 [&>div]:bg-[#00A550]"
+            />
+          </div>
+        )}
+
+        {photos.length === 0 && !uploading ? (
           <button
             type="button"
             disabled={busy}
@@ -450,8 +553,13 @@ export function GalleryEditor({ initial = null, categories }: Props) {
             className="w-full rounded-lg border border-dashed border-gray-200 bg-gray-50 px-4 py-10 text-center text-sm text-gray-500 hover:border-[#00A550] hover:text-[#00A550] transition-colors disabled:opacity-50"
           >
             <ImagePlus className="w-6 h-6 mx-auto mb-2 opacity-60" />
-            Téléverser plusieurs photos (jpg, png, webp)
+            Choisir plusieurs photos (jpg, png, webp)
           </button>
+        ) : photos.length === 0 && uploading ? (
+          <div className="w-full rounded-lg border border-dashed border-gray-200 bg-gray-50 px-4 py-10 text-center text-sm text-gray-500">
+            <Loader2 className="w-6 h-6 mx-auto mb-2 animate-spin text-[#00A550]" />
+            Préparation de l’envoi…
+          </div>
         ) : (
           <ul className="space-y-3">
             {photos.map((photo) => {
@@ -514,7 +622,7 @@ export function GalleryEditor({ initial = null, categories }: Props) {
           </ul>
         )}
 
-        {coverUrl && (
+        {coverUrl && !uploading && (
           <p className="text-xs text-gray-500">
             Image de couverture : première photo ou celle marquée « Couverture ».
           </p>
