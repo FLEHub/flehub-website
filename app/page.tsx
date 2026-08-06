@@ -9,6 +9,8 @@ import {
 import { BrandMark } from '@/components/brand-mark'
 import { PortalHeader } from '@/components/portal/portal-header'
 import { ArticleCardLink } from '@/components/portal/article-card-link'
+import { PartnersSection } from '@/components/portal/partners-section'
+import type { Partner } from '@/lib/partners'
 
 export const dynamic = 'force-dynamic'
 
@@ -23,6 +25,7 @@ export default async function HomePage() {
     published_at: string | null
     category_name: string | null
   }[] = []
+  let partners: Partner[] = []
 
   try {
     const supabase = await createClient()
@@ -58,6 +61,13 @@ export default async function HomePage() {
         category_name: category?.name ?? null,
       }
     })
+
+    const { data: partnerRows } = await supabase
+      .from('partners')
+      .select('id, name, logo_url, website_url, sort_order, created_at, updated_at')
+      .order('sort_order', { ascending: true })
+      .order('created_at', { ascending: true })
+    partners = (partnerRows ?? []) as Partner[]
   } catch {
     // Fallbacks already set.
   }
@@ -128,6 +138,8 @@ export default async function HomePage() {
             </Link>
           </div>
         </section>
+
+        <PartnersSection partners={partners} />
       </main>
 
       <footer className="border-t border-gray-100 py-6 text-center text-xs text-gray-400">

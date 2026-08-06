@@ -29,6 +29,7 @@ import {
   Mic,
   Images,
   Clapperboard,
+  Handshake,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
@@ -56,6 +57,7 @@ const navByRole: Record<Role, NavItem[]> = {
     { label: 'Users', href: '/dashboard/admin/users', icon: Shield },
     { label: 'Journalists', href: '/dashboard/admin/journalists', icon: Newspaper },
     { label: 'Creators', href: '/dashboard/admin/creators', icon: Clapperboard },
+    { label: 'Partners', href: '/dashboard/admin/partners', icon: Handshake },
     { label: 'Exams', href: '/dashboard/admin/exams', icon: FileText },
     { label: 'School Exam Access', href: '/dashboard/admin/school-exam-access', icon: BookOpenCheck },
     { label: 'Calendar', href: '/dashboard/admin/calendar', icon: Calendar },
