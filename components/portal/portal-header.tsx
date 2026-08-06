@@ -13,6 +13,7 @@ type Props = {
     | 'galeries'
     | 'webseries'
     | 'podcasts'
+  showAppCta?: boolean
 }
 
 const NAV: { href: string; label: string; key: NonNullable<Props['active']> }[] = [
@@ -24,10 +25,15 @@ const NAV: { href: string; label: string; key: NonNullable<Props['active']> }[] 
   { href: '/podcasts', label: 'Podcasts', key: 'podcasts' },
 ]
 
-export function PortalHeader({ shortName, tagline, active }: Props) {
+export function PortalHeader({
+  shortName,
+  tagline,
+  active,
+  showAppCta = false,
+}: Props) {
   return (
-    <header className="border-b border-gray-100 bg-white/80 backdrop-blur-sm sticky top-0 z-20">
-      <div className="max-w-5xl mx-auto px-6 h-16 flex items-center justify-between gap-4">
+    <header className="border-b border-gray-100 bg-white/90 backdrop-blur-sm sticky top-0 z-20">
+      <div className="max-w-5xl mx-auto px-6 h-16 flex items-center justify-between gap-3">
         <Link href="/" className="flex items-center gap-2.5 min-w-0">
           <div className="w-9 h-9 rounded-lg bg-[#00A550] flex items-center justify-center flex-shrink-0">
             <GraduationCap className="w-5 h-5 text-white" />
@@ -48,6 +54,14 @@ export function PortalHeader({ shortName, tagline, active }: Props) {
               {item.label}
             </Link>
           ))}
+          {showAppCta && (
+            <Link
+              href="/app"
+              className="hidden sm:inline-flex items-center px-3 py-1.5 rounded-lg bg-[#00A550] hover:bg-[#008040] text-white text-xs sm:text-sm font-semibold transition-colors"
+            >
+              {shortName} App
+            </Link>
+          )}
           <Link
             href="/login"
             className="text-gray-600 hover:text-[#00A550] transition-colors"
