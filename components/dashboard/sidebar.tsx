@@ -27,6 +27,7 @@ import {
   PenSquare,
   Newspaper,
   Mic,
+  Images,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
@@ -89,6 +90,7 @@ const navByRole: Record<Role, NavItem[]> = {
     { label: 'Articles', href: '/dashboard/journalist/articles', icon: Newspaper },
     { label: 'Vidéos', href: '/dashboard/journalist/videos', icon: Video },
     { label: 'Reportages', href: '/dashboard/journalist/reportages', icon: Mic },
+    { label: 'Galeries', href: '/dashboard/journalist/galleries', icon: Images },
   ],
 }
 
