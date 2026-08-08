@@ -86,6 +86,7 @@ const navByRole: Record<Role, NavItem[]> = {
   learner: [
     { label: 'Dashboard', href: '/dashboard/learner', icon: LayoutDashboard },
     { label: 'eLearning', href: '/dashboard/learner/elearning', icon: BookOpen },
+    { label: 'Préparation', href: '/dashboard/learner/preparation', icon: Headphones },
     { label: 'Enseignants', href: '/dashboard/learner/elearning/teachers', icon: GraduationCap },
     { label: 'Sessions', href: '/dashboard/learner/elearning/sessions', icon: Video },
     { label: 'Corrections', href: '/dashboard/learner/corrections', icon: PenSquare },
