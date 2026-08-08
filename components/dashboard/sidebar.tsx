@@ -30,6 +30,7 @@ import {
   Images,
   Clapperboard,
   Handshake,
+  Headphones,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
@@ -75,6 +76,7 @@ const navByRole: Record<Role, NavItem[]> = {
   teacher: [
     { label: 'Dashboard', href: '/dashboard/teacher', icon: LayoutDashboard },
     { label: 'Modules', href: '/dashboard/teacher/elearning', icon: BookOpen },
+    { label: 'Préparation', href: '/dashboard/teacher/preparation', icon: Headphones },
     { label: 'Sessions', href: '/dashboard/teacher/sessions', icon: Video },
     { label: 'Corrections', href: '/dashboard/teacher/corrections', icon: PenSquare },
     { label: 'Learners', href: '/dashboard/teacher/learners', icon: UserCheck },
