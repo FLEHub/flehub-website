@@ -15,13 +15,25 @@
 ALTER TABLE public.tcf_co_questions
   ADD COLUMN IF NOT EXISTS niveau text;
 
--- Reprend le niveau de la séance si des questions existent déjà
-UPDATE public.tcf_co_questions q
-SET niveau = s.niveau
-FROM public.tcf_co_sessions s
-WHERE s.id = q.session_id
-  AND q.niveau IS NULL
-  AND s.niveau IS NOT NULL;
+-- Reprend le niveau de la séance si la colonne existe encore
+-- (tolère une réexécution après un échec partiel plus bas dans le script)
+DO $$
+BEGIN
+  IF EXISTS (
+    SELECT 1
+    FROM information_schema.columns
+    WHERE table_schema = 'public'
+      AND table_name = 'tcf_co_sessions'
+      AND column_name = 'niveau'
+  ) THEN
+    UPDATE public.tcf_co_questions q
+    SET niveau = s.niveau
+    FROM public.tcf_co_sessions s
+    WHERE s.id = q.session_id
+      AND q.niveau IS NULL
+      AND s.niveau IS NOT NULL;
+  END IF;
+END $$;
 
 -- Défaut de secours si aucune source n'est disponible
 UPDATE public.tcf_co_questions
@@ -116,8 +128,12 @@ ALTER TABLE public.student_co_attempts
 
 -- ---------------------------------------------------------------------------
 -- 5. Vue apprenants : inclure niveau question, toujours sans bonne_reponse
+--    DROP + CREATE (pas CREATE OR REPLACE) pour pouvoir changer l'ordre/noms
+--    des colonnes sans l'erreur 42P16 de Postgres.
 -- ---------------------------------------------------------------------------
-CREATE OR REPLACE VIEW public.tcf_co_questions_pour_apprenants
+DROP VIEW IF EXISTS public.tcf_co_questions_pour_apprenants;
+
+CREATE VIEW public.tcf_co_questions_pour_apprenants
 WITH (security_invoker = false) AS
 SELECT
   q.id,
