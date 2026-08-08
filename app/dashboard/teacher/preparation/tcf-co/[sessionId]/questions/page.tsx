@@ -9,12 +9,9 @@ import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { ArrowLeft, Headphones } from 'lucide-react';
 
-type CEFR = 'A1' | 'A2' | 'B1' | 'B2' | 'C1' | 'C2';
-
 interface TcfCoSession {
   id: string;
   titre: string;
-  niveau: CEFR;
   duree_minuteur: number;
   statut: 'brouillon' | 'publiee';
 }
@@ -37,7 +34,7 @@ export default function TcfCoQuestionsPage() {
       try {
         const { data, error: fetchError } = await supabase
           .from('tcf_co_sessions')
-          .select('id, titre, niveau, duree_minuteur, statut')
+          .select('id, titre, duree_minuteur, statut')
           .eq('id', sessionId)
           .maybeSingle();
 
@@ -82,8 +79,8 @@ export default function TcfCoQuestionsPage() {
               </Badge>
             </div>
             <p className="text-sm text-gray-500 mt-1">
-              Niveau {session.niveau} · {session.duree_minuteur} min · Ajout des
-              questions (BLOC 4)
+              {session.duree_minuteur} min · Ajout des questions (BLOC 4) — chaque
+              question a son propre niveau
             </p>
           </>
         ) : (

@@ -8,25 +8,13 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent } from '@/components/ui/card';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
 import { AlertTriangle, ArrowLeft, Loader2, X } from 'lucide-react';
-
-type CEFR = 'A1' | 'A2' | 'B1' | 'B2' | 'C1' | 'C2';
-
-const cefrLevels: CEFR[] = ['A1', 'A2', 'B1', 'B2', 'C1', 'C2'];
 
 export default function NewTcfCoSessionPage() {
   const router = useRouter();
   const supabase = createClient();
 
   const [titre, setTitre] = useState('');
-  const [niveau, setNiveau] = useState<CEFR | ''>('');
   const [dureeMinuteur, setDureeMinuteur] = useState<string>('25');
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -40,10 +28,6 @@ export default function NewTcfCoSessionPage() {
 
     if (!trimmedTitre) {
       setError('Le titre de la séance est obligatoire.');
-      return;
-    }
-    if (!niveau) {
-      setError('Veuillez choisir un niveau.');
       return;
     }
     if (!Number.isFinite(duree) || duree <= 0) {
@@ -65,7 +49,6 @@ export default function NewTcfCoSessionPage() {
         .from('tcf_co_sessions')
         .insert({
           titre: trimmedTitre,
-          niveau,
           duree_minuteur: duree,
           statut: 'brouillon',
           created_by: user.id,
@@ -105,7 +88,8 @@ export default function NewTcfCoSessionPage() {
           Nouvelle séance TCF CO
         </h1>
         <p className="text-sm text-gray-500 mt-1">
-          Définissez le titre, le niveau et la durée, puis ajoutez les questions.
+          Définissez le titre et la durée, puis ajoutez les questions (chaque
+          question aura son propre niveau).
         </p>
       </div>
 
@@ -128,30 +112,10 @@ export default function NewTcfCoSessionPage() {
                 id="titre"
                 value={titre}
                 onChange={(e) => setTitre(e.target.value)}
-                placeholder="Ex. TCF CO — Entraînement B2"
+                placeholder="Ex. TCF CO — Entraînement complet"
                 disabled={saving}
                 required
               />
-            </div>
-
-            <div className="space-y-2">
-              <Label>Niveau</Label>
-              <Select
-                value={niveau}
-                onValueChange={(v) => setNiveau(v as CEFR)}
-                disabled={saving}
-              >
-                <SelectTrigger className="bg-white">
-                  <SelectValue placeholder="Choisir un niveau" />
-                </SelectTrigger>
-                <SelectContent>
-                  {cefrLevels.map((level) => (
-                    <SelectItem key={level} value={level}>
-                      {level}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
             </div>
 
             <div className="space-y-2">
@@ -184,7 +148,7 @@ export default function NewTcfCoSessionPage() {
               <Button
                 type="submit"
                 className="bg-flehub-green hover:bg-flehub-green/90 text-white"
-                disabled={saving || !titre.trim() || !niveau}
+                disabled={saving || !titre.trim()}
               >
                 {saving ? (
                   <>

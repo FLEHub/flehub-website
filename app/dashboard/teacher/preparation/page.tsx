@@ -9,26 +9,15 @@ import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Headphones, Plus, Clock, ChevronRight } from 'lucide-react';
 
-type CEFR = 'A1' | 'A2' | 'B1' | 'B2' | 'C1' | 'C2';
 type SessionStatut = 'brouillon' | 'publiee';
 
 interface TcfCoSession {
   id: string;
   titre: string;
-  niveau: CEFR;
   duree_minuteur: number;
   statut: SessionStatut;
   created_at: string;
 }
-
-const cefrColors: Record<CEFR, string> = {
-  A1: 'bg-green-100 text-green-700',
-  A2: 'bg-lime-100 text-lime-700',
-  B1: 'bg-yellow-100 text-yellow-700',
-  B2: 'bg-orange-100 text-orange-700',
-  C1: 'bg-red-100 text-red-700',
-  C2: 'bg-rose-100 text-rose-700',
-};
 
 const statutConfig: Record<SessionStatut, { label: string; badgeClass: string }> = {
   brouillon: {
@@ -59,7 +48,7 @@ export default function TeacherPreparationPage() {
 
       const { data } = await supabase
         .from('tcf_co_sessions')
-        .select('id, titre, niveau, duree_minuteur, statut, created_at')
+        .select('id, titre, duree_minuteur, statut, created_at')
         .eq('created_by', user.id)
         .order('created_at', { ascending: false });
 
@@ -141,12 +130,12 @@ export default function TeacherPreparationPage() {
                       {session.titre}
                     </h3>
                     <div className="flex items-center gap-2 mt-2 flex-wrap">
-                      <Badge className={cefrColors[session.niveau]}>
-                        {session.niveau}
-                      </Badge>
                       <span className="inline-flex items-center gap-1 text-xs text-gray-500">
                         <Clock className="w-3.5 h-3.5" />
                         {session.duree_minuteur} min
+                      </span>
+                      <span className="text-xs text-gray-400">
+                        Niveaux par question
                       </span>
                     </div>
                   </div>
