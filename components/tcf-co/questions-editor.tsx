@@ -31,6 +31,7 @@ import {
   ArrowLeft,
   CheckCircle2,
   Headphones,
+  ImageIcon,
   Loader2,
   Pencil,
   Trash2,
@@ -39,9 +40,11 @@ import {
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
-const MAX_QUESTIONS = 40;
+const MAX_QUESTIONS = 39;
 const AUDIO_BUCKET = 'tcf-co-audios';
+const IMAGE_BUCKET = 'tcf-co-images';
 const MAX_AUDIO_BYTES = 10 * 1024 * 1024;
+const MAX_IMAGE_BYTES = 5 * 1024 * 1024;
 const ACCEPTED_AUDIO_EXT = ['mp3', 'wav', 'm4a'];
 const ACCEPTED_AUDIO_MIME = [
   'audio/mpeg',
@@ -53,6 +56,8 @@ const ACCEPTED_AUDIO_MIME = [
   'audio/m4a',
   'audio/x-m4a',
 ];
+const ACCEPTED_IMAGE_EXT = ['jpg', 'jpeg', 'png'];
+const ACCEPTED_IMAGE_MIME = ['image/jpeg', 'image/jpg', 'image/png'];
 
 type CEFR = 'A1' | 'A2' | 'B1' | 'B2' | 'C1' | 'C2';
 type BonneReponse = 'a' | 'b' | 'c' | 'd';
@@ -70,6 +75,7 @@ interface TcfCoQuestion {
   ordre: number;
   niveau: CEFR;
   audio_url: string;
+  image_url: string | null;
   question_texte: string;
   choix_a: string;
   choix_b: string;
@@ -89,6 +95,8 @@ interface QuestionFormState {
   bonneReponse: BonneReponse | '';
   audioPath: string;
   audioPreviewUrl: string;
+  imagePath: string;
+  imagePreviewUrl: string;
 }
 
 const emptyForm = (): QuestionFormState => ({
@@ -101,6 +109,8 @@ const emptyForm = (): QuestionFormState => ({
   bonneReponse: '',
   audioPath: '',
   audioPreviewUrl: '',
+  imagePath: '',
+  imagePreviewUrl: '',
 });
 
 const cefrLevels: CEFR[] = ['A1', 'A2', 'B1', 'B2', 'C1', 'C2'];
@@ -109,6 +119,12 @@ function isAcceptedAudio(file: File): boolean {
   const ext = file.name.split('.').pop()?.toLowerCase() ?? '';
   if (ACCEPTED_AUDIO_EXT.includes(ext)) return true;
   return ACCEPTED_AUDIO_MIME.includes(file.type);
+}
+
+function isAcceptedImage(file: File): boolean {
+  const ext = file.name.split('.').pop()?.toLowerCase() ?? '';
+  if (ACCEPTED_IMAGE_EXT.includes(ext)) return true;
+  return ACCEPTED_IMAGE_MIME.includes(file.type);
 }
 
 function truncate(text: string, max = 72): string {
@@ -122,7 +138,8 @@ export default function TcfCoQuestionsEditor() {
   const router = useRouter();
   const sessionId = params.sessionId as string;
   const supabase = useMemo(() => createClient(), []);
-  const fileInputRef = useRef<HTMLInputElement>(null);
+  const audioInputRef = useRef<HTMLInputElement>(null);
+  const imageInputRef = useRef<HTMLInputElement>(null);
 
   const [session, setSession] = useState<TcfCoSession | null>(null);
   const [questions, setQuestions] = useState<TcfCoQuestion[]>([]);
@@ -134,18 +151,22 @@ export default function TcfCoQuestionsEditor() {
   const [formError, setFormError] = useState<string | null>(null);
   const [formSuccess, setFormSuccess] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
-  const [uploading, setUploading] = useState(false);
+  const [uploadingAudio, setUploadingAudio] = useState(false);
+  const [uploadingImage, setUploadingImage] = useState(false);
   const [publishing, setPublishing] = useState(false);
-  const [dragOver, setDragOver] = useState(false);
+  const [audioDragOver, setAudioDragOver] = useState(false);
+  const [imageDragOver, setImageDragOver] = useState(false);
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [deleting, setDeleting] = useState(false);
 
+  const uploading = uploadingAudio || uploadingImage;
+
   const loadSignedUrl = useCallback(
-    async (path: string): Promise<string> => {
+    async (bucket: string, path: string): Promise<string> => {
       if (!path) return '';
       if (path.startsWith('blob:') || path.startsWith('http')) return path;
       const { data, error } = await supabase.storage
-        .from(AUDIO_BUCKET)
+        .from(bucket)
         .createSignedUrl(path, 3600);
       if (error) throw error;
       return data.signedUrl;
@@ -175,7 +196,7 @@ export default function TcfCoQuestionsEditor() {
       const { data: questionsData, error: questionsError } = await supabase
         .from('tcf_co_questions')
         .select(
-          'id, session_id, ordre, niveau, audio_url, question_texte, choix_a, choix_b, choix_c, choix_d, bonne_reponse, created_at'
+          'id, session_id, ordre, niveau, audio_url, image_url, question_texte, choix_a, choix_b, choix_c, choix_d, bonne_reponse, created_at'
         )
         .eq('session_id', sessionId)
         .order('ordre', { ascending: true });
@@ -204,10 +225,14 @@ export default function TcfCoQuestionsEditor() {
     if (form.audioPreviewUrl.startsWith('blob:')) {
       URL.revokeObjectURL(form.audioPreviewUrl);
     }
+    if (form.imagePreviewUrl.startsWith('blob:')) {
+      URL.revokeObjectURL(form.imagePreviewUrl);
+    }
     setForm(emptyForm());
     setEditingId(null);
     setFormError(null);
-    if (fileInputRef.current) fileInputRef.current.value = '';
+    if (audioInputRef.current) audioInputRef.current.value = '';
+    if (imageInputRef.current) imageInputRef.current.value = '';
   }
 
   async function handleAudioFile(file: File | null | undefined) {
@@ -229,7 +254,7 @@ export default function TcfCoQuestionsEditor() {
       URL.revokeObjectURL(form.audioPreviewUrl);
     }
     setForm((prev) => ({ ...prev, audioPreviewUrl: localUrl }));
-    setUploading(true);
+    setUploadingAudio(true);
 
     try {
       const ext = file.name.split('.').pop()?.toLowerCase() || 'mp3';
@@ -242,7 +267,7 @@ export default function TcfCoQuestionsEditor() {
         });
       if (uploadError) throw uploadError;
 
-      const signed = await loadSignedUrl(path);
+      const signed = await loadSignedUrl(AUDIO_BUCKET, path);
       if (localUrl.startsWith('blob:')) URL.revokeObjectURL(localUrl);
       setForm((prev) => ({
         ...prev,
@@ -258,20 +283,93 @@ export default function TcfCoQuestionsEditor() {
       );
       setForm((prev) => ({ ...prev, audioPath: '', audioPreviewUrl: '' }));
     } finally {
-      setUploading(false);
-      if (fileInputRef.current) fileInputRef.current.value = '';
+      setUploadingAudio(false);
+      if (audioInputRef.current) audioInputRef.current.value = '';
     }
+  }
+
+  async function handleImageFile(file: File | null | undefined) {
+    if (!file) return;
+    setFormError(null);
+    setFormSuccess(null);
+
+    if (!isAcceptedImage(file)) {
+      setFormError('Formats image acceptés : jpg, jpeg, png.');
+      return;
+    }
+    if (file.size > MAX_IMAGE_BYTES) {
+      setFormError('Le fichier image ne doit pas dépasser 5 Mo.');
+      return;
+    }
+
+    const localUrl = URL.createObjectURL(file);
+    if (form.imagePreviewUrl.startsWith('blob:')) {
+      URL.revokeObjectURL(form.imagePreviewUrl);
+    }
+    setForm((prev) => ({ ...prev, imagePreviewUrl: localUrl }));
+    setUploadingImage(true);
+
+    try {
+      const ext = file.name.split('.').pop()?.toLowerCase() || 'jpg';
+      const path = `${sessionId}/${crypto.randomUUID()}.${ext}`;
+      const { error: uploadError } = await supabase.storage
+        .from(IMAGE_BUCKET)
+        .upload(path, file, {
+          upsert: false,
+          contentType: file.type || undefined,
+        });
+      if (uploadError) throw uploadError;
+
+      const signed = await loadSignedUrl(IMAGE_BUCKET, path);
+      if (localUrl.startsWith('blob:')) URL.revokeObjectURL(localUrl);
+      setForm((prev) => ({
+        ...prev,
+        imagePath: path,
+        imagePreviewUrl: signed,
+      }));
+    } catch (err) {
+      console.error(err);
+      setFormError(
+        err instanceof Error
+          ? err.message
+          : 'Échec de l’upload image. Réessayez.'
+      );
+      setForm((prev) => ({ ...prev, imagePath: '', imagePreviewUrl: '' }));
+    } finally {
+      setUploadingImage(false);
+      if (imageInputRef.current) imageInputRef.current.value = '';
+    }
+  }
+
+  function clearImage() {
+    if (form.imagePreviewUrl.startsWith('blob:')) {
+      URL.revokeObjectURL(form.imagePreviewUrl);
+    }
+    setForm((prev) => ({
+      ...prev,
+      imagePath: '',
+      imagePreviewUrl: '',
+    }));
+    if (imageInputRef.current) imageInputRef.current.value = '';
   }
 
   async function startEdit(question: TcfCoQuestion) {
     setFormError(null);
     setFormSuccess(null);
     setEditingId(question.id);
-    let preview = '';
+    let audioPreview = '';
+    let imagePreview = '';
     try {
-      preview = await loadSignedUrl(question.audio_url);
+      audioPreview = await loadSignedUrl(AUDIO_BUCKET, question.audio_url);
     } catch (err) {
       console.error(err);
+    }
+    if (question.image_url) {
+      try {
+        imagePreview = await loadSignedUrl(IMAGE_BUCKET, question.image_url);
+      } catch (err) {
+        console.error(err);
+      }
     }
     setForm({
       niveau: question.niveau,
@@ -282,7 +380,9 @@ export default function TcfCoQuestionsEditor() {
       choixD: question.choix_d,
       bonneReponse: question.bonne_reponse,
       audioPath: question.audio_url,
-      audioPreviewUrl: preview,
+      audioPreviewUrl: audioPreview,
+      imagePath: question.image_url ?? '',
+      imagePreviewUrl: imagePreview,
     });
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
@@ -338,7 +438,7 @@ export default function TcfCoQuestionsEditor() {
       return;
     }
     if (!editingId && isFull) {
-      setFormError('Cette séance contient déjà 40 questions.');
+      setFormError('Cette séance contient déjà 39 questions.');
       return;
     }
 
@@ -350,6 +450,7 @@ export default function TcfCoQuestionsEditor() {
           .update({
             niveau: form.niveau,
             audio_url: form.audioPath,
+            image_url: form.imagePath || null,
             question_texte: questionTexte,
             choix_a: choixA,
             choix_b: choixB,
@@ -365,13 +466,14 @@ export default function TcfCoQuestionsEditor() {
         const ordre =
           questions.reduce((max, q) => Math.max(max, q.ordre), 0) + 1;
         if (ordre > MAX_QUESTIONS) {
-          throw new Error('Cette séance contient déjà 40 questions.');
+          throw new Error('Cette séance contient déjà 39 questions.');
         }
         const { error } = await supabase.from('tcf_co_questions').insert({
           session_id: sessionId,
           ordre,
           niveau: form.niveau,
           audio_url: form.audioPath,
+          image_url: form.imagePath || null,
           question_texte: questionTexte,
           choix_a: choixA,
           choix_b: choixB,
@@ -411,6 +513,9 @@ export default function TcfCoQuestionsEditor() {
 
       if (target?.audio_url && !target.audio_url.startsWith('http')) {
         await supabase.storage.from(AUDIO_BUCKET).remove([target.audio_url]);
+      }
+      if (target?.image_url && !target.image_url.startsWith('http')) {
+        await supabase.storage.from(IMAGE_BUCKET).remove([target.image_url]);
       }
 
       if (editingId === deleteId) resetForm();
@@ -565,50 +670,52 @@ export default function TcfCoQuestionsEditor() {
               </div>
 
               <div className="space-y-2">
-                <Label>Fichier audio</Label>
+                <Label>Fichier audio (obligatoire)</Label>
                 <div
                   className={cn(
                     'rounded-xl border-2 border-dashed px-4 py-8 text-center transition-colors cursor-pointer',
-                    dragOver
+                    audioDragOver
                       ? 'border-flehub-green bg-flehub-green-light/50'
                       : 'border-gray-200 bg-gray-50 hover:border-flehub-green/50'
                   )}
-                  onClick={() => !uploading && fileInputRef.current?.click()}
+                  onClick={() =>
+                    !uploading && audioInputRef.current?.click()
+                  }
                   onDragEnter={(e) => {
                     e.preventDefault();
-                    setDragOver(true);
+                    setAudioDragOver(true);
                   }}
                   onDragOver={(e) => {
                     e.preventDefault();
-                    setDragOver(true);
+                    setAudioDragOver(true);
                   }}
                   onDragLeave={(e) => {
                     e.preventDefault();
-                    setDragOver(false);
+                    setAudioDragOver(false);
                   }}
                   onDrop={(e) => {
                     e.preventDefault();
-                    setDragOver(false);
+                    setAudioDragOver(false);
                     void handleAudioFile(e.dataTransfer.files?.[0]);
                   }}
                 >
                   <input
-                    ref={fileInputRef}
+                    ref={audioInputRef}
                     type="file"
                     accept=".mp3,.wav,.m4a,audio/mpeg,audio/wav,audio/mp4,audio/m4a,audio/x-m4a"
                     className="hidden"
                     onChange={(e) => void handleAudioFile(e.target.files?.[0])}
                   />
                   <div className="mx-auto mb-3 flex h-10 w-10 items-center justify-center rounded-lg bg-white border border-gray-200">
-                    {uploading ? (
+                    {uploadingAudio ? (
                       <Loader2 className="w-5 h-5 animate-spin text-flehub-green" />
                     ) : (
                       <Upload className="w-5 h-5 text-flehub-green" />
                     )}
                   </div>
                   <p className="text-sm font-medium text-gray-800">
-                    {uploading
-                      ? 'Upload en cours…'
+                    {uploadingAudio
+                      ? 'Upload audio en cours…'
                       : 'Glisser-déposer un audio, ou cliquer pour choisir'}
                   </p>
                   <p className="text-xs text-gray-400 mt-1">
@@ -627,6 +734,88 @@ export default function TcfCoQuestionsEditor() {
                       controls
                       src={form.audioPreviewUrl}
                       className="w-full"
+                    />
+                  </div>
+                )}
+              </div>
+
+              <div className="space-y-2">
+                <Label>Image associée (optionnelle)</Label>
+                <div
+                  className={cn(
+                    'rounded-xl border-2 border-dashed px-4 py-8 text-center transition-colors cursor-pointer',
+                    imageDragOver
+                      ? 'border-flehub-green bg-flehub-green-light/50'
+                      : 'border-gray-200 bg-gray-50 hover:border-flehub-green/50'
+                  )}
+                  onClick={() =>
+                    !uploading && imageInputRef.current?.click()
+                  }
+                  onDragEnter={(e) => {
+                    e.preventDefault();
+                    setImageDragOver(true);
+                  }}
+                  onDragOver={(e) => {
+                    e.preventDefault();
+                    setImageDragOver(true);
+                  }}
+                  onDragLeave={(e) => {
+                    e.preventDefault();
+                    setImageDragOver(false);
+                  }}
+                  onDrop={(e) => {
+                    e.preventDefault();
+                    setImageDragOver(false);
+                    void handleImageFile(e.dataTransfer.files?.[0]);
+                  }}
+                >
+                  <input
+                    ref={imageInputRef}
+                    type="file"
+                    accept=".jpg,.jpeg,.png,image/jpeg,image/png"
+                    className="hidden"
+                    onChange={(e) => void handleImageFile(e.target.files?.[0])}
+                  />
+                  <div className="mx-auto mb-3 flex h-10 w-10 items-center justify-center rounded-lg bg-white border border-gray-200">
+                    {uploadingImage ? (
+                      <Loader2 className="w-5 h-5 animate-spin text-flehub-green" />
+                    ) : (
+                      <ImageIcon className="w-5 h-5 text-flehub-green" />
+                    )}
+                  </div>
+                  <p className="text-sm font-medium text-gray-800">
+                    {uploadingImage
+                      ? 'Upload image en cours…'
+                      : 'Glisser-déposer une image, ou cliquer pour choisir'}
+                  </p>
+                  <p className="text-xs text-gray-400 mt-1">
+                    jpg, jpeg, png · max 5 Mo · facultatif
+                  </p>
+                </div>
+
+                {form.imagePreviewUrl && (
+                  <div className="rounded-lg border border-gray-100 bg-white p-3 space-y-2">
+                    <div className="flex items-center justify-between gap-2">
+                      <div className="flex items-center gap-2 text-xs text-gray-500">
+                        <ImageIcon className="w-3.5 h-3.5 text-flehub-green" />
+                        Aperçu image
+                      </div>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={clearImage}
+                        disabled={saving || uploading}
+                      >
+                        Retirer l’image
+                      </Button>
+                    </div>
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      key={form.imagePreviewUrl}
+                      src={form.imagePreviewUrl}
+                      alt="Aperçu de l’image associée"
+                      className="w-full max-h-[320px] object-contain rounded-md border border-gray-100 bg-gray-50"
                     />
                   </div>
                 )}
@@ -761,7 +950,7 @@ export default function TcfCoQuestionsEditor() {
           <CardContent className="p-6 flex flex-col sm:flex-row sm:items-center gap-4 justify-between">
             <div>
               <h2 className="text-lg font-semibold text-gray-900">
-                40 questions atteintes
+                39 questions atteintes
               </h2>
               <p className="text-sm text-gray-500 mt-1">
                 {session.statut === 'publiee'
@@ -867,8 +1056,8 @@ export default function TcfCoQuestionsEditor() {
             <DialogTitle>Supprimer cette question ?</DialogTitle>
           </DialogHeader>
           <p className="text-sm text-gray-500">
-            L’audio associé sera aussi retiré du stockage. Les numéros d’ordre
-            seront recalculés.
+            L’audio et l’image associés seront aussi retirés du stockage. Les
+            numéros d’ordre seront recalculés.
           </p>
           <DialogFooter>
             <Button

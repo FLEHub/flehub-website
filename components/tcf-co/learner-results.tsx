@@ -121,7 +121,7 @@ export default function LearnerTcfCoResults() {
   }, [attemptId, supabase]);
 
   const sessionId = results?.session_id ?? sessionIdParam ?? '';
-  const total = results?.total || 40;
+  const total = results?.total || 39;
   const score = results?.score ?? 0;
   const percent =
     results?.pourcentage ??

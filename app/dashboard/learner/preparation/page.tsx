@@ -91,7 +91,7 @@ export default function LearnerPreparationPage() {
                   </h3>
                   <span className="inline-flex items-center gap-1 text-xs text-gray-500 mt-2">
                     <Clock className="w-3.5 h-3.5" />
-                    {session.duree_minuteur} min · 40 questions
+                    {session.duree_minuteur} min · 39 questions
                   </span>
                 </div>
                 <Button

@@ -10,16 +10,23 @@ import { Label } from '@/components/ui/label';
 import { Skeleton } from '@/components/ui/skeleton';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import {
+  Dialog,
+  DialogContent,
+  DialogTitle,
+} from '@/components/ui/dialog';
+import {
   AlertTriangle,
   ArrowLeft,
   Clock,
   Headphones,
   Loader2,
+  ZoomIn,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 const AUDIO_BUCKET = 'tcf-co-audios';
-const TOTAL_QUESTIONS = 40;
+const IMAGE_BUCKET = 'tcf-co-images';
+const TOTAL_QUESTIONS = 39;
 
 type Choice = 'a' | 'b' | 'c' | 'd';
 
@@ -37,6 +44,7 @@ interface SafeQuestion {
   ordre: number;
   niveau: string;
   audio_url: string;
+  image_url: string | null;
   question_texte: string;
   choix_a: string;
   choix_b: string;
@@ -75,6 +83,9 @@ export default function LearnerTakeTcfCoSession() {
   const [selected, setSelected] = useState<Choice | ''>('');
   const [audioUrl, setAudioUrl] = useState<string>('');
   const [audioLoading, setAudioLoading] = useState(false);
+  const [imageUrl, setImageUrl] = useState('');
+  const [imageLoading, setImageLoading] = useState(false);
+  const [zoomOpen, setZoomOpen] = useState(false);
   const [finishing, setFinishing] = useState(false);
 
   const answersRef = useRef(answers);
@@ -201,7 +212,7 @@ export default function LearnerTakeTcfCoSession() {
         const { data: questionsData, error: questionsError } = await supabase
           .from('tcf_co_questions_pour_apprenants')
           .select(
-            'id, session_id, ordre, niveau, audio_url, question_texte, choix_a, choix_b, choix_c, choix_d'
+            'id, session_id, ordre, niveau, audio_url, image_url, question_texte, choix_a, choix_b, choix_c, choix_d'
           )
           .eq('session_id', sessionId)
           .order('ordre', { ascending: true });
@@ -308,27 +319,31 @@ export default function LearnerTakeTcfCoSession() {
     return () => window.clearInterval(id);
   }, [startedAtMs, durationSeconds, finishing]);
 
-  // Charger l'audio de la question courante (URL signée, jamais bonne_reponse)
+  // Charger l'audio (+ image optionnelle) de la question courante
   useEffect(() => {
     let cancelled = false;
-    async function loadAudio() {
+    async function loadMedia() {
       if (!currentQuestion) {
         setAudioUrl('');
+        setImageUrl('');
         return;
       }
       setAudioLoading(true);
+      setImageLoading(Boolean(currentQuestion.image_url));
       setSelected(answers[currentQuestion.id] ?? '');
+      setZoomOpen(false);
+
       try {
-        const path = currentQuestion.audio_url;
-        if (path.startsWith('http') || path.startsWith('blob:')) {
-          if (!cancelled) setAudioUrl(path);
-          return;
+        const audioPath = currentQuestion.audio_url;
+        if (audioPath.startsWith('http') || audioPath.startsWith('blob:')) {
+          if (!cancelled) setAudioUrl(audioPath);
+        } else {
+          const { data, error: signedError } = await supabase.storage
+            .from(AUDIO_BUCKET)
+            .createSignedUrl(audioPath, 3600);
+          if (signedError) throw signedError;
+          if (!cancelled) setAudioUrl(data.signedUrl);
         }
-        const { data, error: signedError } = await supabase.storage
-          .from(AUDIO_BUCKET)
-          .createSignedUrl(path, 3600);
-        if (signedError) throw signedError;
-        if (!cancelled) setAudioUrl(data.signedUrl);
       } catch (err) {
         console.error(err);
         if (!cancelled) {
@@ -338,8 +353,37 @@ export default function LearnerTakeTcfCoSession() {
       } finally {
         if (!cancelled) setAudioLoading(false);
       }
+
+      const imagePath = currentQuestion.image_url;
+      if (!imagePath) {
+        if (!cancelled) {
+          setImageUrl('');
+          setImageLoading(false);
+        }
+        return;
+      }
+
+      try {
+        if (imagePath.startsWith('http') || imagePath.startsWith('blob:')) {
+          if (!cancelled) setImageUrl(imagePath);
+          return;
+        }
+        const { data, error: signedError } = await supabase.storage
+          .from(IMAGE_BUCKET)
+          .createSignedUrl(imagePath, 3600);
+        if (signedError) throw signedError;
+        if (!cancelled) setImageUrl(data.signedUrl);
+      } catch (err) {
+        console.error(err);
+        if (!cancelled) {
+          setImageUrl('');
+          setError('Impossible de charger l’image de cette question.');
+        }
+      } finally {
+        if (!cancelled) setImageLoading(false);
+      }
     }
-    void loadAudio();
+    void loadMedia();
     return () => {
       cancelled = true;
     };
@@ -477,8 +521,41 @@ export default function LearnerTakeTcfCoSession() {
           <CardContent className="p-6 space-y-5">
             <div className="flex items-center gap-2 text-xs text-gray-500">
               <Headphones className="w-3.5 h-3.5 text-flehub-green" />
-              Écoutez l’audio, puis choisissez une réponse
+              Écoutez l’audio
+              {currentQuestion.image_url ? ' et consultez l’image' : ''}
+              , puis choisissez une réponse
             </div>
+
+            {(currentQuestion.image_url || imageLoading || imageUrl) && (
+              <div className="rounded-lg border border-gray-100 bg-gray-50 p-3 space-y-2">
+                {imageLoading ? (
+                  <div className="flex items-center gap-2 text-sm text-gray-500 py-8 justify-center">
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    Chargement de l’image…
+                  </div>
+                ) : imageUrl ? (
+                  <button
+                    type="button"
+                    onClick={() => setZoomOpen(true)}
+                    className="block w-full group relative"
+                  >
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      key={imageUrl}
+                      src={imageUrl}
+                      alt="Support visuel de la question"
+                      className="w-full max-h-[420px] object-contain rounded-md bg-white border border-gray-100"
+                    />
+                    <span className="absolute bottom-2 right-2 inline-flex items-center gap-1 rounded-md bg-black/60 text-white text-xs px-2 py-1 opacity-90 group-hover:opacity-100">
+                      <ZoomIn className="w-3.5 h-3.5" />
+                      Agrandir
+                    </span>
+                  </button>
+                ) : (
+                  <p className="text-sm text-red-600 py-2">Image indisponible</p>
+                )}
+              </div>
+            )}
 
             <div className="rounded-lg border border-gray-100 bg-gray-50 p-3">
               {audioLoading ? (
@@ -583,6 +660,22 @@ export default function LearnerTakeTcfCoSession() {
           </CardContent>
         </Card>
       ) : null}
+
+      <Dialog open={zoomOpen} onOpenChange={setZoomOpen}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-auto p-3">
+          <DialogTitle className="sr-only">
+            Aperçu agrandi de l’image
+          </DialogTitle>
+          {imageUrl && (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={imageUrl}
+              alt="Support visuel (agrandi)"
+              className="w-full h-auto object-contain"
+            />
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
