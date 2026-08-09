@@ -12,11 +12,12 @@ import {
   ChevronRight,
   Clock,
   Headphones,
+  PenLine,
   Plus,
 } from 'lucide-react';
 
 type SessionStatut = 'brouillon' | 'publiee';
-type SessionKind = 'co' | 'ce';
+type SessionKind = 'co' | 'ce' | 'ee';
 
 interface PrepSession {
   id: string;
@@ -42,30 +43,47 @@ const kindConfig: Record<
   SessionKind,
   {
     label: string;
+    fullLabel: string;
     badgeClass: string;
     iconWrapClass: string;
     iconClass: string;
+    manageLabel: string;
     Icon: typeof Headphones;
-    questionsHref: (id: string) => string;
+    manageHref: (id: string) => string;
   }
 > = {
   co: {
     label: 'CO',
+    fullLabel: 'Compréhension orale',
     badgeClass: 'bg-sky-100 text-sky-700 border-sky-200',
     iconWrapClass: 'bg-flehub-green-light',
     iconClass: 'text-flehub-green',
+    manageLabel: 'Gérer les questions',
     Icon: Headphones,
-    questionsHref: (id) =>
+    manageHref: (id) =>
       `/dashboard/teacher/preparation/tcf-co/${id}/questions`,
   },
   ce: {
     label: 'CE',
+    fullLabel: 'Compréhension écrite',
     badgeClass: 'bg-amber-100 text-amber-800 border-amber-200',
     iconWrapClass: 'bg-amber-50',
     iconClass: 'text-amber-700',
+    manageLabel: 'Gérer les questions',
     Icon: BookOpenText,
-    questionsHref: (id) =>
+    manageHref: (id) =>
       `/dashboard/teacher/preparation/tcf-ce/${id}/questions`,
+  },
+  ee: {
+    label: 'EE',
+    fullLabel: 'Expression écrite',
+    badgeClass: 'bg-blue-100 text-blue-800 border-blue-200',
+    iconWrapClass: 'bg-blue-50',
+    iconClass: 'text-blue-700',
+    manageLabel: 'Gérer les tâches',
+    Icon: PenLine,
+    manageHref: (id) =>
+      `/dashboard/teacher/preparation/tcf-ee/${id}/taches`,
   },
 };
 
@@ -85,13 +103,17 @@ export default function TeacherPreparationPage() {
       } = await supabase.auth.getUser();
       if (!user) return;
 
-      const [coRes, ceRes] = await Promise.all([
+      const [coRes, ceRes, eeRes] = await Promise.all([
         supabase
           .from('tcf_co_sessions')
           .select('id, titre, duree_minuteur, statut, created_at')
           .eq('created_by', user.id),
         supabase
           .from('tcf_ce_sessions')
+          .select('id, titre, duree_minuteur, statut, created_at')
+          .eq('created_by', user.id),
+        supabase
+          .from('tcf_ee_sessions')
           .select('id, titre, duree_minuteur, statut, created_at')
           .eq('created_by', user.id),
       ]);
@@ -104,8 +126,12 @@ export default function TeacherPreparationPage() {
         ...(s as Omit<PrepSession, 'kind'>),
         kind: 'ce' as const,
       }));
+      const eeSessions: PrepSession[] = (eeRes.data ?? []).map((s) => ({
+        ...(s as Omit<PrepSession, 'kind'>),
+        kind: 'ee' as const,
+      }));
 
-      const merged = [...coSessions, ...ceSessions].sort(
+      const merged = [...coSessions, ...ceSessions, ...eeSessions].sort(
         (a, b) =>
           new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
       );
@@ -123,7 +149,7 @@ export default function TeacherPreparationPage() {
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Préparation</h1>
           <p className="text-gray-500 text-sm mt-1">
-            Créez et gérez vos séances TCF Compréhension Orale et Écrite
+            Créez et gérez vos séances TCF (CO, CE et EE)
           </p>
         </div>
         <div className="flex flex-col sm:flex-row gap-2">
@@ -146,6 +172,16 @@ export default function TeacherPreparationPage() {
               Nouvelle séance TCF CE
             </Link>
           </Button>
+          <Button
+            asChild
+            variant="outline"
+            className="border-blue-300 text-blue-800 hover:bg-blue-50"
+          >
+            <Link href="/dashboard/teacher/preparation/tcf-ee/new">
+              <Plus className="w-4 h-4 mr-1.5" />
+              Nouvelle séance TCF EE
+            </Link>
+          </Button>
         </div>
       </div>
 
@@ -165,13 +201,16 @@ export default function TeacherPreparationPage() {
               <div className="p-3 rounded-lg bg-amber-50">
                 <BookOpenText className="w-6 h-6 text-amber-700" />
               </div>
+              <div className="p-3 rounded-lg bg-blue-50">
+                <PenLine className="w-6 h-6 text-blue-700" />
+              </div>
             </div>
             <h2 className="text-lg font-semibold text-gray-900">
               Aucune séance TCF
             </h2>
             <p className="text-sm text-gray-500 mt-1 max-w-sm">
-              Créez une séance de compréhension orale (CO) ou écrite (CE), puis
-              ajoutez les questions.
+              Créez une séance de compréhension orale (CO), écrite (CE) ou
+              d’expression écrite (EE).
             </p>
             <div className="mt-6 flex flex-col sm:flex-row gap-2">
               <Button
@@ -191,6 +230,16 @@ export default function TeacherPreparationPage() {
                 <Link href="/dashboard/teacher/preparation/tcf-ce/new">
                   <Plus className="w-4 h-4 mr-1.5" />
                   Séance TCF CE
+                </Link>
+              </Button>
+              <Button
+                asChild
+                variant="outline"
+                className="border-blue-300 text-blue-800 hover:bg-blue-50"
+              >
+                <Link href="/dashboard/teacher/preparation/tcf-ee/new">
+                  <Plus className="w-4 h-4 mr-1.5" />
+                  Séance TCF EE
                 </Link>
               </Button>
             </div>
@@ -228,9 +277,7 @@ export default function TeacherPreparationPage() {
                         {session.duree_minuteur} min
                       </span>
                       <span className="text-xs text-gray-400">
-                        {session.kind === 'co'
-                          ? 'Compréhension orale'
-                          : 'Compréhension écrite'}
+                        {kind.fullLabel}
                       </span>
                     </div>
                   </div>
@@ -240,8 +287,8 @@ export default function TeacherPreparationPage() {
                     size="sm"
                     className="w-full text-flehub-green hover:bg-flehub-green-light"
                   >
-                    <Link href={kind.questionsHref(session.id)}>
-                      Gérer les questions
+                    <Link href={kind.manageHref(session.id)}>
+                      {kind.manageLabel}
                       <ChevronRight className="w-4 h-4 ml-1" />
                     </Link>
                   </Button>
