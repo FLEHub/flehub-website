@@ -97,6 +97,12 @@ export default function LearnerTakeTcfEeSession() {
   const [taches, setTaches] = useState<TcfEeTache[]>([]);
   const [phase, setPhase] = useState<'intro' | 'test' | 'done'>('intro');
   const [alreadySubmitted, setAlreadySubmitted] = useState(false);
+  const [submittedAttemptId, setSubmittedAttemptId] = useState<string | null>(
+    null
+  );
+  const [submittedStatut, setSubmittedStatut] = useState<
+    'a_corriger' | 'corrige' | null
+  >(null);
 
   const [attemptId, setAttemptId] = useState<string | null>(null);
   const [startedAtMs, setStartedAtMs] = useState<number | null>(null);
@@ -205,7 +211,11 @@ export default function LearnerTakeTcfEeSession() {
           existing &&
           (existing.statut === 'a_corriger' || existing.statut === 'corrige')
         ) {
-          if (!cancelled) setAlreadySubmitted(true);
+          if (!cancelled) {
+            setAlreadySubmitted(true);
+            setSubmittedAttemptId(existing.id);
+            setSubmittedStatut(existing.statut);
+          }
           return;
         }
 
@@ -507,6 +517,10 @@ export default function LearnerTakeTcfEeSession() {
   }
 
   if (alreadySubmitted) {
+    const resultsHref = submittedAttemptId
+      ? `/dashboard/learner/preparation/tcf-ee/results/${submittedAttemptId}`
+      : null;
+    const isCorrected = submittedStatut === 'corrige';
     return (
       <div className="p-6 space-y-4 max-w-xl mx-auto">
         <Link
@@ -522,20 +536,25 @@ export default function LearnerTakeTcfEeSession() {
               <PenLine className="w-6 h-6 text-blue-700" />
             </div>
             <h1 className="text-xl font-bold text-gray-900">
-              Copie déjà envoyée
+              {isCorrected ? 'Correction disponible' : 'Copie déjà envoyée'}
             </h1>
             <p className="text-sm text-gray-500">
-              Vous avez déjà soumis cette séance. La correction arrivera
-              bientôt.
+              {isCorrected
+                ? 'Votre préparateur a publié la correction de cette séance.'
+                : 'Vous avez déjà soumis cette séance. La correction arrivera bientôt.'}
             </p>
             <Button
               asChild
               className="bg-flehub-green hover:bg-flehub-green/90 text-white"
             >
               <Link
-                href={`/dashboard/learner/preparation/tcf-ee/${sessionId}/confirmation`}
+                href={
+                  isCorrected && resultsHref
+                    ? resultsHref
+                    : `/dashboard/learner/preparation/tcf-ee/${sessionId}/confirmation`
+                }
               >
-                Voir la confirmation
+                {isCorrected ? 'Voir ma correction' : 'Voir la confirmation'}
               </Link>
             </Button>
           </CardContent>
