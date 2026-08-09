@@ -292,6 +292,21 @@ export default function TeacherPreparationPage() {
                       <ChevronRight className="w-4 h-4 ml-1" />
                     </Link>
                   </Button>
+                  {session.kind === 'ee' && session.statut === 'publiee' && (
+                    <Button
+                      asChild
+                      variant="ghost"
+                      size="sm"
+                      className="w-full text-blue-700 hover:bg-blue-50"
+                    >
+                      <Link
+                        href={`/dashboard/teacher/preparation/tcf-ee/${session.id}/corrections`}
+                      >
+                        Corriger les copies
+                        <ChevronRight className="w-4 h-4 ml-1" />
+                      </Link>
+                    </Button>
+                  )}
                 </CardContent>
               </Card>
             );

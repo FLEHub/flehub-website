@@ -453,10 +453,24 @@ export default function TcfEeTachesEditor() {
             </Button>
 
             {session.statut === 'publiee' ? (
-              <p className="text-sm text-gray-500">
-                Cette séance est déjà publiée. Vous pouvez encore modifier les
-                consignes.
-              </p>
+              <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2">
+                <p className="text-sm text-gray-500">
+                  Cette séance est déjà publiée. Vous pouvez encore modifier les
+                  consignes.
+                </p>
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="border-blue-300 text-blue-800 hover:bg-blue-50 shrink-0"
+                  asChild
+                >
+                  <Link
+                    href={`/dashboard/teacher/preparation/tcf-ee/${sessionId}/corrections`}
+                  >
+                    Corriger les copies
+                  </Link>
+                </Button>
+              </div>
             ) : canPublish ? (
               <Button
                 type="button"
