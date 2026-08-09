@@ -2,8 +2,7 @@
   # TCF CE — 39 questions (épreuve officielle)
 
   1. ordre : CHECK BETWEEN 1 AND 39 (au lieu de 40)
-  2. barème C2 : score_max 39 (au lieu de 40)
-     Proposition : 32–39 → C2 (à confirmer avant exécution si besoin)
+  2. barème C2 : score_max 39 (au lieu de 40) → tranche 32–39 → C2
 */
 
 -- ---------------------------------------------------------------------------
