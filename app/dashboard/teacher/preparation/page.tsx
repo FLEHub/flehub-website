@@ -7,12 +7,20 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Headphones, Plus, Clock, ChevronRight } from 'lucide-react';
+import {
+  BookOpenText,
+  ChevronRight,
+  Clock,
+  Headphones,
+  Plus,
+} from 'lucide-react';
 
 type SessionStatut = 'brouillon' | 'publiee';
+type SessionKind = 'co' | 'ce';
 
-interface TcfCoSession {
+interface PrepSession {
   id: string;
+  kind: SessionKind;
   titre: string;
   duree_minuteur: number;
   statut: SessionStatut;
@@ -30,9 +38,40 @@ const statutConfig: Record<SessionStatut, { label: string; badgeClass: string }>
   },
 };
 
+const kindConfig: Record<
+  SessionKind,
+  {
+    label: string;
+    badgeClass: string;
+    iconWrapClass: string;
+    iconClass: string;
+    Icon: typeof Headphones;
+    questionsHref: (id: string) => string;
+  }
+> = {
+  co: {
+    label: 'CO',
+    badgeClass: 'bg-sky-100 text-sky-700 border-sky-200',
+    iconWrapClass: 'bg-flehub-green-light',
+    iconClass: 'text-flehub-green',
+    Icon: Headphones,
+    questionsHref: (id) =>
+      `/dashboard/teacher/preparation/tcf-co/${id}/questions`,
+  },
+  ce: {
+    label: 'CE',
+    badgeClass: 'bg-amber-100 text-amber-800 border-amber-200',
+    iconWrapClass: 'bg-amber-50',
+    iconClass: 'text-amber-700',
+    Icon: BookOpenText,
+    questionsHref: (id) =>
+      `/dashboard/teacher/preparation/tcf-ce/${id}/questions`,
+  },
+};
+
 export default function TeacherPreparationPage() {
   const supabase = createClient();
-  const [sessions, setSessions] = useState<TcfCoSession[]>([]);
+  const [sessions, setSessions] = useState<PrepSession[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -46,13 +85,31 @@ export default function TeacherPreparationPage() {
       } = await supabase.auth.getUser();
       if (!user) return;
 
-      const { data } = await supabase
-        .from('tcf_co_sessions')
-        .select('id, titre, duree_minuteur, statut, created_at')
-        .eq('created_by', user.id)
-        .order('created_at', { ascending: false });
+      const [coRes, ceRes] = await Promise.all([
+        supabase
+          .from('tcf_co_sessions')
+          .select('id, titre, duree_minuteur, statut, created_at')
+          .eq('created_by', user.id),
+        supabase
+          .from('tcf_ce_sessions')
+          .select('id, titre, duree_minuteur, statut, created_at')
+          .eq('created_by', user.id),
+      ]);
 
-      setSessions((data as TcfCoSession[]) ?? []);
+      const coSessions: PrepSession[] = (coRes.data ?? []).map((s) => ({
+        ...(s as Omit<PrepSession, 'kind'>),
+        kind: 'co' as const,
+      }));
+      const ceSessions: PrepSession[] = (ceRes.data ?? []).map((s) => ({
+        ...(s as Omit<PrepSession, 'kind'>),
+        kind: 'ce' as const,
+      }));
+
+      const merged = [...coSessions, ...ceSessions].sort(
+        (a, b) =>
+          new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+      );
+      setSessions(merged);
     } catch (err) {
       console.error(err);
     } finally {
@@ -62,22 +119,34 @@ export default function TeacherPreparationPage() {
 
   return (
     <div className="p-6 space-y-6 max-w-7xl mx-auto">
-      <div className="flex items-center justify-between gap-4">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Préparation</h1>
           <p className="text-gray-500 text-sm mt-1">
-            Créez et gérez vos séances TCF Compréhension Orale
+            Créez et gérez vos séances TCF Compréhension Orale et Écrite
           </p>
         </div>
-        <Button
-          asChild
-          className="bg-flehub-green hover:bg-flehub-green/90 text-white"
-        >
-          <Link href="/dashboard/teacher/preparation/tcf-co/new">
-            <Plus className="w-4 h-4 mr-1.5" />
-            Nouvelle séance TCF CO
-          </Link>
-        </Button>
+        <div className="flex flex-col sm:flex-row gap-2">
+          <Button
+            asChild
+            className="bg-flehub-green hover:bg-flehub-green/90 text-white"
+          >
+            <Link href="/dashboard/teacher/preparation/tcf-co/new">
+              <Plus className="w-4 h-4 mr-1.5" />
+              Nouvelle séance TCF CO
+            </Link>
+          </Button>
+          <Button
+            asChild
+            variant="outline"
+            className="border-amber-300 text-amber-800 hover:bg-amber-50"
+          >
+            <Link href="/dashboard/teacher/preparation/tcf-ce/new">
+              <Plus className="w-4 h-4 mr-1.5" />
+              Nouvelle séance TCF CE
+            </Link>
+          </Button>
+        </div>
       </div>
 
       {loading ? (
@@ -89,41 +158,65 @@ export default function TeacherPreparationPage() {
       ) : sessions.length === 0 ? (
         <Card className="border-dashed">
           <CardContent className="flex flex-col items-center justify-center py-16 text-center">
-            <div className="p-3 rounded-lg bg-flehub-green-light mb-4">
-              <Headphones className="w-6 h-6 text-flehub-green" />
+            <div className="flex items-center gap-2 mb-4">
+              <div className="p-3 rounded-lg bg-flehub-green-light">
+                <Headphones className="w-6 h-6 text-flehub-green" />
+              </div>
+              <div className="p-3 rounded-lg bg-amber-50">
+                <BookOpenText className="w-6 h-6 text-amber-700" />
+              </div>
             </div>
             <h2 className="text-lg font-semibold text-gray-900">
-              Aucune séance TCF CO
+              Aucune séance TCF
             </h2>
             <p className="text-sm text-gray-500 mt-1 max-w-sm">
-              Créez votre première séance de compréhension orale, puis ajoutez les
-              questions audio.
+              Créez une séance de compréhension orale (CO) ou écrite (CE), puis
+              ajoutez les questions.
             </p>
-            <Button
-              asChild
-              className="mt-6 bg-flehub-green hover:bg-flehub-green/90 text-white"
-            >
-              <Link href="/dashboard/teacher/preparation/tcf-co/new">
-                <Plus className="w-4 h-4 mr-1.5" />
-                Créer une séance
-              </Link>
-            </Button>
+            <div className="mt-6 flex flex-col sm:flex-row gap-2">
+              <Button
+                asChild
+                className="bg-flehub-green hover:bg-flehub-green/90 text-white"
+              >
+                <Link href="/dashboard/teacher/preparation/tcf-co/new">
+                  <Plus className="w-4 h-4 mr-1.5" />
+                  Séance TCF CO
+                </Link>
+              </Button>
+              <Button
+                asChild
+                variant="outline"
+                className="border-amber-300 text-amber-800 hover:bg-amber-50"
+              >
+                <Link href="/dashboard/teacher/preparation/tcf-ce/new">
+                  <Plus className="w-4 h-4 mr-1.5" />
+                  Séance TCF CE
+                </Link>
+              </Button>
+            </div>
           </CardContent>
         </Card>
       ) : (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {sessions.map((session) => {
             const statut = statutConfig[session.statut] ?? statutConfig.brouillon;
+            const kind = kindConfig[session.kind];
+            const KindIcon = kind.Icon;
             return (
-              <Card key={session.id} className="card-hover">
+              <Card key={`${session.kind}-${session.id}`} className="card-hover">
                 <CardContent className="p-5 space-y-3">
                   <div className="flex items-start justify-between gap-2">
-                    <div className="p-2 rounded-lg bg-flehub-green-light">
-                      <Headphones className="w-4 h-4 text-flehub-green" />
+                    <div className={`p-2 rounded-lg ${kind.iconWrapClass}`}>
+                      <KindIcon className={`w-4 h-4 ${kind.iconClass}`} />
                     </div>
-                    <Badge variant="outline" className={statut.badgeClass}>
-                      {statut.label}
-                    </Badge>
+                    <div className="flex items-center gap-1.5">
+                      <Badge variant="outline" className={kind.badgeClass}>
+                        {kind.label}
+                      </Badge>
+                      <Badge variant="outline" className={statut.badgeClass}>
+                        {statut.label}
+                      </Badge>
+                    </div>
                   </div>
                   <div>
                     <h3 className="font-semibold text-gray-900 line-clamp-2">
@@ -135,7 +228,9 @@ export default function TeacherPreparationPage() {
                         {session.duree_minuteur} min
                       </span>
                       <span className="text-xs text-gray-400">
-                        Niveaux par question
+                        {session.kind === 'co'
+                          ? 'Compréhension orale'
+                          : 'Compréhension écrite'}
                       </span>
                     </div>
                   </div>
@@ -145,9 +240,7 @@ export default function TeacherPreparationPage() {
                     size="sm"
                     className="w-full text-flehub-green hover:bg-flehub-green-light"
                   >
-                    <Link
-                      href={`/dashboard/teacher/preparation/tcf-co/${session.id}/questions`}
-                    >
+                    <Link href={kind.questionsHref(session.id)}>
                       Gérer les questions
                       <ChevronRight className="w-4 h-4 ml-1" />
                     </Link>
