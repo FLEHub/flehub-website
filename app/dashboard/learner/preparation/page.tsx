@@ -7,15 +7,22 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
-import { BookOpenText, Clock, Headphones, PenLine, Play } from 'lucide-react';
+import {
+  BookOpenText,
+  Clock,
+  Headphones,
+  Mic,
+  PenLine,
+  Play,
+} from 'lucide-react';
 
-type SessionKind = 'co' | 'ce' | 'ee';
+type SessionKind = 'co' | 'ce' | 'ee' | 'eo';
 
 interface PublishedSession {
   id: string;
   kind: SessionKind;
   titre: string;
-  duree_minuteur: number;
+  duree_minuteur: number | null;
   created_at: string;
 }
 
@@ -58,6 +65,15 @@ const kindConfig: Record<
     metaLabel: '3 tâches',
     href: (id) => `/dashboard/learner/preparation/tcf-ee/${id}`,
   },
+  eo: {
+    label: 'EO',
+    badgeClass: 'bg-violet-100 text-violet-800 border-violet-200',
+    iconWrapClass: 'bg-violet-50',
+    iconClass: 'text-violet-700',
+    Icon: Mic,
+    metaLabel: 'Entraînement oral',
+    href: (id) => `/dashboard/learner/preparation/tcf-eo/${id}`,
+  },
 };
 
 export default function LearnerPreparationPage() {
@@ -68,7 +84,7 @@ export default function LearnerPreparationPage() {
   useEffect(() => {
     async function load() {
       try {
-        const [coRes, ceRes, eeRes] = await Promise.all([
+        const [coRes, ceRes, eeRes, eoRes] = await Promise.all([
           supabase
             .from('tcf_co_sessions')
             .select('id, titre, duree_minuteur, created_at')
@@ -81,27 +97,48 @@ export default function LearnerPreparationPage() {
             .from('tcf_ee_sessions')
             .select('id, titre, duree_minuteur, created_at')
             .eq('statut', 'publiee'),
+          supabase
+            .from('tcf_eo_sessions')
+            .select('id, titre, created_at')
+            .eq('statut', 'publiee'),
         ]);
 
         if (coRes.error) throw coRes.error;
         if (ceRes.error) throw ceRes.error;
         if (eeRes.error) throw eeRes.error;
+        if (eoRes.error) throw eoRes.error;
 
         const coSessions: PublishedSession[] = (coRes.data ?? []).map((s) => ({
-          ...(s as Omit<PublishedSession, 'kind'>),
+          id: s.id as string,
+          titre: s.titre as string,
+          duree_minuteur: s.duree_minuteur as number,
+          created_at: s.created_at as string,
           kind: 'co' as const,
         }));
         const ceSessions: PublishedSession[] = (ceRes.data ?? []).map((s) => ({
-          ...(s as Omit<PublishedSession, 'kind'>),
+          id: s.id as string,
+          titre: s.titre as string,
+          duree_minuteur: s.duree_minuteur as number,
+          created_at: s.created_at as string,
           kind: 'ce' as const,
         }));
         const eeSessions: PublishedSession[] = (eeRes.data ?? []).map((s) => ({
-          ...(s as Omit<PublishedSession, 'kind'>),
+          id: s.id as string,
+          titre: s.titre as string,
+          duree_minuteur: s.duree_minuteur as number,
+          created_at: s.created_at as string,
           kind: 'ee' as const,
+        }));
+        const eoSessions: PublishedSession[] = (eoRes.data ?? []).map((s) => ({
+          id: s.id as string,
+          titre: s.titre as string,
+          duree_minuteur: null,
+          created_at: s.created_at as string,
+          kind: 'eo' as const,
         }));
 
         setSessions(
-          [...coSessions, ...ceSessions, ...eeSessions].sort(
+          [...coSessions, ...ceSessions, ...eeSessions, ...eoSessions].sort(
             (a, b) =>
               new Date(b.created_at).getTime() -
               new Date(a.created_at).getTime()
@@ -121,8 +158,7 @@ export default function LearnerPreparationPage() {
       <div>
         <h1 className="text-2xl font-bold text-gray-900">Préparation TCF</h1>
         <p className="text-gray-500 text-sm mt-1">
-          Entraînez-vous à la compréhension orale (CO), écrite (CE) et
-          expression écrite (EE)
+          Entraînez-vous à la compréhension (CO/CE) et à l’expression (EE/EO)
         </p>
       </div>
 
@@ -135,7 +171,7 @@ export default function LearnerPreparationPage() {
       ) : sessions.length === 0 ? (
         <Card className="border-dashed">
           <CardContent className="flex flex-col items-center justify-center py-16 text-center">
-            <div className="flex items-center gap-2 mb-4">
+            <div className="flex items-center gap-2 mb-4 flex-wrap justify-center">
               <div className="p-3 rounded-lg bg-flehub-green-light">
                 <Headphones className="w-6 h-6 text-flehub-green" />
               </div>
@@ -144,6 +180,9 @@ export default function LearnerPreparationPage() {
               </div>
               <div className="p-3 rounded-lg bg-blue-50">
                 <PenLine className="w-6 h-6 text-blue-700" />
+              </div>
+              <div className="p-3 rounded-lg bg-violet-50">
+                <Mic className="w-6 h-6 text-violet-700" />
               </div>
             </div>
             <h2 className="text-lg font-semibold text-gray-900">
@@ -186,8 +225,17 @@ export default function LearnerPreparationPage() {
                       {session.titre}
                     </h3>
                     <span className="inline-flex items-center gap-1 text-xs text-gray-500 mt-2">
-                      <Clock className="w-3.5 h-3.5" />
-                      {session.duree_minuteur} min · {kind.metaLabel}
+                      {session.duree_minuteur != null ? (
+                        <>
+                          <Clock className="w-3.5 h-3.5" />
+                          {session.duree_minuteur} min · {kind.metaLabel}
+                        </>
+                      ) : (
+                        <>
+                          <Mic className="w-3.5 h-3.5" />
+                          {kind.metaLabel}
+                        </>
+                      )}
                     </span>
                   </div>
                   <Button
