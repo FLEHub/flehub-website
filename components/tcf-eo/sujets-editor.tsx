@@ -510,7 +510,20 @@ export default function TcfEoSujetsEditor() {
                       : `Ajoutez au moins 1 sujet en tâche 2 et 1 en tâche 3 (actuellement ${sujetsTache2.length} / ${sujetsTache3.length}).`}
                 </p>
               </div>
-              {session.statut !== 'publiee' && (
+              {session.statut === 'publiee' ? (
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="border-violet-300 text-violet-800 hover:bg-violet-50 shrink-0"
+                  asChild
+                >
+                  <Link
+                    href={`/dashboard/teacher/preparation/tcf-eo/${sessionId}/evaluations`}
+                  >
+                    Évaluer les passages
+                  </Link>
+                </Button>
+              ) : (
                 <Button
                   type="button"
                   className="bg-violet-700 hover:bg-violet-800 text-white shrink-0"
