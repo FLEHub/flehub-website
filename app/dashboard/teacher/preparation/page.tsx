@@ -363,6 +363,21 @@ export default function TeacherPreparationPage() {
                       </Link>
                     </Button>
                   )}
+                  {session.kind === 'eo' && session.statut === 'publiee' && (
+                    <Button
+                      asChild
+                      variant="ghost"
+                      size="sm"
+                      className="w-full text-violet-700 hover:bg-violet-50"
+                    >
+                      <Link
+                        href={`/dashboard/teacher/preparation/tcf-eo/${session.id}/evaluations`}
+                      >
+                        Évaluer les passages
+                        <ChevronRight className="w-4 h-4 ml-1" />
+                      </Link>
+                    </Button>
+                  )}
                 </CardContent>
               </Card>
             );
