@@ -12,18 +12,19 @@ import {
   ChevronRight,
   Clock,
   Headphones,
+  Mic,
   PenLine,
   Plus,
 } from 'lucide-react';
 
 type SessionStatut = 'brouillon' | 'publiee';
-type SessionKind = 'co' | 'ce' | 'ee';
+type SessionKind = 'co' | 'ce' | 'ee' | 'eo';
 
 interface PrepSession {
   id: string;
   kind: SessionKind;
   titre: string;
-  duree_minuteur: number;
+  duree_minuteur: number | null;
   statut: SessionStatut;
   created_at: string;
 }
@@ -85,6 +86,17 @@ const kindConfig: Record<
     manageHref: (id) =>
       `/dashboard/teacher/preparation/tcf-ee/${id}/taches`,
   },
+  eo: {
+    label: 'EO',
+    fullLabel: 'Expression orale',
+    badgeClass: 'bg-violet-100 text-violet-800 border-violet-200',
+    iconWrapClass: 'bg-violet-50',
+    iconClass: 'text-violet-700',
+    manageLabel: 'Gérer les sujets',
+    Icon: Mic,
+    manageHref: (id) =>
+      `/dashboard/teacher/preparation/tcf-eo/${id}/sujets`,
+  },
 };
 
 export default function TeacherPreparationPage() {
@@ -103,7 +115,7 @@ export default function TeacherPreparationPage() {
       } = await supabase.auth.getUser();
       if (!user) return;
 
-      const [coRes, ceRes, eeRes] = await Promise.all([
+      const [coRes, ceRes, eeRes, eoRes] = await Promise.all([
         supabase
           .from('tcf_co_sessions')
           .select('id, titre, duree_minuteur, statut, created_at')
@@ -116,22 +128,42 @@ export default function TeacherPreparationPage() {
           .from('tcf_ee_sessions')
           .select('id, titre, duree_minuteur, statut, created_at')
           .eq('created_by', user.id),
+        supabase
+          .from('tcf_eo_sessions')
+          .select('id, titre, statut, created_at')
+          .eq('created_by', user.id),
       ]);
 
       const coSessions: PrepSession[] = (coRes.data ?? []).map((s) => ({
-        ...(s as Omit<PrepSession, 'kind'>),
+        ...(s as Omit<PrepSession, 'kind' | 'duree_minuteur'>),
+        duree_minuteur: s.duree_minuteur as number,
         kind: 'co' as const,
       }));
       const ceSessions: PrepSession[] = (ceRes.data ?? []).map((s) => ({
-        ...(s as Omit<PrepSession, 'kind'>),
+        ...(s as Omit<PrepSession, 'kind' | 'duree_minuteur'>),
+        duree_minuteur: s.duree_minuteur as number,
         kind: 'ce' as const,
       }));
       const eeSessions: PrepSession[] = (eeRes.data ?? []).map((s) => ({
-        ...(s as Omit<PrepSession, 'kind'>),
+        ...(s as Omit<PrepSession, 'kind' | 'duree_minuteur'>),
+        duree_minuteur: s.duree_minuteur as number,
         kind: 'ee' as const,
       }));
+      const eoSessions: PrepSession[] = (eoRes.data ?? []).map((s) => ({
+        id: s.id as string,
+        titre: s.titre as string,
+        statut: s.statut as SessionStatut,
+        created_at: s.created_at as string,
+        duree_minuteur: null,
+        kind: 'eo' as const,
+      }));
 
-      const merged = [...coSessions, ...ceSessions, ...eeSessions].sort(
+      const merged = [
+        ...coSessions,
+        ...ceSessions,
+        ...eeSessions,
+        ...eoSessions,
+      ].sort(
         (a, b) =>
           new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
       );
@@ -145,14 +177,14 @@ export default function TeacherPreparationPage() {
 
   return (
     <div className="p-6 space-y-6 max-w-7xl mx-auto">
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+      <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Préparation</h1>
           <p className="text-gray-500 text-sm mt-1">
-            Créez et gérez vos séances TCF (CO, CE et EE)
+            Créez et gérez vos séances TCF (CO, CE, EE et EO)
           </p>
         </div>
-        <div className="flex flex-col sm:flex-row gap-2">
+        <div className="flex flex-col sm:flex-row sm:flex-wrap gap-2">
           <Button
             asChild
             className="bg-flehub-green hover:bg-flehub-green/90 text-white"
@@ -182,6 +214,16 @@ export default function TeacherPreparationPage() {
               Nouvelle séance TCF EE
             </Link>
           </Button>
+          <Button
+            asChild
+            variant="outline"
+            className="border-violet-300 text-violet-800 hover:bg-violet-50"
+          >
+            <Link href="/dashboard/teacher/preparation/tcf-eo/new">
+              <Plus className="w-4 h-4 mr-1.5" />
+              Nouvelle séance TCF EO
+            </Link>
+          </Button>
         </div>
       </div>
 
@@ -194,7 +236,7 @@ export default function TeacherPreparationPage() {
       ) : sessions.length === 0 ? (
         <Card className="border-dashed">
           <CardContent className="flex flex-col items-center justify-center py-16 text-center">
-            <div className="flex items-center gap-2 mb-4">
+            <div className="flex items-center gap-2 mb-4 flex-wrap justify-center">
               <div className="p-3 rounded-lg bg-flehub-green-light">
                 <Headphones className="w-6 h-6 text-flehub-green" />
               </div>
@@ -204,15 +246,17 @@ export default function TeacherPreparationPage() {
               <div className="p-3 rounded-lg bg-blue-50">
                 <PenLine className="w-6 h-6 text-blue-700" />
               </div>
+              <div className="p-3 rounded-lg bg-violet-50">
+                <Mic className="w-6 h-6 text-violet-700" />
+              </div>
             </div>
             <h2 className="text-lg font-semibold text-gray-900">
               Aucune séance TCF
             </h2>
             <p className="text-sm text-gray-500 mt-1 max-w-sm">
-              Créez une séance de compréhension orale (CO), écrite (CE) ou
-              d’expression écrite (EE).
+              Créez une séance CO, CE, EE ou EO pour préparer vos apprenants.
             </p>
-            <div className="mt-6 flex flex-col sm:flex-row gap-2">
+            <div className="mt-6 flex flex-col sm:flex-row sm:flex-wrap gap-2 justify-center">
               <Button
                 asChild
                 className="bg-flehub-green hover:bg-flehub-green/90 text-white"
@@ -240,6 +284,16 @@ export default function TeacherPreparationPage() {
                 <Link href="/dashboard/teacher/preparation/tcf-ee/new">
                   <Plus className="w-4 h-4 mr-1.5" />
                   Séance TCF EE
+                </Link>
+              </Button>
+              <Button
+                asChild
+                variant="outline"
+                className="border-violet-300 text-violet-800 hover:bg-violet-50"
+              >
+                <Link href="/dashboard/teacher/preparation/tcf-eo/new">
+                  <Plus className="w-4 h-4 mr-1.5" />
+                  Séance TCF EO
                 </Link>
               </Button>
             </div>
@@ -272,10 +326,12 @@ export default function TeacherPreparationPage() {
                       {session.titre}
                     </h3>
                     <div className="flex items-center gap-2 mt-2 flex-wrap">
-                      <span className="inline-flex items-center gap-1 text-xs text-gray-500">
-                        <Clock className="w-3.5 h-3.5" />
-                        {session.duree_minuteur} min
-                      </span>
+                      {session.duree_minuteur != null && (
+                        <span className="inline-flex items-center gap-1 text-xs text-gray-500">
+                          <Clock className="w-3.5 h-3.5" />
+                          {session.duree_minuteur} min
+                        </span>
+                      )}
                       <span className="text-xs text-gray-400">
                         {kind.fullLabel}
                       </span>
