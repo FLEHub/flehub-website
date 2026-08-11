@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import {
+  BookOpen,
   BookOpenText,
   ChevronRight,
   Clock,
@@ -181,13 +182,23 @@ export default function TeacherPreparationPage() {
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Préparation</h1>
           <p className="text-gray-500 text-sm mt-1">
-            Créez et gérez vos séances TCF (CO, CE, EE et EO)
+            Révision (grammaire / vocabulaire) et séances TCF (CO, CE, EE, EO)
           </p>
         </div>
         <div className="flex flex-col sm:flex-row sm:flex-wrap gap-2">
           <Button
             asChild
             className="bg-flehub-green hover:bg-flehub-green/90 text-white"
+          >
+            <Link href="/dashboard/teacher/preparation/revision">
+              <BookOpen className="w-4 h-4 mr-1.5" />
+              Module Révision
+            </Link>
+          </Button>
+          <Button
+            asChild
+            variant="outline"
+            className="border-flehub-green text-flehub-green hover:bg-flehub-green-light"
           >
             <Link href="/dashboard/teacher/preparation/tcf-co/new">
               <Plus className="w-4 h-4 mr-1.5" />

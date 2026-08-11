@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import {
+  BookOpen,
   BookOpenText,
   Clock,
   Headphones,
@@ -156,11 +157,34 @@ export default function LearnerPreparationPage() {
   return (
     <div className="p-6 space-y-6 max-w-7xl mx-auto">
       <div>
-        <h1 className="text-2xl font-bold text-gray-900">Préparation TCF</h1>
+        <h1 className="text-2xl font-bold text-gray-900">Préparation</h1>
         <p className="text-gray-500 text-sm mt-1">
-          Entraînez-vous à la compréhension (CO/CE) et à l’expression (EE/EO)
+          Révision générale et entraînements TCF (CO/CE/EE/EO)
         </p>
       </div>
+
+      <Card className="border-flehub-green/30 bg-flehub-green-light/30">
+        <CardContent className="p-5 flex flex-col sm:flex-row sm:items-center gap-4">
+          <div className="p-3 rounded-lg bg-flehub-green-light">
+            <BookOpen className="w-6 h-6 text-flehub-green" />
+          </div>
+          <div className="flex-1 min-w-0">
+            <h2 className="font-semibold text-gray-900">Révision</h2>
+            <p className="text-sm text-gray-500 mt-0.5">
+              Fiches et questionnaires de grammaire / vocabulaire (hors TCF)
+            </p>
+          </div>
+          <Button
+            asChild
+            className="bg-flehub-green hover:bg-flehub-green/90 text-white"
+          >
+            <Link href="/dashboard/learner/preparation/revision">
+              <Play className="w-4 h-4 mr-1.5" />
+              Ouvrir
+            </Link>
+          </Button>
+        </CardContent>
+      </Card>
 
       {loading ? (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
