@@ -1099,7 +1099,7 @@ JOIN (
   ),
   (
     12, 4, 'B1',
-    'Tu m''as demandé : « Où habitest-tu ? » → Tu m''as demandé où j''___ .',
+    'Tu m''as demandé : « Où habites-tu ? » → Tu m''as demandé où j''___ .',
     'habite',
     'habiterai',
     'habiteais',
