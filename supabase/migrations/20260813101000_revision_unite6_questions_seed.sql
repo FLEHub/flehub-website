@@ -391,7 +391,7 @@ WITH questions_seed (
    'b'::text),
   (10::integer, 3::integer, 'A2'::text,
    'Recycler, c''est ___ les déchets.'::text,
-   ' Ignorer'::text, 'brûler seulement'::text, 'réutiliser / transformer'::text, 'cacher'::text,
+   'ignorer'::text, 'brûler seulement'::text, 'réutiliser / transformer'::text, 'cacher'::text,
    'c'::text),
   (10::integer, 4::integer, 'B1'::text,
    'Une ___ sociale vise à aider les plus vulnérables.'::text,
