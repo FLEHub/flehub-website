@@ -56,14 +56,19 @@ export default function LearnerElearningModulesPage() {
         .eq('learner_id', lid);
 
       const teacherIds = (links ?? []).map((l) => l.teacher_id as string);
-      setHasTeachers(teacherIds.length > 0);
 
-      if (teacherIds.length === 0) {
-        setModules([]);
-        return;
-      }
+      const { data: assignmentRows } = await supabase
+        .from('elearning_module_assignments')
+        .select('module_id')
+        .eq('learner_id', lid);
 
-      const { data: moduleRows } = await supabase
+      const assignedIds = Array.from(
+        new Set((assignmentRows ?? []).map((a) => a.module_id as string))
+      );
+
+      setHasTeachers(teacherIds.length > 0 || assignedIds.length > 0);
+
+      let moduleQuery = supabase
         .from('elearning_modules')
         .select(
           `
@@ -77,9 +82,22 @@ export default function LearnerElearningModulesPage() {
           )
         `
         )
-        .eq('published', true)
-        .in('teacher_id', teacherIds)
         .order('title', { ascending: true });
+
+      if (teacherIds.length > 0 && assignedIds.length > 0) {
+        moduleQuery = moduleQuery.or(
+          `and(published.eq.true,teacher_id.in.(${teacherIds.join(',')})),id.in.(${assignedIds.join(',')})`
+        );
+      } else if (teacherIds.length > 0) {
+        moduleQuery = moduleQuery.eq('published', true).in('teacher_id', teacherIds);
+      } else if (assignedIds.length > 0) {
+        moduleQuery = moduleQuery.in('id', assignedIds);
+      } else {
+        setModules([]);
+        return;
+      }
+
+      const { data: moduleRows } = await moduleQuery;
 
       const moduleList = moduleRows ?? [];
       const moduleIds = moduleList.map((m: any) => m.id as string);
@@ -101,6 +119,7 @@ export default function LearnerElearningModulesPage() {
       ]);
 
       const enrolledSet = new Set((enrollments ?? []).map((e) => e.module_id));
+      assignedIds.forEach((id) => enrolledSet.add(id));
       const sequenceIds = (sequences ?? []).map((s) => s.id);
       const seqByModule = new Map<string, string[]>();
       (sequences ?? []).forEach((s) => {
@@ -205,7 +224,7 @@ export default function LearnerElearningModulesPage() {
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Modules eLearning</h1>
           <p className="text-sm text-gray-500 mt-1">
-            Modules publiés de vos enseignants
+            Modules publiés par vos enseignants et modules qui vous sont assignés
           </p>
         </div>
         <div className="flex flex-wrap gap-2">
@@ -247,8 +266,11 @@ export default function LearnerElearningModulesPage() {
       ) : modules.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-16 text-gray-400 border border-dashed border-gray-200 rounded-xl">
           <BookOpen className="w-12 h-12 mb-3 opacity-40" />
-          <p className="text-lg font-medium">Aucun module publié</p>
-          <p className="text-sm">Vos enseignants n&apos;ont pas encore publié de module</p>
+          <p className="text-lg font-medium">Aucun module eLearning pour l&apos;instant</p>
+          <p className="text-sm text-center px-4">
+            Les modules publiés par vos enseignants et ceux qui vous sont assignés
+            apparaîtront ici.
+          </p>
         </div>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
