@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 160" role="img" aria-label="salut">
+  <rect width="160" height="160" rx="18" fill="#E0F2FE"/>
+  <circle cx="70" cy="60" r="20" fill="#F4C27A"/>
+  <rect x="48" y="80" width="44" height="34" rx="14" fill="#2563EB"/>
+  <path d="M108 70 l18 -22" stroke="#14532d" stroke-width="6" stroke-linecap="round"/>
+  <circle cx="128" cy="44" r="7" fill="#FBBF24"/>
+  <text x="80" y="148" text-anchor="middle" font-family="system-ui,sans-serif" font-size="13" font-weight="700" fill="#14532d">salut</text>
+</svg>

@@ -61,7 +61,7 @@ interface ModuleInfo {
 }
 
 const COMPETENCIES: Competency[] = ['CO', 'CE', 'PE', 'PO', 'EL'];
-const MAX_SEQUENCES = 4;
+const MAX_SEQUENCES = 6;
 
 const competencyLabels: Record<Competency, string> = {
   CO: 'Compréhension Orale',

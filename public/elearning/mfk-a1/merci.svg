@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 160" role="img" aria-label="merci">
+  <rect width="160" height="160" rx="18" fill="#FFE4E6"/>
+  <path d="M80 40 l18 36 h38 l-30 22 12 36 -38 -24 -38 24 12 -36 -30 -22 h38 z" fill="#E11D48"/>
+  <text x="80" y="148" text-anchor="middle" font-family="system-ui,sans-serif" font-size="13" font-weight="700" fill="#14532d">merci</text>
+</svg>

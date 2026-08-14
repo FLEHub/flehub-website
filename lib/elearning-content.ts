@@ -96,7 +96,8 @@ export function pickImageMatchPath(pair: Record<string, unknown>): string {
 
 /**
  * Turn a stored path or absolute URL into a browser-displayable URL.
- * Private bucket `elearning-media` → signed URL; absolute http(s) → as-is.
+ * Private bucket `elearning-media` → signed URL; absolute http(s) → as-is;
+ * app-public paths starting with `/` (e.g. `/elearning/mfk-a1/livre.svg`) → as-is.
  */
 export async function resolveElearningMediaUrl(
   supabase: {
@@ -115,6 +116,8 @@ export async function resolveElearningMediaUrl(
   const value = raw.trim();
   if (!value) return null;
   if (/^https?:\/\//i.test(value) || value.startsWith('blob:')) return value;
+  // App-public assets (e.g. /elearning/mfk-a1/livre.svg) — not the private bucket.
+  if (value.startsWith('/')) return value;
 
   const path = normalizeStorageObjectPath(value);
   if (!path) return null;

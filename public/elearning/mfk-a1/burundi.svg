@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 160" role="img" aria-label="Burundi">
+  <rect width="160" height="160" rx="18" fill="#FEE2E2"/>
+  <circle cx="80" cy="70" r="36" fill="#DC2626"/>
+  <circle cx="80" cy="70" r="16" fill="#fff"/>
+  <circle cx="80" cy="70" r="8" fill="#16A34A"/>
+  <text x="80" y="148" text-anchor="middle" font-family="system-ui,sans-serif" font-size="13" font-weight="700" fill="#14532d">Burundi</text>
+</svg>
