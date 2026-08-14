@@ -62,9 +62,9 @@ export default function LearnerElearningModulesPage() {
         .select('module_id')
         .eq('learner_id', lid);
 
-      const assignedIds = [
-        ...new Set((assignmentRows ?? []).map((a) => a.module_id as string)),
-      ];
+      const assignedIds = Array.from(
+        new Set((assignmentRows ?? []).map((a) => a.module_id as string))
+      );
 
       setHasTeachers(teacherIds.length > 0 || assignedIds.length > 0);
 
