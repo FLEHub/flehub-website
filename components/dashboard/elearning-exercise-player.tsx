@@ -3,8 +3,10 @@
 import { useEffect, useMemo, useState } from 'react';
 import { createClient } from '@/lib/supabase/client';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
+import {
+  FrenchAccentInput,
+  FrenchAccentTextarea,
+} from '@/components/dashboard/french-accent-bar';
 import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { pickImageMatchPath, resolveElearningMediaUrl } from '@/lib/elearning-content';
@@ -532,12 +534,12 @@ function FindErrorPlayer({
       </div>
       <div className="space-y-2">
         <Label htmlFor="find-error-answer">Corrigez la phrase</Label>
-        <Textarea
+        <FrenchAccentTextarea
           id="find-error-answer"
           rows={2}
           value={answer}
-          onChange={(e) => {
-            setAnswer(e.target.value);
+          onChange={(next) => {
+            setAnswer(next);
             setCorrect(null);
           }}
           placeholder="Écrivez la phrase corrigée…"
@@ -648,10 +650,10 @@ function FillBlankPlayer({
   return (
     <div className="space-y-4">
       <p className="text-sm text-gray-800 whitespace-pre-wrap">{prompt}</p>
-      <Input
+      <FrenchAccentInput
         value={answer}
-        onChange={(e) => {
-          setAnswer(e.target.value);
+        onChange={(next) => {
+          setAnswer(next);
           setCorrect(null);
         }}
         placeholder="Votre réponse…"
@@ -686,10 +688,10 @@ function ShortAnswerPlayer({
   return (
     <div className="space-y-4">
       <p className="text-sm text-gray-800 whitespace-pre-wrap">{prompt}</p>
-      <Textarea
+      <FrenchAccentTextarea
         rows={4}
         value={answer}
-        onChange={(e) => setAnswer(e.target.value)}
+        onChange={setAnswer}
         placeholder="Votre réponse libre…"
       />
       <Button

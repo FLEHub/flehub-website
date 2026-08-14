@@ -7,7 +7,7 @@ import { createClient } from '@/lib/supabase/client';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
+import { FrenchAccentTextarea } from '@/components/dashboard/french-accent-bar';
 import { Skeleton } from '@/components/ui/skeleton';
 import {
   AlertDialog,
@@ -772,12 +772,10 @@ export default function LearnerTakeTcfEeSession() {
                   {activeWordCount} mot{activeWordCount === 1 ? '' : 's'}
                 </span>
               </div>
-              <Textarea
+              <FrenchAccentTextarea
                 id="ee-draft"
                 value={activeText}
-                onChange={(e) =>
-                  handleDraftChange(activeTache.id, e.target.value)
-                }
+                onChange={(next) => handleDraftChange(activeTache.id, next)}
                 rows={16}
                 className="min-h-[280px] bg-white text-base leading-relaxed"
                 placeholder="Rédigez votre réponse ici…"
