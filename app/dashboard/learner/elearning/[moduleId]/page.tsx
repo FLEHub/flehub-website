@@ -129,18 +129,47 @@ export default function LearnerModulePage() {
         .from('elearning_modules')
         .select('id, title, description, cefr_level, published')
         .eq('id', moduleId)
-        .single();
+        .maybeSingle();
       if (modErr) throw modErr;
+      if (!mod) {
+        setEnrolled(false);
+        setError('Module introuvable ou non accessible.');
+        return;
+      }
       setModule(mod as ModuleRow);
 
-      const { data: enrollment } = await supabase
-        .from('elearning_enrollments')
-        .select('id')
-        .eq('learner_id', lid)
-        .eq('module_id', moduleId)
-        .maybeSingle();
+      const [{ data: enrollment }, { data: assignment }] = await Promise.all([
+        supabase
+          .from('elearning_enrollments')
+          .select('id')
+          .eq('learner_id', lid)
+          .eq('module_id', moduleId)
+          .maybeSingle(),
+        supabase
+          .from('elearning_module_assignments')
+          .select('id, end_date')
+          .eq('learner_id', lid)
+          .eq('module_id', moduleId)
+          .maybeSingle(),
+      ]);
 
-      if (!enrollment) {
+      let hasEnrollment = !!enrollment;
+      if (!hasEnrollment && assignment) {
+        const { error: enrollErr } = await supabase
+          .from('elearning_enrollments')
+          .insert({ module_id: moduleId, learner_id: lid });
+        if (
+          enrollErr &&
+          enrollErr.code !== '23505' &&
+          !(typeof enrollErr.message === 'string' &&
+            enrollErr.message.toLowerCase().includes('duplicate'))
+        ) {
+          throw enrollErr;
+        }
+        hasEnrollment = true;
+      }
+
+      if (!hasEnrollment) {
         setEnrolled(false);
         setError("Vous n'êtes pas inscrit à ce module.");
         return;

@@ -540,6 +540,16 @@ export default function TeacherLearnersPage() {
       }
 
       if (data) {
+        const { error: enrollErr } = await supabase
+          .from('elearning_enrollments')
+          .insert({
+            module_id: data.module_id,
+            learner_id: learner.id,
+          });
+        if (enrollErr && !isUniqueViolation(enrollErr)) {
+          throw enrollErr;
+        }
+
         const title =
           moduleMap.get(data.module_id) ??
           modules.find((m) => m.id === data.module_id)?.title ??
