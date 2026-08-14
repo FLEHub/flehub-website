@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 160" role="img" aria-label="Rwanda">
+  <rect width="160" height="160" rx="18" fill="#DCFCE7"/>
+  <circle cx="80" cy="70" r="36" fill="#1A7F4C"/>
+  <circle cx="80" cy="70" r="14" fill="#FBBF24"/>
+  <path d="M80 34 L86 58 L80 52 L74 58 Z" fill="#FBBF24"/>
+  <text x="80" y="148" text-anchor="middle" font-family="system-ui,sans-serif" font-size="13" font-weight="700" fill="#14532d">Rwanda</text>
+</svg>

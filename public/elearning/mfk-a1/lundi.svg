@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 160" role="img" aria-label="lundi">
+  <rect width="160" height="160" rx="18" fill="#ECFDF5"/>
+  <rect x="36" y="40" width="88" height="80" rx="10" fill="#fff" stroke="#14532d" stroke-width="3"/>
+  <rect x="36" y="40" width="88" height="22" fill="#1A7F4C"/>
+  <text x="80" y="98" text-anchor="middle" font-family="system-ui,sans-serif" font-size="22" font-weight="800" fill="#14532d">LUN</text>
+  <text x="80" y="148" text-anchor="middle" font-family="system-ui,sans-serif" font-size="13" font-weight="700" fill="#14532d">lundi</text>
+</svg>

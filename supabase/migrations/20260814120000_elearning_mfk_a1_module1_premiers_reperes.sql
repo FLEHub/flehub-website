@@ -1,22 +1,10 @@
 /*
-  # Seed eLearning MFK — Module 1 A1 « Premiers repères » (v2)
+  # Seed eLearning MFK — Module 1 A1 « Premiers repères » (v3)
 
-  Annule le seed v1 (module unique « A1 — Parcours MFK » + séquence
-  « Séquence 1 — Premiers repères ») puis crée UN module par grande
-  étape. Ce fichier = Module 1 seulement (4 séquences × 5 leçons).
-
-  Aucune table nouvelle. Idempotent. Plafond UI : 6 séquences / module.
-
-  JSON `content` (lib/elearning-exercises.ts) :
-    qcm           { question, options: [{text, correct}], explanation }
-    matching      { pairs: [{left, right}] }
-    fill_blank    { prompt, answer }
-    short_answer  { prompt }
-    word_order    { words: string[] }
-    anagram       { word, hint }
-    true_false    { statement, correct, explanation }
-    find_error    { sentence_with_error, correct_sentence, explanation }
-    audio_record  { instructions }
+  Annule le seed v1. Un module par grande étape.
+  Module 1 : 4 séquences × 5 leçons × 10 exercices (tous les types).
+  Personnages et documents originaux (kiosque « La Colline », Kimisagara).
+  Aucune table nouvelle. Idempotent.
 */
 
 CREATE OR REPLACE FUNCTION pg_temp.mfk_upsert_lesson(
@@ -58,7 +46,7 @@ BEGIN
 
   DELETE FROM elearning_exercises
   WHERE lesson_id = v_id
-    AND order_index IN (0, 1, 2);
+    AND order_index BETWEEN 0 AND 9;
 
   RETURN v_id;
 END;
@@ -92,7 +80,6 @@ DECLARE
   v_lesson_id uuid;
   v_module_title text := 'A1 — Premiers repères';
 BEGIN
-  -- v1 cleanup (cascade lessons/exercises via sequences)
   DELETE FROM elearning_sequences
   WHERE title = 'Séquence 1 — Premiers repères';
 
@@ -138,7 +125,7 @@ BEGIN
     VALUES (
       v_teacher_id,
       v_module_title,
-      'Grande étape 1 du parcours A1 : saluer et se présenter, se compter, situer le monde en français, vivre en classe.',
+      'Grande étape 1 : saluer et se présenter, se compter, situer le monde en français, vivre l''atelier du kiosque La Colline (Kimisagara).',
       'A1',
       false
     )
@@ -146,7 +133,7 @@ BEGIN
   ELSE
     UPDATE elearning_modules
     SET
-      description = 'Grande étape 1 du parcours A1 : saluer et se présenter, se compter, situer le monde en français, vivre en classe.',
+      description = 'Grande étape 1 : saluer et se présenter, se compter, situer le monde en français, vivre l''atelier du kiosque La Colline (Kimisagara).',
       cefr_level = 'A1',
       updated_at = now()
     WHERE id = v_module_id;
@@ -170,57 +157,51 @@ BEGIN
 
   v_lesson_id := pg_temp.mfk_upsert_lesson(
     v_seq_id,
-    'CO — Comprendre un accueil',
+    'CO — Un « bonjour » sous le auvent',
     'CO',
     $c$Objectif
-Comprendre un premier contact : saluer (tu / vous), se présenter avec s'appeler, prendre congé.
+Comprendre un premier contact au kiosque : bonjour / salut, vous / tu, je m'appelle, c'est, au revoir.
 
 Consigne
-Lisez le dialogue (à écouter en classe). Repérez les formules de politesse et les noms. Puis faites les exercices.
+Lisez le dialogue (à écouter avec l'enseignant). Qui vouvoie ? Qui tutoie ? Comment s'appelle chacun ?
 
-Support — Premier jour à l'école
-Réceptionniste : Bonjour, monsieur.
-Jean : Bonjour, madame. Je m'appelle Jean Mugisha.
-Réceptionniste : Enchantée, monsieur Mugisha. Vous êtes nouveau ?
-Jean : Oui. C'est mon premier cours.
-Réceptionniste : Très bien. La professeure s'appelle madame Uwase. Au revoir, monsieur.
-Jean : Au revoir. Merci. À bientôt.
-
-Dans la classe
-Claire : Salut ! Je m'appelle Claire. Et toi ?
-Jean : Salut. Je m'appelle Jean.
-Claire : Enchantée.
-
-Point de langue
-Bonjour / salut / au revoir / à bientôt / merci / enchanté(e) • je m'appelle • tu / vous • c'est.$c$,
+Support — Sous l'auvent de « La Colline » (Kimisagara)
+Didier (au comptoir) : Bonjour, monsieur.
+Yvan : Bonjour. C'est le kiosque « La Colline » ?
+Didier : Oui. Je m'appelle Didier. Et vous ?
+Yvan : Je m'appelle Yvan Bizimana. Enchanté.
+Inès (arrive avec un carton de livres) : Bonjour, monsieur Bizimana. Je m'appelle Inès Kalisa. C'est notre rendez-vous de français.
+Sonia (sur le muret) : Salut Yvan ! Moi c'est Sonia. À plus tard ?
+Yvan : Salut Sonia. Merci. Au revoir, monsieur Didier.
+Didier : Au revoir. À bientôt.$c$,
     0
   );
 
   PERFORM pg_temp.mfk_seed_exercise(
     v_lesson_id,
-    'Vrai ou faux : Jean est nouveau',
+    'Vrai ou faux',
     'true_false',
     $j${
-  "statement": "Jean est nouveau à l'école.",
+  "statement": "Yvan arrive au kiosque « La Colline ».",
   "correct": true,
-  "explanation": "Jean dit : « C'est mon premier cours. » La réceptionniste demande : « Vous êtes nouveau ? »"
+  "explanation": "Yvan demande : « C'est le kiosque La Colline ? » Didier répond oui."
 }$j$::jsonb,
     0
   );
 
   PERFORM pg_temp.mfk_seed_exercise(
     v_lesson_id,
-    'Comment Claire salue-t-elle Jean ?',
+    'Choisissez la bonne réponse',
     'qcm',
     $j${
-  "question": "Comment Claire salue-t-elle Jean ?",
+  "question": "Comment Sonia salue-t-elle Yvan ?",
   "options": [
     {
       "text": "Bonjour, monsieur.",
       "correct": false
     },
     {
-      "text": "Salut !",
+      "text": "Salut Yvan !",
       "correct": true
     },
     {
@@ -232,135 +213,14 @@ Bonjour / salut / au revoir / à bientôt / merci / enchanté(e) • je m'appell
       "correct": false
     }
   ],
-  "explanation": "Entre camarades, Claire dit « Salut ! » (tutoiement). À l'accueil, on dit « Bonjour, monsieur. » (vouvoiement)."
+  "explanation": "Sonia dit « Salut Yvan ! » : c'est le tutoiement. Didier dit « Bonjour, monsieur » : vouvoiement."
 }$j$::jsonb,
     1
   );
 
   PERFORM pg_temp.mfk_seed_exercise(
     v_lesson_id,
-    'Associez la formule et la situation',
-    'matching',
-    $j${
-  "pairs": [
-    {
-      "left": "Bonjour, madame.",
-      "right": "Saluer (vous)"
-    },
-    {
-      "left": "Salut !",
-      "right": "Saluer (tu)"
-    },
-    {
-      "left": "Enchantée.",
-      "right": "Faire connaissance"
-    },
-    {
-      "left": "Au revoir.",
-      "right": "Partir"
-    }
-  ]
-}$j$::jsonb,
-    2
-  );
-
-  v_lesson_id := pg_temp.mfk_upsert_lesson(
-    v_seq_id,
-    'CE — Lire un message de bienvenue',
-    'CE',
-    $c$Objectif
-Lire un message simple de bienvenue : salutations, prénom, nom, vouvoiement.
-
-Consigne
-Lisez le message de madame Uwase. Qui écrit ? À qui ? Quelles formules voyez-vous ?
-
-Support — Message
-Bonjour Jean,
-Bienvenue à l'école MFK.
-Je m'appelle Claire Uwase. Je suis votre professeure.
-Le premier cours : lundi, salle 2.
-À bientôt,
-Madame Uwase
-
-Affiche à l'accueil
-Bonjour !
-Je m'appelle Paul. C'est l'accueil.
-Merci. Au revoir.$c$,
-    1
-  );
-
-  PERFORM pg_temp.mfk_seed_exercise(
-    v_lesson_id,
-    'Qui écrit le message ?',
-    'qcm',
-    $j${
-  "question": "Qui écrit le message à Jean ?",
-  "options": [
-    {
-      "text": "Paul, à l'accueil",
-      "correct": false
-    },
-    {
-      "text": "Claire Uwase, la professeure",
-      "correct": true
-    },
-    {
-      "text": "Jean Mugisha",
-      "correct": false
-    },
-    {
-      "text": "Un camarade de classe",
-      "correct": false
-    }
-  ],
-  "explanation": "Le message est signé Madame Uwase. Elle écrit : « Je m'appelle Claire Uwase. Je suis votre professeure. »"
-}$j$::jsonb,
-    0
-  );
-
-  PERFORM pg_temp.mfk_seed_exercise(
-    v_lesson_id,
-    'Vrai ou faux : le message tutoie Jean',
-    'true_false',
-    $j${
-  "statement": "Madame Uwase tutoie Jean dans le message.",
-  "correct": false,
-  "explanation": "Elle écrit « votre professeure » : c'est le vouvoiement (vous)."
-}$j$::jsonb,
-    1
-  );
-
-  PERFORM pg_temp.mfk_seed_exercise(
-    v_lesson_id,
-    'Complétez : je m''appelle',
-    'fill_blank',
-    $j${
-  "prompt": "Dans le message, la professeure écrit :\nJe ___ Claire Uwase.\nUn mot (forme de s'appeler).",
-  "answer": "m'appelle"
-}$j$::jsonb,
-    2
-  );
-
-  v_lesson_id := pg_temp.mfk_upsert_lesson(
-    v_seq_id,
-    'PO — Saluer et se présenter',
-    'PO',
-    $c$Objectif
-Saluer (tu / vous), dire je m'appelle…, dire c'est…, prendre congé — à l'oral.
-
-Consigne
-Reliez les phrases, remettez la présentation dans l'ordre, puis enregistrez-vous (20 à 30 secondes).
-
-Modèles
-Vous : Bonjour, madame. Je m'appelle Jean Mugisha. Enchanté. Au revoir.
-Tu : Salut ! Je m'appelle Jean. Et toi ?
-C'est : C'est Claire. C'est monsieur Mugisha.$c$,
-    2
-  );
-
-  PERFORM pg_temp.mfk_seed_exercise(
-    v_lesson_id,
-    'Tu ou vous ?',
+    'Associez',
     'matching',
     $j${
   "pairs": [
@@ -369,7 +229,378 @@ C'est : C'est Claire. C'est monsieur Mugisha.$c$,
       "right": "vous"
     },
     {
-      "left": "Salut, ça va ?",
+      "left": "Salut Yvan !",
+      "right": "tu"
+    },
+    {
+      "left": "Enchanté.",
+      "right": "faire connaissance"
+    },
+    {
+      "left": "Au revoir.",
+      "right": "partir"
+    }
+  ]
+}$j$::jsonb,
+    2
+  );
+
+  PERFORM pg_temp.mfk_seed_exercise(
+    v_lesson_id,
+    'Complétez',
+    'fill_blank',
+    $j${
+  "prompt": "Complétez (forme de s'appeler) :\nJe ___ Yvan Bizimana.",
+  "answer": "m'appelle"
+}$j$::jsonb,
+    3
+  );
+
+  PERFORM pg_temp.mfk_seed_exercise(
+    v_lesson_id,
+    'Remettez les mots dans l''ordre',
+    'word_order',
+    $j${
+  "words": [
+    "Je",
+    "m'appelle",
+    "Inès",
+    "Kalisa"
+  ]
+}$j$::jsonb,
+    4
+  );
+
+  PERFORM pg_temp.mfk_seed_exercise(
+    v_lesson_id,
+    'Lettres dans l''ordre',
+    'anagram',
+    $j${
+  "word": "bonjour",
+  "hint": "On dit ce mot sous l'auvent, pour saluer avec vous."
+}$j$::jsonb,
+    5
+  );
+
+  PERFORM pg_temp.mfk_seed_exercise(
+    v_lesson_id,
+    'Trouvez l''erreur',
+    'find_error',
+    $j${
+  "sentence_with_error": "Je s'appelle Yvan.",
+  "correct_sentence": "Je m'appelle Yvan.",
+  "explanation": "Je → je m'appelle. Il / elle → il / elle s'appelle."
+}$j$::jsonb,
+    6
+  );
+
+  PERFORM pg_temp.mfk_seed_exercise(
+    v_lesson_id,
+    'Image et mot',
+    'image_match',
+    $j${
+  "pairs": [
+    {
+      "image_path": "/elearning/mfk-a1/bonjour.svg",
+      "word": "bonjour"
+    },
+    {
+      "image_path": "/elearning/mfk-a1/salut.svg",
+      "word": "salut"
+    },
+    {
+      "image_path": "/elearning/mfk-a1/aurevoir.svg",
+      "word": "au revoir"
+    },
+    {
+      "image_path": "/elearning/mfk-a1/merci.svg",
+      "word": "merci"
+    }
+  ]
+}$j$::jsonb,
+    7
+  );
+
+  PERFORM pg_temp.mfk_seed_exercise(
+    v_lesson_id,
+    'Réponse libre',
+    'short_answer',
+    $j${
+  "prompt": "Notez les quatre prénoms entendus. Qui dit « vous » ? Qui dit « tu » ?"
+}$j$::jsonb,
+    8
+  );
+
+  PERFORM pg_temp.mfk_seed_exercise(
+    v_lesson_id,
+    'Enregistrez',
+    'audio_record',
+    $j${
+  "instructions": "Enregistrez le début : Bonjour. C'est le kiosque La Colline ? Je m'appelle … Enchanté."
+}$j$::jsonb,
+    9
+  );
+
+  v_lesson_id := pg_temp.mfk_upsert_lesson(
+    v_seq_id,
+    'CE — Le papier scotché au volet',
+    'CE',
+    $c$Objectif
+Lire un avis de quartier : salutations, je m'appelle, c'est, vouvoiement.
+
+Consigne
+Lisez l'avis scotché au volet du kiosque, puis le mot glissé sous le sachet de café.
+
+Support — Avis au volet (stylo bleu, papier ligné)
+Mardi-français — kiosque La Colline
+Kimisagara, près du terrain
+Bonjour,
+Je m'appelle Inès Kalisa. C'est un rendez-vous gratuit.
+Vous êtes nouveau ? Bienvenue.
+À bientôt,
+Inès
+
+Mot sous le sachet (Didier)
+Bonjour monsieur Bizimana,
+C'est Didier. Le carton d'Inès est derrière le comptoir.
+Merci. Au revoir.$c$,
+    1
+  );
+
+  PERFORM pg_temp.mfk_seed_exercise(
+    v_lesson_id,
+    'Vrai ou faux',
+    'true_false',
+    $j${
+  "statement": "L'avis est écrit par Sonia.",
+  "correct": false,
+  "explanation": "L'avis est signé Inès. Sonia n'écrit pas ici."
+}$j$::jsonb,
+    0
+  );
+
+  PERFORM pg_temp.mfk_seed_exercise(
+    v_lesson_id,
+    'Choisissez la bonne réponse',
+    'qcm',
+    $j${
+  "question": "Où se trouve le kiosque ?",
+  "options": [
+    {
+      "text": "À l'aéroport",
+      "correct": false
+    },
+    {
+      "text": "Kimisagara, près du terrain",
+      "correct": true
+    },
+    {
+      "text": "À l'hôtel",
+      "correct": false
+    },
+    {
+      "text": "En salle 2",
+      "correct": false
+    }
+  ],
+  "explanation": "L'avis : « Kimisagara, près du terrain »."
+}$j$::jsonb,
+    1
+  );
+
+  PERFORM pg_temp.mfk_seed_exercise(
+    v_lesson_id,
+    'Associez',
+    'matching',
+    $j${
+  "pairs": [
+    {
+      "left": "Bonjour,",
+      "right": "saluer à l'écrit"
+    },
+    {
+      "left": "Je m'appelle Inès Kalisa.",
+      "right": "se présenter"
+    },
+    {
+      "left": "C'est un rendez-vous gratuit.",
+      "right": "c'est + info"
+    },
+    {
+      "left": "Au revoir.",
+      "right": "terminer"
+    }
+  ]
+}$j$::jsonb,
+    2
+  );
+
+  PERFORM pg_temp.mfk_seed_exercise(
+    v_lesson_id,
+    'Complétez',
+    'fill_blank',
+    $j${
+  "prompt": "Complétez (deux mots) :\n___ un rendez-vous gratuit.",
+  "answer": "C'est"
+}$j$::jsonb,
+    3
+  );
+
+  PERFORM pg_temp.mfk_seed_exercise(
+    v_lesson_id,
+    'Remettez les mots dans l''ordre',
+    'word_order',
+    $j${
+  "words": [
+    "Je",
+    "m'appelle",
+    "Inès",
+    "Kalisa"
+  ]
+}$j$::jsonb,
+    4
+  );
+
+  PERFORM pg_temp.mfk_seed_exercise(
+    v_lesson_id,
+    'Lettres dans l''ordre',
+    'anagram',
+    $j${
+  "word": "merci",
+  "hint": "Didier l'écrit à la fin du mot sous le sachet."
+}$j$::jsonb,
+    5
+  );
+
+  PERFORM pg_temp.mfk_seed_exercise(
+    v_lesson_id,
+    'Trouvez l''erreur',
+    'find_error',
+    $j${
+  "sentence_with_error": "C'est je Inès.",
+  "correct_sentence": "Je m'appelle Inès.",
+  "explanation": "Pour le nom : je m'appelle. C'est + un lieu ou une chose : c'est le kiosque."
+}$j$::jsonb,
+    6
+  );
+
+  PERFORM pg_temp.mfk_seed_exercise(
+    v_lesson_id,
+    'Image et mot',
+    'image_match',
+    $j${
+  "pairs": [
+    {
+      "image_path": "/elearning/mfk-a1/bonjour.svg",
+      "word": "bonjour"
+    },
+    {
+      "image_path": "/elearning/mfk-a1/salut.svg",
+      "word": "salut"
+    },
+    {
+      "image_path": "/elearning/mfk-a1/aurevoir.svg",
+      "word": "au revoir"
+    },
+    {
+      "image_path": "/elearning/mfk-a1/merci.svg",
+      "word": "merci"
+    }
+  ]
+}$j$::jsonb,
+    7
+  );
+
+  PERFORM pg_temp.mfk_seed_exercise(
+    v_lesson_id,
+    'Réponse libre',
+    'short_answer',
+    $j${
+  "prompt": "Recopiez une phrase de l'avis avec « je m'appelle » et une phrase avec « c'est »."
+}$j$::jsonb,
+    8
+  );
+
+  PERFORM pg_temp.mfk_seed_exercise(
+    v_lesson_id,
+    'Enregistrez',
+    'audio_record',
+    $j${
+  "instructions": "Lisez à voix haute l'avis d'Inès, du « Bonjour » jusqu'à « À bientôt »."
+}$j$::jsonb,
+    9
+  );
+
+  v_lesson_id := pg_temp.mfk_upsert_lesson(
+    v_seq_id,
+    'PO — Saluer au kiosque',
+    'PO',
+    $c$Objectif
+Saluer (tu / vous), dire je m'appelle, c'est, prendre congé — à l'oral.
+
+Consigne
+Les dix exercices. Puis enregistrez-vous comme sous l'auvent.
+
+Modèles
+Vous (Didier, première fois) : Bonjour, monsieur. Je m'appelle Yvan. Enchanté.
+Tu (Sonia) : Salut ! Moi c'est Sonia. Et toi ?
+C'est : C'est le kiosque. C'est Inès.$c$,
+    2
+  );
+
+  PERFORM pg_temp.mfk_seed_exercise(
+    v_lesson_id,
+    'Vrai ou faux',
+    'true_false',
+    $j${
+  "statement": "On dit « Salut, monsieur Didier » pour être poli avec un inconnu.",
+  "correct": false,
+  "explanation": "Avec un inconnu au comptoir : Bonjour, monsieur. Salut = tu."
+}$j$::jsonb,
+    0
+  );
+
+  PERFORM pg_temp.mfk_seed_exercise(
+    v_lesson_id,
+    'Choisissez la bonne réponse',
+    'qcm',
+    $j${
+  "question": "Quelle phrase est au vouvoiement ?",
+  "options": [
+    {
+      "text": "Salut !",
+      "correct": false
+    },
+    {
+      "text": "Et toi ?",
+      "correct": false
+    },
+    {
+      "text": "Bonjour, monsieur.",
+      "correct": true
+    },
+    {
+      "text": "À plus tard ?",
+      "correct": false
+    }
+  ],
+  "explanation": "« Bonjour, monsieur » = vous. « Salut » / « toi » = tu."
+}$j$::jsonb,
+    1
+  );
+
+  PERFORM pg_temp.mfk_seed_exercise(
+    v_lesson_id,
+    'Associez',
+    'matching',
+    $j${
+  "pairs": [
+    {
+      "left": "Bonjour, madame.",
+      "right": "vous"
+    },
+    {
+      "left": "Salut !",
       "right": "tu"
     },
     {
@@ -382,127 +613,334 @@ C'est : C'est Claire. C'est monsieur Mugisha.$c$,
     }
   ]
 }$j$::jsonb,
-    0
+    2
   );
 
   PERFORM pg_temp.mfk_seed_exercise(
     v_lesson_id,
-    'Remettez la phrase dans l''ordre',
+    'Complétez',
+    'fill_blank',
+    $j${
+  "prompt": "Complétez :\nMoi ___ Sonia.",
+  "answer": "c'est"
+}$j$::jsonb,
+    3
+  );
+
+  PERFORM pg_temp.mfk_seed_exercise(
+    v_lesson_id,
+    'Remettez les mots dans l''ordre',
     'word_order',
     $j${
   "words": [
     "Bonjour",
     "je",
     "m'appelle",
-    "Jean"
+    "Yvan"
   ]
 }$j$::jsonb,
-    1
+    4
   );
 
   PERFORM pg_temp.mfk_seed_exercise(
     v_lesson_id,
-    'Enregistrez votre présentation',
+    'Lettres dans l''ordre',
+    'anagram',
+    $j${
+  "word": "salut",
+  "hint": "Sonia le dit à Yvan, sur le muret."
+}$j$::jsonb,
+    5
+  );
+
+  PERFORM pg_temp.mfk_seed_exercise(
+    v_lesson_id,
+    'Trouvez l''erreur',
+    'find_error',
+    $j${
+  "sentence_with_error": "Salut, monsieur Didier, et toi ?",
+  "correct_sentence": "Bonjour, monsieur Didier.",
+  "explanation": "On ne mélange pas salut/toi et monsieur."
+}$j$::jsonb,
+    6
+  );
+
+  PERFORM pg_temp.mfk_seed_exercise(
+    v_lesson_id,
+    'Image et mot',
+    'image_match',
+    $j${
+  "pairs": [
+    {
+      "image_path": "/elearning/mfk-a1/bonjour.svg",
+      "word": "bonjour"
+    },
+    {
+      "image_path": "/elearning/mfk-a1/salut.svg",
+      "word": "salut"
+    },
+    {
+      "image_path": "/elearning/mfk-a1/aurevoir.svg",
+      "word": "au revoir"
+    },
+    {
+      "image_path": "/elearning/mfk-a1/merci.svg",
+      "word": "merci"
+    }
+  ]
+}$j$::jsonb,
+    7
+  );
+
+  PERFORM pg_temp.mfk_seed_exercise(
+    v_lesson_id,
+    'Réponse libre',
+    'short_answer',
+    $j${
+  "prompt": "Écrivez deux mini-répliques : une avec vous (Didier), une avec tu (Sonia)."
+}$j$::jsonb,
+    8
+  );
+
+  PERFORM pg_temp.mfk_seed_exercise(
+    v_lesson_id,
+    'Enregistrez',
     'audio_record',
     $j${
-  "instructions": "Enregistrez 20 à 30 secondes.\n1) Saluez (bonjour ou salut).\n2) Dites : Je m'appelle …\n3) Dites : Enchanté ou Enchantée.\n4) Prenez congé (au revoir ou à bientôt)."
+  "instructions": "Enregistrez 20 secondes.\n1) Bonjour, monsieur. Je m'appelle … Enchanté.\n2) Salut ! Moi c'est … Et toi ?\n3) Au revoir. À bientôt."
 }$j$::jsonb,
-    2
+    9
   );
 
   v_lesson_id := pg_temp.mfk_upsert_lesson(
     v_seq_id,
-    'PE — Écrire « Bonjour, je m''appelle… »',
+    'PE — Trois lignes dans le cahier d''Inès',
     'PE',
     $c$Objectif
 Écrire une mini-présentation : saluer, je m'appelle, c'est, prendre congé.
 
 Consigne
-Complétez, remettez les mots dans l'ordre, puis écrivez 3 phrases comme dans le modèle.
+Inès tend son cahier d'émargement. Écrivez comme Yvan.
 
-Modèle
+Modèle (page du cahier)
 Bonjour,
-Je m'appelle Amina Niyonzima.
-C'est mon premier cours.
+Je m'appelle Yvan Bizimana.
+C'est mon premier mardi à La Colline.
 À bientôt.$c$,
     3
   );
 
   PERFORM pg_temp.mfk_seed_exercise(
     v_lesson_id,
-    'Complétez : c''est',
-    'fill_blank',
+    'Vrai ou faux',
+    'true_false',
     $j${
-  "prompt": "Complétez (deux mots) :\n___ mon premier cours.",
-  "answer": "C'est"
+  "statement": "Le modèle utilise « je m'appelle » pour le nom.",
+  "correct": true,
+  "explanation": "Yvan écrit : Je m'appelle Yvan Bizimana."
 }$j$::jsonb,
     0
   );
 
   PERFORM pg_temp.mfk_seed_exercise(
     v_lesson_id,
-    'Remettez la phrase dans l''ordre',
-    'word_order',
+    'Choisissez la bonne réponse',
+    'qcm',
     $j${
-  "words": [
-    "Je",
-    "m'appelle",
-    "Amina",
-    "Niyonzima"
-  ]
+  "question": "Quelle phrase termine le modèle ?",
+  "options": [
+    {
+      "text": "Salut toi",
+      "correct": false
+    },
+    {
+      "text": "À bientôt.",
+      "correct": true
+    },
+    {
+      "text": "Écoutez.",
+      "correct": false
+    },
+    {
+      "text": "J'ai vingt ans.",
+      "correct": false
+    }
+  ],
+  "explanation": "Le modèle se termine par « À bientôt. »"
 }$j$::jsonb,
     1
   );
 
   PERFORM pg_temp.mfk_seed_exercise(
     v_lesson_id,
-    'Écrivez votre présentation',
-    'short_answer',
+    'Associez',
+    'matching',
     $j${
-  "prompt": "Écrivez 3 phrases.\n1) Saluez (Bonjour ou Salut).\n2) Je m'appelle …\n3) Au revoir ou À bientôt.\nCorrection par l'enseignant."
+  "pairs": [
+    {
+      "left": "Bonjour,",
+      "right": "ouvrir"
+    },
+    {
+      "left": "Je m'appelle Yvan.",
+      "right": "le nom"
+    },
+    {
+      "left": "C'est mon premier mardi.",
+      "right": "c'est + info"
+    },
+    {
+      "left": "À bientôt.",
+      "right": "fermer"
+    }
+  ]
 }$j$::jsonb,
     2
   );
 
-  v_lesson_id := pg_temp.mfk_upsert_lesson(
-    v_seq_id,
-    'EL — s''appeler, tu / vous, formules de politesse',
-    'EL',
-    $c$Objectif
-Fixer le point de langue de la séquence : formules de politesse, tu / vous, s'appeler, c'est.
+  PERFORM pg_temp.mfk_seed_exercise(
+    v_lesson_id,
+    'Complétez',
+    'fill_blank',
+    $j${
+  "prompt": "Complétez (un mot) :\nJe m'___ Yvan Bizimana.",
+  "answer": "appelle"
+}$j$::jsonb,
+    3
+  );
 
-Consigne
-Lisez la fiche. Puis faites les trois exercices.
-
-Fiche langue
-
-1. Saluer et partir
-vous : Bonjour, monsieur / madame. Au revoir. À bientôt.
-tu : Salut. À plus.
-Enchanté / Enchantée. Merci. S'il vous plaît.
-
-2. s'appeler
-je m'appelle
-tu t'appelles
-il / elle s'appelle
-nous nous appelons
-vous vous appelez
-ils / elles s'appellent
-
-3. c'est + nom
-C'est Jean. C'est madame Uwase.
-
-4. tu / vous
-Camarade → tu. Accueil, professeur → vous.$c$,
+  PERFORM pg_temp.mfk_seed_exercise(
+    v_lesson_id,
+    'Remettez les mots dans l''ordre',
+    'word_order',
+    $j${
+  "words": [
+    "C'est",
+    "mon",
+    "premier",
+    "mardi"
+  ]
+}$j$::jsonb,
     4
   );
 
   PERFORM pg_temp.mfk_seed_exercise(
     v_lesson_id,
-    'Choisissez la bonne forme',
+    'Lettres dans l''ordre',
+    'anagram',
+    $j${
+  "word": "merci",
+  "hint": "On l'écrit souvent après le nom, avec Enchanté."
+}$j$::jsonb,
+    5
+  );
+
+  PERFORM pg_temp.mfk_seed_exercise(
+    v_lesson_id,
+    'Trouvez l''erreur',
+    'find_error',
+    $j${
+  "sentence_with_error": "Je m'appelle c'est Yvan.",
+  "correct_sentence": "Je m'appelle Yvan.",
+  "explanation": "On ne met pas c'est et je m'appelle ensemble pour le nom."
+}$j$::jsonb,
+    6
+  );
+
+  PERFORM pg_temp.mfk_seed_exercise(
+    v_lesson_id,
+    'Image et mot',
+    'image_match',
+    $j${
+  "pairs": [
+    {
+      "image_path": "/elearning/mfk-a1/bonjour.svg",
+      "word": "bonjour"
+    },
+    {
+      "image_path": "/elearning/mfk-a1/salut.svg",
+      "word": "salut"
+    },
+    {
+      "image_path": "/elearning/mfk-a1/aurevoir.svg",
+      "word": "au revoir"
+    },
+    {
+      "image_path": "/elearning/mfk-a1/merci.svg",
+      "word": "merci"
+    }
+  ]
+}$j$::jsonb,
+    7
+  );
+
+  PERFORM pg_temp.mfk_seed_exercise(
+    v_lesson_id,
+    'Réponse libre',
+    'short_answer',
+    $j${
+  "prompt": "Écrivez 3 phrases dans le cahier : Bonjour / Je m'appelle … / À bientôt."
+}$j$::jsonb,
+    8
+  );
+
+  PERFORM pg_temp.mfk_seed_exercise(
+    v_lesson_id,
+    'Enregistrez',
+    'audio_record',
+    $j${
+  "instructions": "Lisez à voix haute votre texte du cahier."
+}$j$::jsonb,
+    9
+  );
+
+  v_lesson_id := pg_temp.mfk_upsert_lesson(
+    v_seq_id,
+    'EL — s''appeler, tu / vous, c''est',
+    'EL',
+    $c$Objectif
+Fixer le point de langue : formules de politesse, tu / vous, s'appeler, c'est.
+
+Consigne
+Fiche du kiosque, puis les dix exercices.
+
+Fiche — derrière le comptoir
+
+1. Saluer / partir
+vous : Bonjour, monsieur / madame. Au revoir. À bientôt.
+tu : Salut. À plus.
+Enchanté / Enchantée. Merci.
+
+2. s'appeler
+je m'appelle • tu t'appelles • il / elle s'appelle
+nous nous appelons • vous vous appelez • ils / elles s'appellent
+
+3. c'est + nom
+C'est Yvan. C'est le kiosque. C'est Inès.
+
+4. tu / vous
+Voisine du même âge → tu. Comptoir, première fois → vous.$c$,
+    4
+  );
+
+  PERFORM pg_temp.mfk_seed_exercise(
+    v_lesson_id,
+    'Vrai ou faux',
+    'true_false',
+    $j${
+  "statement": "Avec je, on dit je s'appelle.",
+  "correct": false,
+  "explanation": "Avec je : je m'appelle. Avec il / elle : il / elle s'appelle."
+}$j$::jsonb,
+    0
+  );
+
+  PERFORM pg_temp.mfk_seed_exercise(
+    v_lesson_id,
+    'Choisissez la bonne réponse',
     'qcm',
     $j${
-  "question": "Complétez : Je ___ Jean.",
+  "question": "Complétez : Je ___ Yvan.",
   "options": [
     {
       "text": "m'appelle",
@@ -521,20 +959,73 @@ Camarade → tu. Accueil, professeur → vous.$c$,
       "correct": false
     }
   ],
-  "explanation": "Avec je : je m'appelle. Avec il / elle : il / elle s'appelle."
+  "explanation": "Je m'appelle."
 }$j$::jsonb,
-    0
+    1
   );
 
   PERFORM pg_temp.mfk_seed_exercise(
     v_lesson_id,
-    'Lettres dans l''ordre : BONJOUR',
+    'Associez',
+    'matching',
+    $j${
+  "pairs": [
+    {
+      "left": "je",
+      "right": "m'appelle"
+    },
+    {
+      "left": "tu",
+      "right": "t'appelles"
+    },
+    {
+      "left": "elle",
+      "right": "s'appelle"
+    },
+    {
+      "left": "vous",
+      "right": "vous appelez"
+    }
+  ]
+}$j$::jsonb,
+    2
+  );
+
+  PERFORM pg_temp.mfk_seed_exercise(
+    v_lesson_id,
+    'Complétez',
+    'fill_blank',
+    $j${
+  "prompt": "Complétez (deux mots) :\n___ le kiosque La Colline.",
+  "answer": "C'est"
+}$j$::jsonb,
+    3
+  );
+
+  PERFORM pg_temp.mfk_seed_exercise(
+    v_lesson_id,
+    'Remettez les mots dans l''ordre',
+    'word_order',
+    $j${
+  "words": [
+    "Vous",
+    "vous",
+    "appelez",
+    "comment"
+  ]
+}$j$::jsonb,
+    4
+  );
+
+  PERFORM pg_temp.mfk_seed_exercise(
+    v_lesson_id,
+    'Lettres dans l''ordre',
     'anagram',
     $j${
   "word": "bonjour",
-  "hint": "On dit ce mot pour saluer (vous), le matin."
+  "hint": "Formule vous, sous l'auvent."
 }$j$::jsonb,
-    1
+    5
   );
 
   PERFORM pg_temp.mfk_seed_exercise(
@@ -542,11 +1033,58 @@ Camarade → tu. Accueil, professeur → vous.$c$,
     'Trouvez l''erreur',
     'find_error',
     $j${
-  "sentence_with_error": "Je s'appelle Claire.",
-  "correct_sentence": "Je m'appelle Claire.",
-  "explanation": "Je → je m'appelle. Il / elle → il / elle s'appelle."
+  "sentence_with_error": "Je s'appelle Sonia.",
+  "correct_sentence": "Je m'appelle Sonia.",
+  "explanation": "Je → m'appelle."
 }$j$::jsonb,
-    2
+    6
+  );
+
+  PERFORM pg_temp.mfk_seed_exercise(
+    v_lesson_id,
+    'Image et mot',
+    'image_match',
+    $j${
+  "pairs": [
+    {
+      "image_path": "/elearning/mfk-a1/bonjour.svg",
+      "word": "bonjour"
+    },
+    {
+      "image_path": "/elearning/mfk-a1/salut.svg",
+      "word": "salut"
+    },
+    {
+      "image_path": "/elearning/mfk-a1/aurevoir.svg",
+      "word": "au revoir"
+    },
+    {
+      "image_path": "/elearning/mfk-a1/merci.svg",
+      "word": "merci"
+    }
+  ]
+}$j$::jsonb,
+    7
+  );
+
+  PERFORM pg_temp.mfk_seed_exercise(
+    v_lesson_id,
+    'Réponse libre',
+    'short_answer',
+    $j${
+  "prompt": "Écrivez le tableau je / tu / elle / vous de s'appeler."
+}$j$::jsonb,
+    8
+  );
+
+  PERFORM pg_temp.mfk_seed_exercise(
+    v_lesson_id,
+    'Enregistrez',
+    'audio_record',
+    $j${
+  "instructions": "Dites à voix haute : je m'appelle, tu t'appelles, elle s'appelle, vous vous appelez."
+}$j$::jsonb,
+    9
   );
 
   -- ===== Se compter et s'organiser =====
@@ -567,58 +1105,56 @@ Camarade → tu. Accueil, professeur → vous.$c$,
 
   v_lesson_id := pg_temp.mfk_upsert_lesson(
     v_seq_id,
-    'CO — Comprendre l''âge et le jour',
+    'CO — Combien sous l''auvent ?',
     'CO',
     $c$Objectif
-Comprendre les nombres 0–20, l'âge (j'ai … ans) et le jour de la semaine (c'est lundi).
+Comprendre les nombres 0–20, j'ai … ans, c'est + jour.
 
 Consigne
-Lisez le dialogue. Repérez l'âge de chacun et le jour du cours.
+Lisez. Quel jour ? Quels âges ? Combien de personnes ?
 
-Support — Avant le cours
-Claire : On est quel jour, Jean ?
-Jean : C'est lundi.
-Claire : Super. Tu as quel âge ?
-Jean : J'ai vingt ans. Et toi ?
-Claire : J'ai dix-neuf ans.
-Professeure : Bonjour. Nous sommes dix dans la classe. C'est le premier cours.
-Jean : Il y a combien d'élèves ?
-Professeure : Dix. Un, deux, trois… dix.
-
-Nombres entendus
-0 zéro • 1 un • 2 deux • 10 dix • 19 dix-neuf • 20 vingt.$c$,
+Support — Mardi 16 h, table pliante
+Inès : On est quel jour, Yvan ?
+Yvan : C'est mardi.
+Inès : Oui. Le petit atelier écrit : c'est lundi prochain, ici.
+Sonia : Tu as quel âge ?
+Yvan : J'ai dix-huit ans. Et toi ?
+Sonia : J'ai dix-neuf ans.
+Noël (arrive) : J'ai huit ans !
+Didier : Nous sommes quatre à la table. Un, deux, trois, quatre. Le carton : dix livres. Yvan, tu as quel numéro sur l'étiquette ? Vingt.
+Yvan : Vingt. Merci.$c$,
     0
   );
 
   PERFORM pg_temp.mfk_seed_exercise(
     v_lesson_id,
-    'Vrai ou faux : le cours est mardi',
+    'Vrai ou faux',
     'true_false',
     $j${
-  "statement": "Le cours a lieu mardi.",
+  "statement": "Aujourd'hui, c'est lundi.",
   "correct": false,
-  "explanation": "Jean dit : « C'est lundi. »"
+  "explanation": "Yvan dit : « C'est mardi. » Lundi = le prochain atelier écrit."
 }$j$::jsonb,
     0
   );
 
   PERFORM pg_temp.mfk_seed_exercise(
     v_lesson_id,
-    'Quel âge a Claire ?',
+    'Choisissez la bonne réponse',
     'qcm',
     $j${
-  "question": "Quel âge a Claire ?",
+  "question": "Quel âge a Yvan ?",
   "options": [
+    {
+      "text": "Huit ans",
+      "correct": false
+    },
     {
       "text": "Dix ans",
       "correct": false
     },
     {
-      "text": "Douze ans",
-      "correct": false
-    },
-    {
-      "text": "Dix-neuf ans",
+      "text": "Dix-huit ans",
       "correct": true
     },
     {
@@ -626,28 +1162,219 @@ Nombres entendus
       "correct": false
     }
   ],
-  "explanation": "Claire dit : « J'ai dix-neuf ans. » Jean a vingt ans."
+  "explanation": "Yvan : « J'ai dix-huit ans. » Vingt = le numéro d'étiquette."
 }$j$::jsonb,
     1
   );
 
   PERFORM pg_temp.mfk_seed_exercise(
     v_lesson_id,
-    'Associez le chiffre et le mot',
+    'Associez',
     'matching',
     $j${
   "pairs": [
     {
-      "left": "1",
-      "right": "un"
+      "left": "Yvan",
+      "right": "dix-huit ans"
+    },
+    {
+      "left": "Sonia",
+      "right": "dix-neuf ans"
+    },
+    {
+      "left": "Noël",
+      "right": "huit ans"
+    },
+    {
+      "left": "étiquette",
+      "right": "vingt"
+    }
+  ]
+}$j$::jsonb,
+    2
+  );
+
+  PERFORM pg_temp.mfk_seed_exercise(
+    v_lesson_id,
+    'Complétez',
+    'fill_blank',
+    $j${
+  "prompt": "Complétez le jour d'aujourd'hui :\nC'est ___.",
+  "answer": "mardi"
+}$j$::jsonb,
+    3
+  );
+
+  PERFORM pg_temp.mfk_seed_exercise(
+    v_lesson_id,
+    'Remettez les mots dans l''ordre',
+    'word_order',
+    $j${
+  "words": [
+    "J'ai",
+    "dix-huit",
+    "ans"
+  ]
+}$j$::jsonb,
+    4
+  );
+
+  PERFORM pg_temp.mfk_seed_exercise(
+    v_lesson_id,
+    'Lettres dans l''ordre',
+    'anagram',
+    $j${
+  "word": "lundi",
+  "hint": "Jour du prochain atelier écrit, dit Inès."
+}$j$::jsonb,
+    5
+  );
+
+  PERFORM pg_temp.mfk_seed_exercise(
+    v_lesson_id,
+    'Trouvez l''erreur',
+    'find_error',
+    $j${
+  "sentence_with_error": "Je suis dix-huit ans.",
+  "correct_sentence": "J'ai dix-huit ans.",
+  "explanation": "L'âge : avoir, pas être."
+}$j$::jsonb,
+    6
+  );
+
+  PERFORM pg_temp.mfk_seed_exercise(
+    v_lesson_id,
+    'Image et mot',
+    'image_match',
+    $j${
+  "pairs": [
+    {
+      "image_path": "/elearning/mfk-a1/un.svg",
+      "word": "un"
+    },
+    {
+      "image_path": "/elearning/mfk-a1/dix.svg",
+      "word": "dix"
+    },
+    {
+      "image_path": "/elearning/mfk-a1/vingt.svg",
+      "word": "vingt"
+    },
+    {
+      "image_path": "/elearning/mfk-a1/lundi.svg",
+      "word": "lundi"
+    }
+  ]
+}$j$::jsonb,
+    7
+  );
+
+  PERFORM pg_temp.mfk_seed_exercise(
+    v_lesson_id,
+    'Réponse libre',
+    'short_answer',
+    $j${
+  "prompt": "Notez : le jour d'aujourd'hui, le jour du prochain atelier, l'âge de Noël."
+}$j$::jsonb,
+    8
+  );
+
+  PERFORM pg_temp.mfk_seed_exercise(
+    v_lesson_id,
+    'Enregistrez',
+    'audio_record',
+    $j${
+  "instructions": "Dites : C'est mardi. J'ai … ans. Nous sommes quatre."
+}$j$::jsonb,
+    9
+  );
+
+  v_lesson_id := pg_temp.mfk_upsert_lesson(
+    v_seq_id,
+    'CE — Le cahier d''émargement d''Inès',
+    'CE',
+    $c$Objectif
+Lire une liste : jours, nombres 0–20, âges.
+
+Consigne
+Lisez la page du cahier collée près de la caisse.
+
+Support — Cahier d'émargement (page 3)
+La Colline — Kimisagara
+Aujourd'hui : c'est mardi
+Prochain écrit : c'est lundi
+À la table : 4
+Livres dans le carton : 10
+
+Noms — âge
+Yvan Bizimana — 18 ans
+Sonia Mukeshimana — 19 ans
+Noël Iradukunda — 8 ans
+Étiquette Yvan : 20
+
+Note d'Inès
+C'est mardi. Quatre personnes. Dix livres. Lundi : atelier crayon.$c$,
+    1
+  );
+
+  PERFORM pg_temp.mfk_seed_exercise(
+    v_lesson_id,
+    'Vrai ou faux',
+    'true_false',
+    $j${
+  "statement": "Il y a vingt personnes à la table.",
+  "correct": false,
+  "explanation": "À la table : 4. 20 = l'étiquette de Yvan."
+}$j$::jsonb,
+    0
+  );
+
+  PERFORM pg_temp.mfk_seed_exercise(
+    v_lesson_id,
+    'Choisissez la bonne réponse',
+    'qcm',
+    $j${
+  "question": "Quel jour est le prochain atelier écrit ?",
+  "options": [
+    {
+      "text": "Mardi",
+      "correct": false
+    },
+    {
+      "text": "Lundi",
+      "correct": true
+    },
+    {
+      "text": "Dimanche",
+      "correct": false
+    },
+    {
+      "text": "Vendredi",
+      "correct": false
+    }
+  ],
+  "explanation": "Cahier : « Prochain écrit : c'est lundi »."
+}$j$::jsonb,
+    1
+  );
+
+  PERFORM pg_temp.mfk_seed_exercise(
+    v_lesson_id,
+    'Associez',
+    'matching',
+    $j${
+  "pairs": [
+    {
+      "left": "8",
+      "right": "huit"
     },
     {
       "left": "10",
       "right": "dix"
     },
     {
-      "left": "19",
-      "right": "dix-neuf"
+      "left": "18",
+      "right": "dix-huit"
     },
     {
       "left": "20",
@@ -658,136 +1385,570 @@ Nombres entendus
     2
   );
 
-  v_lesson_id := pg_temp.mfk_upsert_lesson(
-    v_seq_id,
-    'CE — Lire un petit emploi du temps',
-    'CE',
-    $c$Objectif
-Lire un emploi du temps A1 : jours, nombres (salle, âge, horaire en chiffres).
-
-Consigne
-Lisez la fiche. Quel jour ? Quelle salle ? Combien d'élèves ?
-
-Support — Fiche classe A1
-École MFK — Niveau A1
-Jour : lundi et mercredi
-Salle : 2
-Élèves : 10
-Professeure : madame Uwase
-
-Trombinoscope
-Jean Mugisha — 20 ans
-Claire Habimana — 19 ans
-Amina Niyonzima — 18 ans
-Paul Uwimana — 16 ans
-
-Note
-C'est lundi. Cours A1, salle 2. Nous sommes dix.$c$,
-    1
+  PERFORM pg_temp.mfk_seed_exercise(
+    v_lesson_id,
+    'Complétez',
+    'fill_blank',
+    $j${
+  "prompt": "Complétez :\nProchain écrit : c'est ___.",
+  "answer": "lundi"
+}$j$::jsonb,
+    3
   );
 
   PERFORM pg_temp.mfk_seed_exercise(
     v_lesson_id,
-    'Quels jours a lieu le cours ?',
-    'qcm',
+    'Remettez les mots dans l''ordre',
+    'word_order',
     $j${
-  "question": "Quels jours a lieu le cours A1 ?",
-  "options": [
+  "words": [
+    "C'est",
+    "mardi"
+  ]
+}$j$::jsonb,
+    4
+  );
+
+  PERFORM pg_temp.mfk_seed_exercise(
+    v_lesson_id,
+    'Lettres dans l''ordre',
+    'anagram',
+    $j${
+  "word": "vingt",
+  "hint": "Numéro sur l'étiquette de Yvan."
+}$j$::jsonb,
+    5
+  );
+
+  PERFORM pg_temp.mfk_seed_exercise(
+    v_lesson_id,
+    'Trouvez l''erreur',
+    'find_error',
+    $j${
+  "sentence_with_error": "Noël a vingt ans.",
+  "correct_sentence": "Noël a huit ans.",
+  "explanation": "Cahier : Noël Iradukunda — 8 ans."
+}$j$::jsonb,
+    6
+  );
+
+  PERFORM pg_temp.mfk_seed_exercise(
+    v_lesson_id,
+    'Image et mot',
+    'image_match',
+    $j${
+  "pairs": [
     {
-      "text": "Mardi et jeudi",
-      "correct": false
+      "image_path": "/elearning/mfk-a1/un.svg",
+      "word": "un"
     },
     {
-      "text": "Lundi et mercredi",
-      "correct": true
+      "image_path": "/elearning/mfk-a1/dix.svg",
+      "word": "dix"
     },
     {
-      "text": "Samedi seulement",
-      "correct": false
+      "image_path": "/elearning/mfk-a1/vingt.svg",
+      "word": "vingt"
     },
     {
-      "text": "Tous les jours",
-      "correct": false
+      "image_path": "/elearning/mfk-a1/lundi.svg",
+      "word": "lundi"
     }
-  ],
-  "explanation": "La fiche indique : lundi et mercredi."
+  ]
+}$j$::jsonb,
+    7
+  );
+
+  PERFORM pg_temp.mfk_seed_exercise(
+    v_lesson_id,
+    'Réponse libre',
+    'short_answer',
+    $j${
+  "prompt": "Recopiez une ligne avec un âge et la phrase « c'est lundi »."
+}$j$::jsonb,
+    8
+  );
+
+  PERFORM pg_temp.mfk_seed_exercise(
+    v_lesson_id,
+    'Enregistrez',
+    'audio_record',
+    $j${
+  "instructions": "Lisez la note d'Inès à voix haute."
+}$j$::jsonb,
+    9
+  );
+
+  v_lesson_id := pg_temp.mfk_upsert_lesson(
+    v_seq_id,
+    'PO — Dire le jour et l''âge',
+    'PO',
+    $c$Objectif
+Dire les nombres 0–20, j'ai … ans, c'est + jour.
+
+Consigne
+Modèles sous l'auvent, puis oral.
+
+Modèles
+J'ai dix-huit ans. Tu as quel âge ?
+C'est mardi. C'est lundi prochain.
+Nous sommes quatre.
+un deux trois … dix … vingt
+
+Jours : lundi mardi mercredi jeudi vendredi samedi dimanche$c$,
+    2
+  );
+
+  PERFORM pg_temp.mfk_seed_exercise(
+    v_lesson_id,
+    'Vrai ou faux',
+    'true_false',
+    $j${
+  "statement": "On dit « je suis lundi » pour le jour.",
+  "correct": false,
+  "explanation": "On dit : c'est lundi. L'âge : j'ai … ans."
 }$j$::jsonb,
     0
   );
 
   PERFORM pg_temp.mfk_seed_exercise(
     v_lesson_id,
-    'Vrai ou faux : il y a vingt élèves',
-    'true_false',
+    'Choisissez la bonne réponse',
+    'qcm',
     $j${
-  "statement": "Il y a vingt élèves dans la classe A1.",
-  "correct": false,
-  "explanation": "La fiche indique 10 élèves. Vingt, c'est l'âge de Jean."
+  "question": "Quelle question pour l'âge ?",
+  "options": [
+    {
+      "text": "On est quel jour ?",
+      "correct": false
+    },
+    {
+      "text": "Tu as quel âge ?",
+      "correct": true
+    },
+    {
+      "text": "C'est qui ?",
+      "correct": false
+    },
+    {
+      "text": "D'où viens-tu ?",
+      "correct": false
+    }
+  ],
+  "explanation": "Tu as quel âge ?"
 }$j$::jsonb,
     1
   );
 
   PERFORM pg_temp.mfk_seed_exercise(
     v_lesson_id,
-    'Complétez le jour',
-    'fill_blank',
-    $j${
-  "prompt": "La note dit : C'est ___.\nÉcrivez le jour (un mot, minuscules acceptées).",
-  "answer": "lundi"
-}$j$::jsonb,
-    2
-  );
-
-  v_lesson_id := pg_temp.mfk_upsert_lesson(
-    v_seq_id,
-    'PO — Dire son âge et le jour',
-    'PO',
-    $c$Objectif
-Dire les nombres 0–20, son âge (j'ai … ans) et le jour (c'est + jour).
-
-Consigne
-Associez, remettez la phrase dans l'ordre, puis enregistrez-vous.
-
-Modèles
-J'ai vingt ans. Tu as quel âge ?
-C'est lundi. On est quel jour ?
-Nous sommes dix.
-
-Jours
-lundi mardi mercredi jeudi vendredi samedi dimanche$c$,
-    2
-  );
-
-  PERFORM pg_temp.mfk_seed_exercise(
-    v_lesson_id,
-    'Associez la question et la réponse',
+    'Associez',
     'matching',
     $j${
   "pairs": [
     {
       "left": "Tu as quel âge ?",
-      "right": "J'ai vingt ans."
+      "right": "J'ai dix-huit ans."
     },
     {
       "left": "On est quel jour ?",
-      "right": "C'est lundi."
+      "right": "C'est mardi."
     },
     {
       "left": "Vous êtes combien ?",
-      "right": "Nous sommes dix."
+      "right": "Nous sommes quatre."
     },
     {
       "left": "C'est quel numéro ?",
-      "right": "Salle 2."
+      "right": "Vingt."
     }
   ]
+}$j$::jsonb,
+    2
+  );
+
+  PERFORM pg_temp.mfk_seed_exercise(
+    v_lesson_id,
+    'Complétez',
+    'fill_blank',
+    $j${
+  "prompt": "Complétez le verbe :\nJ'___ dix-neuf ans.",
+  "answer": "ai"
+}$j$::jsonb,
+    3
+  );
+
+  PERFORM pg_temp.mfk_seed_exercise(
+    v_lesson_id,
+    'Remettez les mots dans l''ordre',
+    'word_order',
+    $j${
+  "words": [
+    "C'est",
+    "lundi",
+    "prochain"
+  ]
+}$j$::jsonb,
+    4
+  );
+
+  PERFORM pg_temp.mfk_seed_exercise(
+    v_lesson_id,
+    'Lettres dans l''ordre',
+    'anagram',
+    $j${
+  "word": "mardi",
+  "hint": "Jour d'aujourd'hui au kiosque."
+}$j$::jsonb,
+    5
+  );
+
+  PERFORM pg_temp.mfk_seed_exercise(
+    v_lesson_id,
+    'Trouvez l''erreur',
+    'find_error',
+    $j${
+  "sentence_with_error": "C'est j'ai mardi.",
+  "correct_sentence": "C'est mardi.",
+  "explanation": "Jour : c'est + jour. Âge : j'ai + nombre + ans."
+}$j$::jsonb,
+    6
+  );
+
+  PERFORM pg_temp.mfk_seed_exercise(
+    v_lesson_id,
+    'Image et mot',
+    'image_match',
+    $j${
+  "pairs": [
+    {
+      "image_path": "/elearning/mfk-a1/un.svg",
+      "word": "un"
+    },
+    {
+      "image_path": "/elearning/mfk-a1/dix.svg",
+      "word": "dix"
+    },
+    {
+      "image_path": "/elearning/mfk-a1/vingt.svg",
+      "word": "vingt"
+    },
+    {
+      "image_path": "/elearning/mfk-a1/lundi.svg",
+      "word": "lundi"
+    }
+  ]
+}$j$::jsonb,
+    7
+  );
+
+  PERFORM pg_temp.mfk_seed_exercise(
+    v_lesson_id,
+    'Réponse libre',
+    'short_answer',
+    $j${
+  "prompt": "Écrivez : votre âge (j'ai … ans) et un jour (c'est …)."
+}$j$::jsonb,
+    8
+  );
+
+  PERFORM pg_temp.mfk_seed_exercise(
+    v_lesson_id,
+    'Enregistrez',
+    'audio_record',
+    $j${
+  "instructions": "Enregistrez : Bonjour, je m'appelle … J'ai … ans. Aujourd'hui c'est … Le prochain atelier : c'est lundi."
+}$j$::jsonb,
+    9
+  );
+
+  v_lesson_id := pg_temp.mfk_upsert_lesson(
+    v_seq_id,
+    'PE — L''étiquette collée au gobelet',
+    'PE',
+    $c$Objectif
+Écrire nombres, âge et jour sur une petite étiquette.
+
+Consigne
+Inès donne des gobelets. Complétez comme Sonia.
+
+Modèle
+Sonia Mukeshimana
+J'ai dix-neuf ans.
+C'est mardi.
+Prochain écrit : c'est lundi.
+N° 10 (gobelet).$c$,
+    3
+  );
+
+  PERFORM pg_temp.mfk_seed_exercise(
+    v_lesson_id,
+    'Vrai ou faux',
+    'true_false',
+    $j${
+  "statement": "Sonia écrit son âge avec « j'ai ».",
+  "correct": true,
+  "explanation": "J'ai dix-neuf ans."
 }$j$::jsonb,
     0
   );
 
   PERFORM pg_temp.mfk_seed_exercise(
     v_lesson_id,
-    'Remettez la phrase dans l''ordre',
+    'Choisissez la bonne réponse',
+    'qcm',
+    $j${
+  "question": "Comment écrit-on 19 en lettres dans le modèle ?",
+  "options": [
+    {
+      "text": "neuf",
+      "correct": false
+    },
+    {
+      "text": "dix-neuf",
+      "correct": true
+    },
+    {
+      "text": "vingt",
+      "correct": false
+    },
+    {
+      "text": "huit",
+      "correct": false
+    }
+  ],
+  "explanation": "dix-neuf."
+}$j$::jsonb,
+    1
+  );
+
+  PERFORM pg_temp.mfk_seed_exercise(
+    v_lesson_id,
+    'Associez',
+    'matching',
+    $j${
+  "pairs": [
+    {
+      "left": "lundi",
+      "right": "un jour"
+    },
+    {
+      "left": "dix-neuf",
+      "right": "un âge"
+    },
+    {
+      "left": "dix",
+      "right": "un numéro de gobelet"
+    },
+    {
+      "left": "mardi",
+      "right": "aujourd'hui au kiosque"
+    }
+  ]
+}$j$::jsonb,
+    2
+  );
+
+  PERFORM pg_temp.mfk_seed_exercise(
+    v_lesson_id,
+    'Complétez',
+    'fill_blank',
+    $j${
+  "prompt": "Complétez :\nC'est ___. (aujourd'hui, d'après le modèle)",
+  "answer": "mardi"
+}$j$::jsonb,
+    3
+  );
+
+  PERFORM pg_temp.mfk_seed_exercise(
+    v_lesson_id,
+    'Remettez les mots dans l''ordre',
+    'word_order',
+    $j${
+  "words": [
+    "J'ai",
+    "dix-neuf",
+    "ans"
+  ]
+}$j$::jsonb,
+    4
+  );
+
+  PERFORM pg_temp.mfk_seed_exercise(
+    v_lesson_id,
+    'Lettres dans l''ordre',
+    'anagram',
+    $j${
+  "word": "huit",
+  "hint": "Âge de Noël, en lettres."
+}$j$::jsonb,
+    5
+  );
+
+  PERFORM pg_temp.mfk_seed_exercise(
+    v_lesson_id,
+    'Trouvez l''erreur',
+    'find_error',
+    $j${
+  "sentence_with_error": "J'ai lundi ans.",
+  "correct_sentence": "C'est lundi.",
+  "explanation": "Lundi n'est pas un âge."
+}$j$::jsonb,
+    6
+  );
+
+  PERFORM pg_temp.mfk_seed_exercise(
+    v_lesson_id,
+    'Image et mot',
+    'image_match',
+    $j${
+  "pairs": [
+    {
+      "image_path": "/elearning/mfk-a1/un.svg",
+      "word": "un"
+    },
+    {
+      "image_path": "/elearning/mfk-a1/dix.svg",
+      "word": "dix"
+    },
+    {
+      "image_path": "/elearning/mfk-a1/vingt.svg",
+      "word": "vingt"
+    },
+    {
+      "image_path": "/elearning/mfk-a1/lundi.svg",
+      "word": "lundi"
+    }
+  ]
+}$j$::jsonb,
+    7
+  );
+
+  PERFORM pg_temp.mfk_seed_exercise(
+    v_lesson_id,
+    'Réponse libre',
+    'short_answer',
+    $j${
+  "prompt": "Rédigez votre étiquette : prénom, j'ai … ans, c'est … (un jour)."
+}$j$::jsonb,
+    8
+  );
+
+  PERFORM pg_temp.mfk_seed_exercise(
+    v_lesson_id,
+    'Enregistrez',
+    'audio_record',
+    $j${
+  "instructions": "Lisez votre étiquette à voix haute."
+}$j$::jsonb,
+    9
+  );
+
+  v_lesson_id := pg_temp.mfk_upsert_lesson(
+    v_seq_id,
+    'EL — Nombres 0–20, j''ai … ans, c''est lundi',
+    'EL',
+    $c$Objectif
+Fixer : nombres 0–20, avoir + âge, jours, c'est + jour.
+
+Consigne
+Fiche collée dans le carton à livres.
+
+Fiche
+0 zéro  1 un  2 deux  3 trois  4 quatre  5 cinq
+6 six  7 sept  8 huit  9 neuf  10 dix
+11 onze  12 douze  13 treize  14 quatorze  15 quinze
+16 seize  17 dix-sept  18 dix-huit  19 dix-neuf  20 vingt
+
+J'ai vingt ans. Tu as quel âge ?
+C'est lundi. C'est mardi. On est quel jour ?
+lundi mardi mercredi jeudi vendredi samedi dimanche
+Nous sommes quatre.$c$,
+    4
+  );
+
+  PERFORM pg_temp.mfk_seed_exercise(
+    v_lesson_id,
+    'Vrai ou faux',
+    'true_false',
+    $j${
+  "statement": "18 s'écrit « huit ».",
+  "correct": false,
+  "explanation": "8 = huit. 18 = dix-huit."
+}$j$::jsonb,
+    0
+  );
+
+  PERFORM pg_temp.mfk_seed_exercise(
+    v_lesson_id,
+    'Choisissez la bonne réponse',
+    'qcm',
+    $j${
+  "question": "Comment écrit-on 20 en lettres ?",
+  "options": [
+    {
+      "text": "douze",
+      "correct": false
+    },
+    {
+      "text": "dix",
+      "correct": false
+    },
+    {
+      "text": "vingt",
+      "correct": true
+    },
+    {
+      "text": "dix-neuf",
+      "correct": false
+    }
+  ],
+  "explanation": "20 = vingt."
+}$j$::jsonb,
+    1
+  );
+
+  PERFORM pg_temp.mfk_seed_exercise(
+    v_lesson_id,
+    'Associez',
+    'matching',
+    $j${
+  "pairs": [
+    {
+      "left": "8",
+      "right": "huit"
+    },
+    {
+      "left": "10",
+      "right": "dix"
+    },
+    {
+      "left": "18",
+      "right": "dix-huit"
+    },
+    {
+      "left": "19",
+      "right": "dix-neuf"
+    }
+  ]
+}$j$::jsonb,
+    2
+  );
+
+  PERFORM pg_temp.mfk_seed_exercise(
+    v_lesson_id,
+    'Complétez',
+    'fill_blank',
+    $j${
+  "prompt": "Complétez :\nC'est ___. (premier jour de la semaine scolaire)",
+  "answer": "lundi"
+}$j$::jsonb,
+    3
+  );
+
+  PERFORM pg_temp.mfk_seed_exercise(
+    v_lesson_id,
+    'Remettez les mots dans l''ordre',
     'word_order',
     $j${
   "words": [
@@ -796,140 +1957,18 @@ lundi mardi mercredi jeudi vendredi samedi dimanche$c$,
     "ans"
   ]
 }$j$::jsonb,
-    1
-  );
-
-  PERFORM pg_temp.mfk_seed_exercise(
-    v_lesson_id,
-    'Enregistrez : âge et jour',
-    'audio_record',
-    $j${
-  "instructions": "Enregistrez 20 à 30 secondes.\n1) Dites : Bonjour, je m'appelle …\n2) Dites : J'ai … ans.\n3) Dites le jour d'aujourd'hui : C'est …"
-}$j$::jsonb,
-    2
-  );
-
-  v_lesson_id := pg_temp.mfk_upsert_lesson(
-    v_seq_id,
-    'PE — Remplir une fiche (âge, jour)',
-    'PE',
-    $c$Objectif
-Écrire les nombres, l'âge et le jour sur une fiche simple.
-
-Consigne
-Complétez, remettez les mots dans l'ordre, puis écrivez votre fiche.
-
-Modèle
-Je m'appelle Amina.
-J'ai dix-huit ans.
-Le cours : c'est lundi.
-Salle 2.$c$,
-    3
-  );
-
-  PERFORM pg_temp.mfk_seed_exercise(
-    v_lesson_id,
-    'Complétez : j''ai … ans',
-    'fill_blank',
-    $j${
-  "prompt": "Complétez avec le verbe (un mot) :\nJ'___ dix-huit ans.",
-  "answer": "ai"
-}$j$::jsonb,
-    0
-  );
-
-  PERFORM pg_temp.mfk_seed_exercise(
-    v_lesson_id,
-    'Remettez la phrase dans l''ordre',
-    'word_order',
-    $j${
-  "words": [
-    "C'est",
-    "lundi"
-  ]
-}$j$::jsonb,
-    1
-  );
-
-  PERFORM pg_temp.mfk_seed_exercise(
-    v_lesson_id,
-    'Écrivez votre fiche',
-    'short_answer',
-    $j${
-  "prompt": "Écrivez 3 phrases.\n1) Je m'appelle …\n2) J'ai … ans. (en lettres si possible : vingt, dix-huit…)\n3) C'est … (un jour de la semaine).\nCorrection par l'enseignant."
-}$j$::jsonb,
-    2
-  );
-
-  v_lesson_id := pg_temp.mfk_upsert_lesson(
-    v_seq_id,
-    'EL — Nombres 0–20, avoir + âge, jours',
-    'EL',
-    $c$Objectif
-Fixer le point de langue : nombres 0–20, j'ai … ans, jours de la semaine, c'est + jour.
-
-Consigne
-Lisez la fiche. Puis faites les exercices.
-
-Fiche langue
-
-1. Nombres 0–20
-0 zéro  1 un  2 deux  3 trois  4 quatre  5 cinq
-6 six  7 sept  8 huit  9 neuf  10 dix
-11 onze  12 douze  13 treize  14 quatorze  15 quinze
-16 seize  17 dix-sept  18 dix-huit  19 dix-neuf  20 vingt
-
-2. Avoir + âge
-J'ai vingt ans. Tu as quel âge ?
-Il / elle a dix-neuf ans.
-
-3. Jours
-lundi mardi mercredi jeudi vendredi samedi dimanche
-C'est lundi. On est quel jour ?
-
-4. Compter les personnes
-Nous sommes dix. Vous êtes combien ?$c$,
     4
   );
 
   PERFORM pg_temp.mfk_seed_exercise(
     v_lesson_id,
-    'Quel mot pour 18 ?',
-    'qcm',
-    $j${
-  "question": "Comment écrit-on 18 en lettres ?",
-  "options": [
-    {
-      "text": "huit",
-      "correct": false
-    },
-    {
-      "text": "dix-huit",
-      "correct": true
-    },
-    {
-      "text": "vingt",
-      "correct": false
-    },
-    {
-      "text": "douze",
-      "correct": false
-    }
-  ],
-  "explanation": "18 = dix-huit. 8 = huit. 20 = vingt. 12 = douze."
-}$j$::jsonb,
-    0
-  );
-
-  PERFORM pg_temp.mfk_seed_exercise(
-    v_lesson_id,
-    'Lettres dans l''ordre : LUNDI',
+    'Lettres dans l''ordre',
     'anagram',
     $j${
   "word": "lundi",
-  "hint": "Premier jour de la semaine (en France et au Rwanda, à l'école)."
+  "hint": "c'est + jour, premier jour scolaire."
 }$j$::jsonb,
-    1
+    5
   );
 
   PERFORM pg_temp.mfk_seed_exercise(
@@ -939,9 +1978,56 @@ Nous sommes dix. Vous êtes combien ?$c$,
     $j${
   "sentence_with_error": "Je suis vingt ans.",
   "correct_sentence": "J'ai vingt ans.",
-  "explanation": "L'âge se dit avec avoir : j'ai vingt ans. Pas être."
+  "explanation": "Âge = avoir."
 }$j$::jsonb,
-    2
+    6
+  );
+
+  PERFORM pg_temp.mfk_seed_exercise(
+    v_lesson_id,
+    'Image et mot',
+    'image_match',
+    $j${
+  "pairs": [
+    {
+      "image_path": "/elearning/mfk-a1/un.svg",
+      "word": "un"
+    },
+    {
+      "image_path": "/elearning/mfk-a1/dix.svg",
+      "word": "dix"
+    },
+    {
+      "image_path": "/elearning/mfk-a1/vingt.svg",
+      "word": "vingt"
+    },
+    {
+      "image_path": "/elearning/mfk-a1/lundi.svg",
+      "word": "lundi"
+    }
+  ]
+}$j$::jsonb,
+    7
+  );
+
+  PERFORM pg_temp.mfk_seed_exercise(
+    v_lesson_id,
+    'Réponse libre',
+    'short_answer',
+    $j${
+  "prompt": "Écrivez en lettres : 8, 10, 18, 20, et la phrase « c'est lundi »."
+}$j$::jsonb,
+    8
+  );
+
+  PERFORM pg_temp.mfk_seed_exercise(
+    v_lesson_id,
+    'Enregistrez',
+    'audio_record',
+    $j${
+  "instructions": "Comptez de un à vingt, puis dites : c'est lundi. J'ai … ans."
+}$j$::jsonb,
+    9
   );
 
   -- ===== Le monde en français =====
@@ -962,48 +2048,43 @@ Nous sommes dix. Vous êtes combien ?$c$,
 
   v_lesson_id := pg_temp.mfk_upsert_lesson(
     v_seq_id,
-    'CO — Comprendre « D''où viens-tu ? »',
+    'CO — D''où venez-vous, autour de la table ?',
     'CO',
     $c$Objectif
-Comprendre un échange sur le pays, la nationalité et la langue (être, d'où, je parle).
+Comprendre pays, nationalité (être), d'où, je parle, de / du / en.
 
 Consigne
-Lisez le dialogue. D'où vient chaque personne ? Quelle langue parle-t-elle ?
+Lisez. D'où vient chacun ? Quelle langue ?
 
-Support — Dans la cour
-Claire : Jean, d'où viens-tu ?
-Jean : Je viens du Rwanda. Je suis rwandais. Je parle kinyarwanda et un peu français.
-Claire : Moi, je viens du Burundi. Je suis burundaise.
-Amina : Je viens de France. Je suis française. Je parle français.
-Paul : Je viens de la RDC. Je suis congolais.
-Professeure : Très bien. En classe, nous parlons français.
-
-Pays et nationalités
-Rwanda → rwandais / rwandaise
-Burundi → burundais / burundaise
-France → français / française
-RDC → congolais / congolaise$c$,
+Support — Après le thé sucré
+Sonia : Yvan, d'où viens-tu ?
+Yvan : Je viens du Rwanda. Je suis rwandais. Je parle kinyarwanda et un peu français.
+Sonia : Je viens du Burundi. Je suis burundaise. Je parle kirundi.
+Didier : Je viens de la RDC, de Goma. Je suis congolais. Je parle swahili et français.
+Inès : Moi, je vis au Rwanda, à Kigali. Je suis rwandaise.
+Noël : J'ai une tante en France. Elle est française. Elle parle français.
+Yvan : En classe, on parle français, ici sous l'auvent aussi.$c$,
     0
   );
 
   PERFORM pg_temp.mfk_seed_exercise(
     v_lesson_id,
-    'Vrai ou faux : Jean est français',
+    'Vrai ou faux',
     'true_false',
     $j${
-  "statement": "Jean est français.",
+  "statement": "Yvan est français.",
   "correct": false,
-  "explanation": "Jean vient du Rwanda. Il est rwandais. Amina est française."
+  "explanation": "Yvan vient du Rwanda. Il est rwandais. La tante de Noël est française."
 }$j$::jsonb,
     0
   );
 
   PERFORM pg_temp.mfk_seed_exercise(
     v_lesson_id,
-    'D''où vient Claire ?',
+    'Choisissez la bonne réponse',
     'qcm',
     $j${
-  "question": "D'où vient Claire ?",
+  "question": "D'où vient Didier ?",
   "options": [
     {
       "text": "Du Rwanda",
@@ -1011,25 +2092,25 @@ RDC → congolais / congolaise$c$,
     },
     {
       "text": "Du Burundi",
+      "correct": false
+    },
+    {
+      "text": "De la RDC",
       "correct": true
     },
     {
       "text": "De France",
       "correct": false
-    },
-    {
-      "text": "De la RDC",
-      "correct": false
     }
   ],
-  "explanation": "Claire dit : « Je viens du Burundi. Je suis burundaise. »"
+  "explanation": "Didier : « Je viens de la RDC, de Goma. »"
 }$j$::jsonb,
     1
   );
 
   PERFORM pg_temp.mfk_seed_exercise(
     v_lesson_id,
-    'Associez le pays et la nationalité',
+    'Associez',
     'matching',
     $j${
   "pairs": [
@@ -1054,119 +2135,362 @@ RDC → congolais / congolaise$c$,
     2
   );
 
+  PERFORM pg_temp.mfk_seed_exercise(
+    v_lesson_id,
+    'Complétez',
+    'fill_blank',
+    $j${
+  "prompt": "Complétez (un mot) :\nJe viens ___ Rwanda.",
+  "answer": "du"
+}$j$::jsonb,
+    3
+  );
+
+  PERFORM pg_temp.mfk_seed_exercise(
+    v_lesson_id,
+    'Remettez les mots dans l''ordre',
+    'word_order',
+    $j${
+  "words": [
+    "Je",
+    "viens",
+    "du",
+    "Burundi"
+  ]
+}$j$::jsonb,
+    4
+  );
+
+  PERFORM pg_temp.mfk_seed_exercise(
+    v_lesson_id,
+    'Lettres dans l''ordre',
+    'anagram',
+    $j${
+  "word": "rwanda",
+  "hint": "Pays de Yvan et d'Inès."
+}$j$::jsonb,
+    5
+  );
+
+  PERFORM pg_temp.mfk_seed_exercise(
+    v_lesson_id,
+    'Trouvez l''erreur',
+    'find_error',
+    $j${
+  "sentence_with_error": "Je suis rwandaise. Je viens de Rwanda.",
+  "correct_sentence": "Je suis rwandaise. Je viens du Rwanda.",
+  "explanation": "du Rwanda = de + le. de France, du Burundi, de la RDC."
+}$j$::jsonb,
+    6
+  );
+
+  PERFORM pg_temp.mfk_seed_exercise(
+    v_lesson_id,
+    'Image et mot',
+    'image_match',
+    $j${
+  "pairs": [
+    {
+      "image_path": "/elearning/mfk-a1/rwanda.svg",
+      "word": "Rwanda"
+    },
+    {
+      "image_path": "/elearning/mfk-a1/burundi.svg",
+      "word": "Burundi"
+    },
+    {
+      "image_path": "/elearning/mfk-a1/france.svg",
+      "word": "France"
+    },
+    {
+      "image_path": "/elearning/mfk-a1/rdc.svg",
+      "word": "RDC"
+    }
+  ]
+}$j$::jsonb,
+    7
+  );
+
+  PERFORM pg_temp.mfk_seed_exercise(
+    v_lesson_id,
+    'Réponse libre',
+    'short_answer',
+    $j${
+  "prompt": "Pour chaque personne, notez : pays + nationalité + une langue."
+}$j$::jsonb,
+    8
+  );
+
+  PERFORM pg_temp.mfk_seed_exercise(
+    v_lesson_id,
+    'Enregistrez',
+    'audio_record',
+    $j${
+  "instructions": "Dites : Je viens de / du / de la … Je suis … Je parle …"
+}$j$::jsonb,
+    9
+  );
+
   v_lesson_id := pg_temp.mfk_upsert_lesson(
     v_seq_id,
-    'CE — Lire des cartes d''identité',
+    'CE — Les cartes pégées au carton',
     'CE',
     $c$Objectif
-Lire des fiches courtes : prénom, pays, nationalité, langue.
+Lire des cartes : pays, nationalité, langue.
 
 Consigne
-Lisez les quatre cartes. Qui parle kinyarwanda ? Qui vient de France ?
+Quatre cartes scotchées sur le carton à livres.
 
-Support — Cartes élèves
-Carte 1
-Prénom : Jean
+Support
+Carte Yvan — Kigali
 Pays : Rwanda
 Nationalité : rwandais
 Langues : kinyarwanda, français
+Je viens du Rwanda.
 
-Carte 2
-Prénom : Amina
-Pays : France
-Nationalité : française
-Langues : français
+Carte Sonia
+Pays : Burundi
+Nationalité : burundaise
+Langues : kirundi, français
+Je viens du Burundi.
 
-Carte 3
-Prénom : Paul
-Pays : RDC
+Carte Didier
+Pays : RDC (Goma)
 Nationalité : congolais
 Langues : swahili, français
+Je viens de la RDC.
 
-Message
-Bonjour,
-Je m'appelle Claire. Je viens du Burundi. Je suis burundaise.
-Je parle kirundi et français.
-À bientôt.$c$,
+Billet de Noël
+Ma tante vit en France. Elle est française. Elle parle français.$c$,
     1
   );
 
   PERFORM pg_temp.mfk_seed_exercise(
     v_lesson_id,
-    'Qui vient de France ?',
-    'qcm',
+    'Vrai ou faux',
+    'true_false',
     $j${
-  "question": "Qui vient de France ?",
-  "options": [
-    {
-      "text": "Jean",
-      "correct": false
-    },
-    {
-      "text": "Amina",
-      "correct": true
-    },
-    {
-      "text": "Paul",
-      "correct": false
-    },
-    {
-      "text": "Claire",
-      "correct": false
-    }
-  ],
-  "explanation": "La carte 2 : Amina, pays France, nationale française."
+  "statement": "Sonia est burundaise.",
+  "correct": true,
+  "explanation": "Carte Sonia : nationalité burundaise."
 }$j$::jsonb,
     0
   );
 
   PERFORM pg_temp.mfk_seed_exercise(
     v_lesson_id,
-    'Vrai ou faux : Paul parle swahili',
-    'true_false',
+    'Choisissez la bonne réponse',
+    'qcm',
     $j${
-  "statement": "Paul parle swahili.",
-  "correct": true,
-  "explanation": "Carte 3 : Langues : swahili, français."
+  "question": "Qui vit en France d'après les papiers ?",
+  "options": [
+    {
+      "text": "Yvan",
+      "correct": false
+    },
+    {
+      "text": "Didier",
+      "correct": false
+    },
+    {
+      "text": "La tante de Noël",
+      "correct": true
+    },
+    {
+      "text": "Inès",
+      "correct": false
+    }
+  ],
+  "explanation": "Billet : « Ma tante vit en France. »"
 }$j$::jsonb,
     1
   );
 
   PERFORM pg_temp.mfk_seed_exercise(
     v_lesson_id,
-    'Complétez la nationalité',
-    'fill_blank',
+    'Associez',
+    'matching',
     $j${
-  "prompt": "Claire écrit : Je suis ___.\nUn mot (féminin).",
-  "answer": "burundaise"
+  "pairs": [
+    {
+      "left": "Je viens du Rwanda.",
+      "right": "Yvan"
+    },
+    {
+      "left": "Je viens du Burundi.",
+      "right": "Sonia"
+    },
+    {
+      "left": "Je viens de la RDC.",
+      "right": "Didier"
+    },
+    {
+      "left": "Elle vit en France.",
+      "right": "la tante"
+    }
+  ]
 }$j$::jsonb,
-    2
-  );
-
-  v_lesson_id := pg_temp.mfk_upsert_lesson(
-    v_seq_id,
-    'PO — Dire son pays, sa nationalité, sa langue',
-    'PO',
-    $c$Objectif
-Dire d'où on vient, sa nationalité (être) et les langues (je parle…).
-
-Consigne
-Associez, remettez la phrase dans l'ordre, puis enregistrez-vous.
-
-Modèles
-Je viens du Rwanda. Je suis rwandais.
-Je viens de France. Je suis française.
-Je parle français et kinyarwanda.
-D'où viens-tu ? Tu es de quel pays ?
-
-Prépositions
-de France • du Rwanda • du Burundi • de la RDC • en France • au Rwanda$c$,
     2
   );
 
   PERFORM pg_temp.mfk_seed_exercise(
     v_lesson_id,
-    'Associez la phrase et le sens',
+    'Complétez',
+    'fill_blank',
+    $j${
+  "prompt": "Complétez (féminin) :\nSonia est ___.",
+  "answer": "burundaise"
+}$j$::jsonb,
+    3
+  );
+
+  PERFORM pg_temp.mfk_seed_exercise(
+    v_lesson_id,
+    'Remettez les mots dans l''ordre',
+    'word_order',
+    $j${
+  "words": [
+    "Je",
+    "parle",
+    "français"
+  ]
+}$j$::jsonb,
+    4
+  );
+
+  PERFORM pg_temp.mfk_seed_exercise(
+    v_lesson_id,
+    'Lettres dans l''ordre',
+    'anagram',
+    $j${
+  "word": "france",
+  "hint": "Pays de la tante de Noël."
+}$j$::jsonb,
+    5
+  );
+
+  PERFORM pg_temp.mfk_seed_exercise(
+    v_lesson_id,
+    'Trouvez l''erreur',
+    'find_error',
+    $j${
+  "sentence_with_error": "Didier est congolaise.",
+  "correct_sentence": "Didier est congolais.",
+  "explanation": "Didier = masculin : congolais. Féminin : congolaise."
+}$j$::jsonb,
+    6
+  );
+
+  PERFORM pg_temp.mfk_seed_exercise(
+    v_lesson_id,
+    'Image et mot',
+    'image_match',
+    $j${
+  "pairs": [
+    {
+      "image_path": "/elearning/mfk-a1/rwanda.svg",
+      "word": "Rwanda"
+    },
+    {
+      "image_path": "/elearning/mfk-a1/burundi.svg",
+      "word": "Burundi"
+    },
+    {
+      "image_path": "/elearning/mfk-a1/france.svg",
+      "word": "France"
+    },
+    {
+      "image_path": "/elearning/mfk-a1/rdc.svg",
+      "word": "RDC"
+    }
+  ]
+}$j$::jsonb,
+    7
+  );
+
+  PERFORM pg_temp.mfk_seed_exercise(
+    v_lesson_id,
+    'Réponse libre',
+    'short_answer',
+    $j${
+  "prompt": "Recopiez une phrase avec du, une avec de la, une avec en."
+}$j$::jsonb,
+    8
+  );
+
+  PERFORM pg_temp.mfk_seed_exercise(
+    v_lesson_id,
+    'Enregistrez',
+    'audio_record',
+    $j${
+  "instructions": "Lisez la carte de Sonia à voix haute."
+}$j$::jsonb,
+    9
+  );
+
+  v_lesson_id := pg_temp.mfk_upsert_lesson(
+    v_seq_id,
+    'PO — Dire d''où on vient',
+    'PO',
+    $c$Objectif
+Dire pays, nationalité (accord), langues, de / du / en.
+
+Consigne
+Modèles autour de la table, puis oral.
+
+Modèles
+Je viens du Rwanda. Je suis rwandais.
+Je viens de France. Je suis française.
+Je vis au Rwanda. Je vis en France.
+Je parle français et kinyarwanda.
+D'où viens-tu ?$c$,
+    2
+  );
+
+  PERFORM pg_temp.mfk_seed_exercise(
+    v_lesson_id,
+    'Vrai ou faux',
+    'true_false',
+    $j${
+  "statement": "On dit « je vis du France ».",
+  "correct": false,
+  "explanation": "Vivre : en France, au Rwanda. Venir : de France, du Rwanda."
+}$j$::jsonb,
+    0
+  );
+
+  PERFORM pg_temp.mfk_seed_exercise(
+    v_lesson_id,
+    'Choisissez la bonne réponse',
+    'qcm',
+    $j${
+  "question": "Quelle phrase a une nationalité au féminin ?",
+  "options": [
+    {
+      "text": "Je suis rwandais.",
+      "correct": false
+    },
+    {
+      "text": "Je suis congolais.",
+      "correct": false
+    },
+    {
+      "text": "Je suis burundaise.",
+      "correct": true
+    },
+    {
+      "text": "Je suis français.",
+      "correct": false
+    }
+  ],
+  "explanation": "burundaise = féminin."
+}$j$::jsonb,
+    1
+  );
+
+  PERFORM pg_temp.mfk_seed_exercise(
+    v_lesson_id,
+    'Associez',
     'matching',
     $j${
   "pairs": [
@@ -1179,7 +2503,7 @@ de France • du Rwanda • du Burundi • de la RDC • en France • au Rwanda
       "right": "la nationalité"
     },
     {
-      "left": "Je parle français.",
+      "left": "Je parle kirundi.",
       "right": "la langue"
     },
     {
@@ -1188,126 +2512,333 @@ de France • du Rwanda • du Burundi • de la RDC • en France • au Rwanda
     }
   ]
 }$j$::jsonb,
-    0
-  );
-
-  PERFORM pg_temp.mfk_seed_exercise(
-    v_lesson_id,
-    'Remettez la phrase dans l''ordre',
-    'word_order',
-    $j${
-  "words": [
-    "Je",
-    "viens",
-    "du",
-    "Rwanda"
-  ]
-}$j$::jsonb,
-    1
-  );
-
-  PERFORM pg_temp.mfk_seed_exercise(
-    v_lesson_id,
-    'Enregistrez : pays, nationalité, langue',
-    'audio_record',
-    $j${
-  "instructions": "Enregistrez 20 à 30 secondes.\n1) Je m'appelle …\n2) Je viens de / du / de la …\n3) Je suis … (nationalité, accord : rwandais / rwandaise).\n4) Je parle …"
-}$j$::jsonb,
     2
   );
 
-  v_lesson_id := pg_temp.mfk_upsert_lesson(
-    v_seq_id,
-    'PE — Écrire d''où on vient',
-    'PE',
-    $c$Objectif
-Écrire 3 ou 4 phrases : pays, nationalité (accord), langues.
-
-Consigne
-Complétez, remettez les mots dans l'ordre, puis écrivez votre carte.
-
-Modèle
-Je m'appelle Amina.
-Je viens de France.
-Je suis française.
-Je parle français.$c$,
+  PERFORM pg_temp.mfk_seed_exercise(
+    v_lesson_id,
+    'Complétez',
+    'fill_blank',
+    $j${
+  "prompt": "Complétez le verbe :\nJe ___ rwandais.",
+  "answer": "suis"
+}$j$::jsonb,
     3
   );
 
   PERFORM pg_temp.mfk_seed_exercise(
     v_lesson_id,
-    'Complétez : je suis',
-    'fill_blank',
+    'Remettez les mots dans l''ordre',
+    'word_order',
     $j${
-  "prompt": "Complétez le verbe (un mot) :\nJe ___ rwandaise.",
-  "answer": "suis"
+  "words": [
+    "Je",
+    "viens",
+    "de",
+    "la",
+    "RDC"
+  ]
+}$j$::jsonb,
+    4
+  );
+
+  PERFORM pg_temp.mfk_seed_exercise(
+    v_lesson_id,
+    'Lettres dans l''ordre',
+    'anagram',
+    $j${
+  "word": "parle",
+  "hint": "Je parle français."
+}$j$::jsonb,
+    5
+  );
+
+  PERFORM pg_temp.mfk_seed_exercise(
+    v_lesson_id,
+    'Trouvez l''erreur',
+    'find_error',
+    $j${
+  "sentence_with_error": "Je vis du Rwanda.",
+  "correct_sentence": "Je vis au Rwanda.",
+  "explanation": "Venir du Rwanda / vivre au Rwanda. Venir de France / vivre en France."
+}$j$::jsonb,
+    6
+  );
+
+  PERFORM pg_temp.mfk_seed_exercise(
+    v_lesson_id,
+    'Image et mot',
+    'image_match',
+    $j${
+  "pairs": [
+    {
+      "image_path": "/elearning/mfk-a1/rwanda.svg",
+      "word": "Rwanda"
+    },
+    {
+      "image_path": "/elearning/mfk-a1/burundi.svg",
+      "word": "Burundi"
+    },
+    {
+      "image_path": "/elearning/mfk-a1/france.svg",
+      "word": "France"
+    },
+    {
+      "image_path": "/elearning/mfk-a1/rdc.svg",
+      "word": "RDC"
+    }
+  ]
+}$j$::jsonb,
+    7
+  );
+
+  PERFORM pg_temp.mfk_seed_exercise(
+    v_lesson_id,
+    'Réponse libre',
+    'short_answer',
+    $j${
+  "prompt": "Écrivez vos 3 phrases : je viens… / je suis… / je parle…"
+}$j$::jsonb,
+    8
+  );
+
+  PERFORM pg_temp.mfk_seed_exercise(
+    v_lesson_id,
+    'Enregistrez',
+    'audio_record',
+    $j${
+  "instructions": "Enregistrez : Je m'appelle … Je viens de/du/de la … Je suis … Je parle …"
+}$j$::jsonb,
+    9
+  );
+
+  v_lesson_id := pg_temp.mfk_upsert_lesson(
+    v_seq_id,
+    'PE — Ma carte pour le carton',
+    'PE',
+    $c$Objectif
+Écrire une carte : je viens, je suis (accord), je parle.
+
+Consigne
+Comme Yvan, sur un bristol.
+
+Modèle
+Je m'appelle Yvan Bizimana.
+Je viens du Rwanda.
+Je suis rwandais.
+Je parle kinyarwanda et français.$c$,
+    3
+  );
+
+  PERFORM pg_temp.mfk_seed_exercise(
+    v_lesson_id,
+    'Vrai ou faux',
+    'true_false',
+    $j${
+  "statement": "Le modèle sépare le pays (je viens) et la nationalité (je suis).",
+  "correct": true,
+  "explanation": "Je viens du Rwanda. Je suis rwandais."
 }$j$::jsonb,
     0
   );
 
   PERFORM pg_temp.mfk_seed_exercise(
     v_lesson_id,
-    'Remettez la phrase dans l''ordre',
-    'word_order',
+    'Choisissez la bonne réponse',
+    'qcm',
     $j${
-  "words": [
-    "Je",
-    "parle",
-    "français"
-  ]
+  "question": "Quelle préposition avec Rwanda après « je viens » ?",
+  "options": [
+    {
+      "text": "en",
+      "correct": false
+    },
+    {
+      "text": "à",
+      "correct": false
+    },
+    {
+      "text": "du",
+      "correct": true
+    },
+    {
+      "text": "de la",
+      "correct": false
+    }
+  ],
+  "explanation": "Je viens du Rwanda."
 }$j$::jsonb,
     1
   );
 
   PERFORM pg_temp.mfk_seed_exercise(
     v_lesson_id,
-    'Écrivez votre carte',
-    'short_answer',
+    'Associez',
+    'matching',
     $j${
-  "prompt": "Écrivez 4 phrases.\n1) Je m'appelle …\n2) Je viens de / du / de la …\n3) Je suis … (nationalité, masculin ou féminin).\n4) Je parle …\nCorrection par l'enseignant."
+  "pairs": [
+    {
+      "left": "de France",
+      "right": "venir"
+    },
+    {
+      "left": "du Burundi",
+      "right": "venir"
+    },
+    {
+      "left": "en France",
+      "right": "vivre"
+    },
+    {
+      "left": "au Rwanda",
+      "right": "vivre"
+    }
+  ]
 }$j$::jsonb,
     2
   );
 
-  v_lesson_id := pg_temp.mfk_upsert_lesson(
-    v_seq_id,
-    'EL — être, nationalités, je parle, de / du / en',
-    'EL',
-    $c$Objectif
-Fixer le point de langue : être + nationalité, d'où viens-tu ?, je parle, de / du / de la / en / au.
+  PERFORM pg_temp.mfk_seed_exercise(
+    v_lesson_id,
+    'Complétez',
+    'fill_blank',
+    $j${
+  "prompt": "Complétez :\nJe viens ___ France.",
+  "answer": "de"
+}$j$::jsonb,
+    3
+  );
 
-Consigne
-Lisez la fiche. Attention à l'accord (rwandais / rwandaise).
-
-Fiche langue
-
-1. être (présent)
-je suis  tu es  il / elle est
-nous sommes  vous êtes  ils / elles sont
-
-2. Nationalités (accord)
-rwandais / rwandaise
-burundais / burundaise
-français / française
-congolais / congolaise
-
-3. Pays : de / du / de la • en / au
-Je viens de France. Je vis en France.
-Je viens du Rwanda. Je vis au Rwanda.
-Je viens de la RDC.
-
-4. Langues
-Je parle français. Je parle kinyarwanda.
-Tu parles quelle langue ?$c$,
+  PERFORM pg_temp.mfk_seed_exercise(
+    v_lesson_id,
+    'Remettez les mots dans l''ordre',
+    'word_order',
+    $j${
+  "words": [
+    "Je",
+    "suis",
+    "rwandais"
+  ]
+}$j$::jsonb,
     4
   );
 
   PERFORM pg_temp.mfk_seed_exercise(
     v_lesson_id,
-    'Choisissez la bonne forme',
+    'Lettres dans l''ordre',
+    'anagram',
+    $j${
+  "word": "goma",
+  "hint": "Ville de Didier, en RDC. (on accepte la graphie du mot)"
+}$j$::jsonb,
+    5
+  );
+
+  PERFORM pg_temp.mfk_seed_exercise(
+    v_lesson_id,
+    'Trouvez l''erreur',
+    'find_error',
+    $j${
+  "sentence_with_error": "Je suis Rwanda.",
+  "correct_sentence": "Je suis rwandais.",
+  "explanation": "Le pays : le Rwanda. La nationalité : rwandais / rwandaise."
+}$j$::jsonb,
+    6
+  );
+
+  PERFORM pg_temp.mfk_seed_exercise(
+    v_lesson_id,
+    'Image et mot',
+    'image_match',
+    $j${
+  "pairs": [
+    {
+      "image_path": "/elearning/mfk-a1/rwanda.svg",
+      "word": "Rwanda"
+    },
+    {
+      "image_path": "/elearning/mfk-a1/burundi.svg",
+      "word": "Burundi"
+    },
+    {
+      "image_path": "/elearning/mfk-a1/france.svg",
+      "word": "France"
+    },
+    {
+      "image_path": "/elearning/mfk-a1/rdc.svg",
+      "word": "RDC"
+    }
+  ]
+}$j$::jsonb,
+    7
+  );
+
+  PERFORM pg_temp.mfk_seed_exercise(
+    v_lesson_id,
+    'Réponse libre',
+    'short_answer',
+    $j${
+  "prompt": "Rédigez votre bristol : 4 phrases (m'appelle, viens, suis, parle)."
+}$j$::jsonb,
+    8
+  );
+
+  PERFORM pg_temp.mfk_seed_exercise(
+    v_lesson_id,
+    'Enregistrez',
+    'audio_record',
+    $j${
+  "instructions": "Lisez votre bristol à voix haute."
+}$j$::jsonb,
+    9
+  );
+
+  v_lesson_id := pg_temp.mfk_upsert_lesson(
+    v_seq_id,
+    'EL — être, nationalités, de / du / en',
+    'EL',
+    $c$Objectif
+Fixer : être, nationalités (accord), d'où, je parle, de / du / de la / en / au.
+
+Consigne
+Fiche au dos du carton.
+
+Fiche
+je suis  tu es  il / elle est
+nous sommes  vous êtes  ils / elles sont
+
+rwandais / rwandaise
+burundais / burundaise
+français / française
+congolais / congolaise
+
+Je viens de France. Je vis en France.
+Je viens du Rwanda. Je vis au Rwanda.
+Je viens du Burundi. Je vis au Burundi.
+Je viens de la RDC.
+
+Je parle français. Tu parles quelle langue ?$c$,
+    4
+  );
+
+  PERFORM pg_temp.mfk_seed_exercise(
+    v_lesson_id,
+    'Vrai ou faux',
+    'true_false',
+    $j${
+  "statement": "« française » est le féminin de « français ».",
+  "correct": true,
+  "explanation": "français / française."
+}$j$::jsonb,
+    0
+  );
+
+  PERFORM pg_temp.mfk_seed_exercise(
+    v_lesson_id,
+    'Choisissez la bonne réponse',
     'qcm',
     $j${
-  "question": "Amina est une femme. On dit : Amina est ___.",
+  "question": "La tante de Noël est une femme. On dit : elle est ___.",
   "options": [
     {
       "text": "français",
@@ -1326,20 +2857,72 @@ Tu parles quelle langue ?$c$,
       "correct": false
     }
   ],
-  "explanation": "Nationalité au féminin : française. Le pays : la France."
+  "explanation": "Féminin : française."
 }$j$::jsonb,
-    0
+    1
   );
 
   PERFORM pg_temp.mfk_seed_exercise(
     v_lesson_id,
-    'Complétez : je viens … Rwanda',
+    'Associez',
+    'matching',
+    $j${
+  "pairs": [
+    {
+      "left": "de France",
+      "right": "venir + pays féminin sans article"
+    },
+    {
+      "left": "du Rwanda",
+      "right": "venir + le pays"
+    },
+    {
+      "left": "de la RDC",
+      "right": "venir + la"
+    },
+    {
+      "left": "en France",
+      "right": "vivre + en"
+    }
+  ]
+}$j$::jsonb,
+    2
+  );
+
+  PERFORM pg_temp.mfk_seed_exercise(
+    v_lesson_id,
+    'Complétez',
     'fill_blank',
     $j${
-  "prompt": "Complétez (un mot) :\nJe viens ___ Rwanda.",
-  "answer": "du"
+  "prompt": "Complétez :\nJe vis ___ Rwanda.",
+  "answer": "au"
 }$j$::jsonb,
-    1
+    3
+  );
+
+  PERFORM pg_temp.mfk_seed_exercise(
+    v_lesson_id,
+    'Remettez les mots dans l''ordre',
+    'word_order',
+    $j${
+  "words": [
+    "Je",
+    "parle",
+    "kinyarwanda"
+  ]
+}$j$::jsonb,
+    4
+  );
+
+  PERFORM pg_temp.mfk_seed_exercise(
+    v_lesson_id,
+    'Lettres dans l''ordre',
+    'anagram',
+    $j${
+  "word": "burundi",
+  "hint": "Pays de Sonia."
+}$j$::jsonb,
+    5
   );
 
   PERFORM pg_temp.mfk_seed_exercise(
@@ -1347,11 +2930,58 @@ Tu parles quelle langue ?$c$,
     'Trouvez l''erreur',
     'find_error',
     $j${
-  "sentence_with_error": "Je suis rwandaise. Je viens de Rwanda.",
-  "correct_sentence": "Je suis rwandaise. Je viens du Rwanda.",
-  "explanation": "On dit du Rwanda (de + le). De France, du Rwanda, de la RDC."
+  "sentence_with_error": "Je viens de la Rwanda.",
+  "correct_sentence": "Je viens du Rwanda.",
+  "explanation": "le Rwanda → du. la RDC → de la. la France → de."
 }$j$::jsonb,
-    2
+    6
+  );
+
+  PERFORM pg_temp.mfk_seed_exercise(
+    v_lesson_id,
+    'Image et mot',
+    'image_match',
+    $j${
+  "pairs": [
+    {
+      "image_path": "/elearning/mfk-a1/rwanda.svg",
+      "word": "Rwanda"
+    },
+    {
+      "image_path": "/elearning/mfk-a1/burundi.svg",
+      "word": "Burundi"
+    },
+    {
+      "image_path": "/elearning/mfk-a1/france.svg",
+      "word": "France"
+    },
+    {
+      "image_path": "/elearning/mfk-a1/rdc.svg",
+      "word": "RDC"
+    }
+  ]
+}$j$::jsonb,
+    7
+  );
+
+  PERFORM pg_temp.mfk_seed_exercise(
+    v_lesson_id,
+    'Réponse libre',
+    'short_answer',
+    $j${
+  "prompt": "Écrivez 4 nationalités au masculin et au féminin."
+}$j$::jsonb,
+    8
+  );
+
+  PERFORM pg_temp.mfk_seed_exercise(
+    v_lesson_id,
+    'Enregistrez',
+    'audio_record',
+    $j${
+  "instructions": "Dites : je suis, tu es, elle est. Puis : je viens du Rwanda. Je vis au Rwanda."
+}$j$::jsonb,
+    9
   );
 
   -- ===== Vivre en classe =====
@@ -1372,131 +3002,232 @@ Tu parles quelle langue ?$c$,
 
   v_lesson_id := pg_temp.mfk_upsert_lesson(
     v_seq_id,
-    'CO — Comprendre les consignes du professeur',
+    'CO — Inès lance l''atelier',
     'CO',
     $c$Objectif
-Comprendre les consignes de classe (impératif) et les objets (un / une).
+Comprendre les consignes (impératif) et les objets (un / une).
 
 Consigne
-Lisez le dialogue. Que dit la professeure ? Que répond l'élève ?
+Lisez l'atelier sous l'auvent. Que dit Inès ? Que répond Yvan ?
 
-Support — En classe
-Professeure : Bonjour. Asseyez-vous. Ouvrez le livre, page 2.
-Jean : Pardon, madame. Je ne comprends pas. Répétez, s'il vous plaît.
-Professeure : Écoutez. Répétez : « Bonjour ».
-Classe : Bonjour.
-Professeure : Très bien. Fermez le cahier. Prenez un stylo.
-Claire : Madame, comment dit-on « book » en français ?
-Professeure : Un livre. C'est un livre. C'est une chaise.
-Jean : Merci.
-
-Consignes
-Écoutez. Répétez. Ouvrez. Fermez. Asseyez-vous. Prenez. Épelez.$c$,
+Support — Table pliante, 16 h 20
+Inès : Asseyez-vous. Écoutez. Ouvrez le cahier.
+Yvan : Pardon, Inès. Je ne comprends pas. Répétez, s'il vous plaît.
+Inès : Écoutez. Répétez : « kiosque ».
+Tous : Kiosque.
+Inès : Très bien. Fermez le cahier. Prenez un stylo. C'est un stylo. C'est une chaise.
+Sonia : Inès, comment dit-on ça ? (elle montre un livre)
+Inès : Un livre. Merci Sonia. Yvan, épelez « Colline ».
+Yvan : C-O-L-L-I-N-E. Merci.$c$,
     0
   );
 
   PERFORM pg_temp.mfk_seed_exercise(
     v_lesson_id,
-    'Vrai ou faux : Jean comprend tout',
+    'Vrai ou faux',
     'true_false',
     $j${
-  "statement": "Jean comprend tout dès le début.",
+  "statement": "Yvan comprend tout tout de suite.",
   "correct": false,
-  "explanation": "Jean dit : « Je ne comprends pas. Répétez, s'il vous plaît. »"
+  "explanation": "Yvan : « Je ne comprends pas. Répétez, s'il vous plaît. »"
 }$j$::jsonb,
     0
   );
 
   PERFORM pg_temp.mfk_seed_exercise(
     v_lesson_id,
-    'Que prend-on à la fin ?',
+    'Choisissez la bonne réponse',
     'qcm',
     $j${
-  "question": "Que dit la professeure à la fin ?",
+  "question": "Que prend-on après « fermez le cahier » ?",
   "options": [
     {
-      "text": "Fermez la porte.",
+      "text": "Une porte",
       "correct": false
     },
     {
-      "text": "Prenez un stylo.",
+      "text": "Un stylo",
       "correct": true
     },
     {
-      "text": "Sortez.",
+      "text": "Un bus",
       "correct": false
     },
     {
-      "text": "Épelez votre nom.",
+      "text": "Un gobelet de soda",
       "correct": false
     }
   ],
-  "explanation": "Elle dit : « Fermez le cahier. Prenez un stylo. »"
+  "explanation": "Inès : « Prenez un stylo. »"
 }$j$::jsonb,
     1
   );
 
   PERFORM pg_temp.mfk_seed_exercise(
     v_lesson_id,
-    'Associez la consigne et le sens',
+    'Associez',
     'matching',
     $j${
   "pairs": [
     {
       "left": "Écoutez.",
-      "right": "On entend"
+      "right": "on entend"
     },
     {
       "left": "Répétez.",
-      "right": "On dit encore"
+      "right": "on dit encore"
     },
     {
-      "left": "Ouvrez le livre.",
-      "right": "On ouvre"
+      "left": "Ouvrez le cahier.",
+      "right": "on ouvre"
     },
     {
       "left": "Je ne comprends pas.",
-      "right": "On a besoin d'aide"
+      "right": "on a besoin d'aide"
     }
   ]
 }$j$::jsonb,
     2
   );
 
+  PERFORM pg_temp.mfk_seed_exercise(
+    v_lesson_id,
+    'Complétez',
+    'fill_blank',
+    $j${
+  "prompt": "Complétez l'article :\nC'est ___ stylo.",
+  "answer": "un"
+}$j$::jsonb,
+    3
+  );
+
+  PERFORM pg_temp.mfk_seed_exercise(
+    v_lesson_id,
+    'Remettez les mots dans l''ordre',
+    'word_order',
+    $j${
+  "words": [
+    "Ouvrez",
+    "le",
+    "cahier"
+  ]
+}$j$::jsonb,
+    4
+  );
+
+  PERFORM pg_temp.mfk_seed_exercise(
+    v_lesson_id,
+    'Lettres dans l''ordre',
+    'anagram',
+    $j${
+  "word": "livre",
+  "hint": "Sonia le montre : un livre."
+}$j$::jsonb,
+    5
+  );
+
+  PERFORM pg_temp.mfk_seed_exercise(
+    v_lesson_id,
+    'Trouvez l''erreur',
+    'find_error',
+    $j${
+  "sentence_with_error": "C'est un chaise.",
+  "correct_sentence": "C'est une chaise.",
+  "explanation": "une chaise (féminin). un stylo, un livre, un cahier."
+}$j$::jsonb,
+    6
+  );
+
+  PERFORM pg_temp.mfk_seed_exercise(
+    v_lesson_id,
+    'Image et mot',
+    'image_match',
+    $j${
+  "pairs": [
+    {
+      "image_path": "/elearning/mfk-a1/livre.svg",
+      "word": "un livre"
+    },
+    {
+      "image_path": "/elearning/mfk-a1/stylo.svg",
+      "word": "un stylo"
+    },
+    {
+      "image_path": "/elearning/mfk-a1/chaise.svg",
+      "word": "une chaise"
+    },
+    {
+      "image_path": "/elearning/mfk-a1/cahier.svg",
+      "word": "un cahier"
+    }
+  ]
+}$j$::jsonb,
+    7
+  );
+
+  PERFORM pg_temp.mfk_seed_exercise(
+    v_lesson_id,
+    'Réponse libre',
+    'short_answer',
+    $j${
+  "prompt": "Listez 4 consignes entendues et 3 objets (avec un / une)."
+}$j$::jsonb,
+    8
+  );
+
+  PERFORM pg_temp.mfk_seed_exercise(
+    v_lesson_id,
+    'Enregistrez',
+    'audio_record',
+    $j${
+  "instructions": "Répétez les consignes d'Inès, puis : Je ne comprends pas. Répétez, s'il vous plaît."
+}$j$::jsonb,
+    9
+  );
+
   v_lesson_id := pg_temp.mfk_upsert_lesson(
     v_seq_id,
-    'CE — Lire l''affiche de la classe',
+    'CE — La feuille coincée sous le sucrier',
     'CE',
     $c$Objectif
-Lire une affiche de consignes et une liste d'objets (un / une).
+Lire consignes et liste d'objets (un / une).
 
 Consigne
-Lisez l'affiche. Quelles consignes ? Quels objets ?
+Feuille d'Inès, coincée sous le sucrier du kiosque.
 
-Support — Affiche « Vivre en classe »
-En classe, on dit :
-Bonjour. Merci. S'il vous plaît.
-Écoutez. Répétez. Ouvrez le livre. Fermez le cahier.
+Support
+Atelier Colline — consignes
+Écoutez. Répétez. Ouvrez le cahier. Fermez le cahier.
+Asseyez-vous. Prenez un stylo.
 Je ne comprends pas. Comment dit-on … ? Répétez, s'il vous plaît.
 
-Objets
+Sur la table
 un livre • un cahier • un stylo • un sac
-une chaise • une table • une porte • une fenêtre
+une chaise • une table • une boîte • une affiche
 
-Message du jour
-Bonjour,
-Aujourd'hui : ouvrez le livre, page 2. Prenez un stylo.
-À bientôt,
-Madame Uwase$c$,
+Mot du jour
+Aujourd'hui : ouvrez le cahier, page 2. C'est un cahier, pas un livre.$c$,
     1
   );
 
   PERFORM pg_temp.mfk_seed_exercise(
     v_lesson_id,
-    'Quelle page ouvre-t-on ?',
+    'Vrai ou faux',
+    'true_false',
+    $j${
+  "statement": "On dit « un chaise » sur la feuille.",
+  "correct": false,
+  "explanation": "Liste : une chaise. un cahier, un stylo."
+}$j$::jsonb,
+    0
+  );
+
+  PERFORM pg_temp.mfk_seed_exercise(
+    v_lesson_id,
+    'Choisissez la bonne réponse',
     'qcm',
     $j${
-  "question": "Quelle page du livre ouvre-t-on aujourd'hui ?",
+  "question": "Quelle page ouvre-t-on ?",
   "options": [
     {
       "text": "Page 1",
@@ -1515,135 +3246,52 @@ Madame Uwase$c$,
       "correct": false
     }
   ],
-  "explanation": "Le message : « ouvrez le livre, page 2. »"
-}$j$::jsonb,
-    0
-  );
-
-  PERFORM pg_temp.mfk_seed_exercise(
-    v_lesson_id,
-    'Vrai ou faux : « chaise » est masculin',
-    'true_false',
-    $j${
-  "statement": "On dit un chaise.",
-  "correct": false,
-  "explanation": "On dit une chaise (féminin). Un livre, un stylo ; une chaise, une table."
+  "explanation": "Mot du jour : page 2."
 }$j$::jsonb,
     1
   );
 
   PERFORM pg_temp.mfk_seed_exercise(
     v_lesson_id,
-    'Complétez l''article',
-    'fill_blank',
-    $j${
-  "prompt": "Complétez (un mot) :\nPrenez ___ stylo.",
-  "answer": "un"
-}$j$::jsonb,
-    2
-  );
-
-  v_lesson_id := pg_temp.mfk_upsert_lesson(
-    v_seq_id,
-    'PO — Demander en classe',
-    'PO',
-    $c$Objectif
-Dire et demander les consignes : impératif, je ne comprends pas, comment dit-on… ?
-
-Consigne
-Associez, remettez la phrase dans l'ordre, puis enregistrez une demande d'aide.
-
-Modèles
-Répétez, s'il vous plaît.
-Je ne comprends pas.
-Comment dit-on « book » en français ?
-Ouvrez le livre. Écoutez. Répétez.$c$,
-    2
-  );
-
-  PERFORM pg_temp.mfk_seed_exercise(
-    v_lesson_id,
-    'Associez la phrase et le moment',
+    'Associez',
     'matching',
     $j${
   "pairs": [
     {
-      "left": "Écoutez.",
-      "right": "Le professeur parle"
+      "left": "un livre",
+      "right": "masculin"
     },
     {
-      "left": "Répétez, s'il vous plaît.",
-      "right": "Je n'ai pas entendu"
+      "left": "un stylo",
+      "right": "masculin"
     },
     {
-      "left": "Je ne comprends pas.",
-      "right": "C'est difficile"
+      "left": "une chaise",
+      "right": "féminin"
     },
     {
-      "left": "Comment dit-on … ?",
-      "right": "Je cherche le mot"
+      "left": "une affiche",
+      "right": "féminin"
     }
   ]
-}$j$::jsonb,
-    0
-  );
-
-  PERFORM pg_temp.mfk_seed_exercise(
-    v_lesson_id,
-    'Remettez la consigne dans l''ordre',
-    'word_order',
-    $j${
-  "words": [
-    "Ouvrez",
-    "le",
-    "livre"
-  ]
-}$j$::jsonb,
-    1
-  );
-
-  PERFORM pg_temp.mfk_seed_exercise(
-    v_lesson_id,
-    'Enregistrez une demande en classe',
-    'audio_record',
-    $j${
-  "instructions": "Enregistrez 20 secondes.\n1) Dites : Pardon, madame (ou monsieur).\n2) Dites : Je ne comprends pas.\n3) Dites : Répétez, s'il vous plaît.\n4) Demandez un mot : Comment dit-on … en français ?"
 }$j$::jsonb,
     2
   );
 
-  v_lesson_id := pg_temp.mfk_upsert_lesson(
-    v_seq_id,
-    'PE — Écrire consignes et objets',
-    'PE',
-    $c$Objectif
-Écrire des consignes à l'impératif et une mini-liste d'objets (un / une).
-
-Consigne
-Complétez, remettez les mots dans l'ordre, puis écrivez 4 lignes.
-
-Modèle
-Écoutez. Répétez.
-Ouvrez le livre.
-C'est un stylo. C'est une chaise.
-Je ne comprends pas.$c$,
+  PERFORM pg_temp.mfk_seed_exercise(
+    v_lesson_id,
+    'Complétez',
+    'fill_blank',
+    $j${
+  "prompt": "Complétez :\nC'est ___ cahier.",
+  "answer": "un"
+}$j$::jsonb,
     3
   );
 
   PERFORM pg_temp.mfk_seed_exercise(
     v_lesson_id,
-    'Complétez : une chaise',
-    'fill_blank',
-    $j${
-  "prompt": "Complétez l'article (un mot) :\nC'est ___ chaise.",
-  "answer": "une"
-}$j$::jsonb,
-    0
-  );
-
-  PERFORM pg_temp.mfk_seed_exercise(
-    v_lesson_id,
-    'Remettez la phrase dans l''ordre',
+    'Remettez les mots dans l''ordre',
     'word_order',
     $j${
   "words": [
@@ -1653,17 +3301,441 @@ Je ne comprends pas.$c$,
     "pas"
   ]
 }$j$::jsonb,
+    4
+  );
+
+  PERFORM pg_temp.mfk_seed_exercise(
+    v_lesson_id,
+    'Lettres dans l''ordre',
+    'anagram',
+    $j${
+  "word": "stylo",
+  "hint": "On le prend : un stylo."
+}$j$::jsonb,
+    5
+  );
+
+  PERFORM pg_temp.mfk_seed_exercise(
+    v_lesson_id,
+    'Trouvez l''erreur',
+    'find_error',
+    $j${
+  "sentence_with_error": "Ouvrez une cahier.",
+  "correct_sentence": "Ouvrez le cahier.",
+  "explanation": "le cahier (déjà connu sur la table). Article une + mot féminin : une chaise."
+}$j$::jsonb,
+    6
+  );
+
+  PERFORM pg_temp.mfk_seed_exercise(
+    v_lesson_id,
+    'Image et mot',
+    'image_match',
+    $j${
+  "pairs": [
+    {
+      "image_path": "/elearning/mfk-a1/livre.svg",
+      "word": "un livre"
+    },
+    {
+      "image_path": "/elearning/mfk-a1/stylo.svg",
+      "word": "un stylo"
+    },
+    {
+      "image_path": "/elearning/mfk-a1/chaise.svg",
+      "word": "une chaise"
+    },
+    {
+      "image_path": "/elearning/mfk-a1/cahier.svg",
+      "word": "un cahier"
+    }
+  ]
+}$j$::jsonb,
+    7
+  );
+
+  PERFORM pg_temp.mfk_seed_exercise(
+    v_lesson_id,
+    'Réponse libre',
+    'short_answer',
+    $j${
+  "prompt": "Recopiez 3 consignes et 2 objets (un … / une …)."
+}$j$::jsonb,
+    8
+  );
+
+  PERFORM pg_temp.mfk_seed_exercise(
+    v_lesson_id,
+    'Enregistrez',
+    'audio_record',
+    $j${
+  "instructions": "Lisez le bloc « consignes » à voix haute."
+}$j$::jsonb,
+    9
+  );
+
+  v_lesson_id := pg_temp.mfk_upsert_lesson(
+    v_seq_id,
+    'PO — Demander sous l''auvent',
+    'PO',
+    $c$Objectif
+Dire l'impératif, je ne comprends pas, comment dit-on… ?
+
+Consigne
+Phrases utiles de l'atelier, puis oral.
+
+Modèles
+Écoutez. Répétez. Ouvrez le cahier.
+Je ne comprends pas.
+Répétez, s'il vous plaît.
+Comment dit-on « book » en français ?
+C'est un livre. C'est une chaise.$c$,
+    2
+  );
+
+  PERFORM pg_temp.mfk_seed_exercise(
+    v_lesson_id,
+    'Vrai ou faux',
+    'true_false',
+    $j${
+  "statement": "« Répétez » veut dire « partez ».",
+  "correct": false,
+  "explanation": "Répétez = dire encore. Au revoir = partir."
+}$j$::jsonb,
+    0
+  );
+
+  PERFORM pg_temp.mfk_seed_exercise(
+    v_lesson_id,
+    'Choisissez la bonne réponse',
+    'qcm',
+    $j${
+  "question": "Pour demander un mot, on dit :",
+  "options": [
+    {
+      "text": "Asseyez-vous.",
+      "correct": false
+    },
+    {
+      "text": "Comment dit-on … ?",
+      "correct": true
+    },
+    {
+      "text": "J'ai huit ans.",
+      "correct": false
+    },
+    {
+      "text": "Je viens du Rwanda.",
+      "correct": false
+    }
+  ],
+  "explanation": "Comment dit-on … en français ?"
+}$j$::jsonb,
     1
   );
 
   PERFORM pg_temp.mfk_seed_exercise(
     v_lesson_id,
-    'Écrivez l''affiche de la classe',
-    'short_answer',
+    'Associez',
+    'matching',
     $j${
-  "prompt": "Écrivez 4 lignes.\n1) Une consigne (Écoutez / Répétez / Ouvrez…).\n2) C'est un … (objet masculin).\n3) C'est une … (objet féminin).\n4) Je ne comprends pas. ou Comment dit-on … ?\nCorrection par l'enseignant."
+  "pairs": [
+    {
+      "left": "Écoutez.",
+      "right": "Inès parle"
+    },
+    {
+      "left": "Répétez, s'il vous plaît.",
+      "right": "je n'ai pas entendu"
+    },
+    {
+      "left": "Je ne comprends pas.",
+      "right": "c'est difficile"
+    },
+    {
+      "left": "Comment dit-on … ?",
+      "right": "je cherche le mot"
+    }
+  ]
 }$j$::jsonb,
     2
+  );
+
+  PERFORM pg_temp.mfk_seed_exercise(
+    v_lesson_id,
+    'Complétez',
+    'fill_blank',
+    $j${
+  "prompt": "Complétez :\nC'est ___ chaise.",
+  "answer": "une"
+}$j$::jsonb,
+    3
+  );
+
+  PERFORM pg_temp.mfk_seed_exercise(
+    v_lesson_id,
+    'Remettez les mots dans l''ordre',
+    'word_order',
+    $j${
+  "words": [
+    "Répétez",
+    "s'il",
+    "vous",
+    "plaît"
+  ]
+}$j$::jsonb,
+    4
+  );
+
+  PERFORM pg_temp.mfk_seed_exercise(
+    v_lesson_id,
+    'Lettres dans l''ordre',
+    'anagram',
+    $j${
+  "word": "cahier",
+  "hint": "Ouvrez le cahier."
+}$j$::jsonb,
+    5
+  );
+
+  PERFORM pg_temp.mfk_seed_exercise(
+    v_lesson_id,
+    'Trouvez l''erreur',
+    'find_error',
+    $j${
+  "sentence_with_error": "Je ne comprends.",
+  "correct_sentence": "Je ne comprends pas.",
+  "explanation": "Négation : ne … pas."
+}$j$::jsonb,
+    6
+  );
+
+  PERFORM pg_temp.mfk_seed_exercise(
+    v_lesson_id,
+    'Image et mot',
+    'image_match',
+    $j${
+  "pairs": [
+    {
+      "image_path": "/elearning/mfk-a1/livre.svg",
+      "word": "un livre"
+    },
+    {
+      "image_path": "/elearning/mfk-a1/stylo.svg",
+      "word": "un stylo"
+    },
+    {
+      "image_path": "/elearning/mfk-a1/chaise.svg",
+      "word": "une chaise"
+    },
+    {
+      "image_path": "/elearning/mfk-a1/cahier.svg",
+      "word": "un cahier"
+    }
+  ]
+}$j$::jsonb,
+    7
+  );
+
+  PERFORM pg_temp.mfk_seed_exercise(
+    v_lesson_id,
+    'Réponse libre',
+    'short_answer',
+    $j${
+  "prompt": "Écrivez 2 consignes et 1 demande d'aide (je ne comprends pas / comment dit-on)."
+}$j$::jsonb,
+    8
+  );
+
+  PERFORM pg_temp.mfk_seed_exercise(
+    v_lesson_id,
+    'Enregistrez',
+    'audio_record',
+    $j${
+  "instructions": "Enregistrez : Pardon, Inès. Je ne comprends pas. Répétez, s'il vous plaît. Comment dit-on … ?"
+}$j$::jsonb,
+    9
+  );
+
+  v_lesson_id := pg_temp.mfk_upsert_lesson(
+    v_seq_id,
+    'PE — La liste pour Didier',
+    'PE',
+    $c$Objectif
+Écrire consignes et objets (un / une) pour le comptoir.
+
+Consigne
+Didier veut la liste. Écrivez comme Inès.
+
+Modèle
+Écoutez. Répétez.
+Ouvrez le cahier.
+C'est un stylo. C'est une chaise.
+Je ne comprends pas.$c$,
+    3
+  );
+
+  PERFORM pg_temp.mfk_seed_exercise(
+    v_lesson_id,
+    'Vrai ou faux',
+    'true_false',
+    $j${
+  "statement": "Le modèle mélange un et une selon l'objet.",
+  "correct": true,
+  "explanation": "un stylo / une chaise."
+}$j$::jsonb,
+    0
+  );
+
+  PERFORM pg_temp.mfk_seed_exercise(
+    v_lesson_id,
+    'Choisissez la bonne réponse',
+    'qcm',
+    $j${
+  "question": "Quel article devant « stylo » ?",
+  "options": [
+    {
+      "text": "une",
+      "correct": false
+    },
+    {
+      "text": "un",
+      "correct": true
+    },
+    {
+      "text": "le jour",
+      "correct": false
+    },
+    {
+      "text": "du",
+      "correct": false
+    }
+  ],
+  "explanation": "un stylo."
+}$j$::jsonb,
+    1
+  );
+
+  PERFORM pg_temp.mfk_seed_exercise(
+    v_lesson_id,
+    'Associez',
+    'matching',
+    $j${
+  "pairs": [
+    {
+      "left": "Écoutez.",
+      "right": "consigne"
+    },
+    {
+      "left": "un livre",
+      "right": "objet masculin"
+    },
+    {
+      "left": "une table",
+      "right": "objet féminin"
+    },
+    {
+      "left": "Je ne comprends pas.",
+      "right": "aide"
+    }
+  ]
+}$j$::jsonb,
+    2
+  );
+
+  PERFORM pg_temp.mfk_seed_exercise(
+    v_lesson_id,
+    'Complétez',
+    'fill_blank',
+    $j${
+  "prompt": "Complétez :\nPrenez ___ livre.",
+  "answer": "un"
+}$j$::jsonb,
+    3
+  );
+
+  PERFORM pg_temp.mfk_seed_exercise(
+    v_lesson_id,
+    'Remettez les mots dans l''ordre',
+    'word_order',
+    $j${
+  "words": [
+    "Fermez",
+    "le",
+    "cahier"
+  ]
+}$j$::jsonb,
+    4
+  );
+
+  PERFORM pg_temp.mfk_seed_exercise(
+    v_lesson_id,
+    'Lettres dans l''ordre',
+    'anagram',
+    $j${
+  "word": "table",
+  "hint": "C'est une table (la table pliante)."
+}$j$::jsonb,
+    5
+  );
+
+  PERFORM pg_temp.mfk_seed_exercise(
+    v_lesson_id,
+    'Trouvez l''erreur',
+    'find_error',
+    $j${
+  "sentence_with_error": "C'est une stylo.",
+  "correct_sentence": "C'est un stylo.",
+  "explanation": "stylo = masculin : un."
+}$j$::jsonb,
+    6
+  );
+
+  PERFORM pg_temp.mfk_seed_exercise(
+    v_lesson_id,
+    'Image et mot',
+    'image_match',
+    $j${
+  "pairs": [
+    {
+      "image_path": "/elearning/mfk-a1/livre.svg",
+      "word": "un livre"
+    },
+    {
+      "image_path": "/elearning/mfk-a1/stylo.svg",
+      "word": "un stylo"
+    },
+    {
+      "image_path": "/elearning/mfk-a1/chaise.svg",
+      "word": "une chaise"
+    },
+    {
+      "image_path": "/elearning/mfk-a1/cahier.svg",
+      "word": "un cahier"
+    }
+  ]
+}$j$::jsonb,
+    7
+  );
+
+  PERFORM pg_temp.mfk_seed_exercise(
+    v_lesson_id,
+    'Réponse libre',
+    'short_answer',
+    $j${
+  "prompt": "Écrivez 4 lignes pour Didier : 1 consigne, un …, une …, je ne comprends pas."
+}$j$::jsonb,
+    8
+  );
+
+  PERFORM pg_temp.mfk_seed_exercise(
+    v_lesson_id,
+    'Enregistrez',
+    'audio_record',
+    $j${
+  "instructions": "Lisez votre liste à Didier, à voix haute."
+}$j$::jsonb,
+    9
   );
 
   v_lesson_id := pg_temp.mfk_upsert_lesson(
@@ -1671,38 +3743,45 @@ Je ne comprends pas.$c$,
     'EL — Impératif, un / une, je ne comprends pas',
     'EL',
     $c$Objectif
-Fixer le point de langue : impératif de classe, articles un / une, phrases utiles.
+Fixer : impératif de l'atelier, un / une, phrases utiles.
 
 Consigne
-Lisez la fiche. Puis faites les exercices.
+Fiche dans la boîte à craies du kiosque.
 
-Fiche langue
-
-1. Impératif (vous, en classe)
+Fiche
 Écoutez. Répétez. Ouvrez. Fermez. Asseyez-vous. Prenez. Épelez.
 
-2. un / une
 un livre, un cahier, un stylo, un sac
-une chaise, une table, une porte, une fenêtre
+une chaise, une table, une boîte, une affiche
 C'est un livre. C'est une chaise.
 
-3. Phrases utiles
 Je ne comprends pas.
 Répétez, s'il vous plaît.
 Comment dit-on … en français ?
-Pardon, madame / monsieur.
+Pardon, Inès / Didier.
 
-4. Négation
 Je comprends. → Je ne comprends pas.$c$,
     4
   );
 
   PERFORM pg_temp.mfk_seed_exercise(
     v_lesson_id,
-    'Choisissez la consigne',
+    'Vrai ou faux',
+    'true_false',
+    $j${
+  "statement": "« une » va avec un nom féminin, comme chaise.",
+  "correct": true,
+  "explanation": "une chaise, une table, une affiche."
+}$j$::jsonb,
+    0
+  );
+
+  PERFORM pg_temp.mfk_seed_exercise(
+    v_lesson_id,
+    'Choisissez la bonne réponse',
     'qcm',
     $j${
-  "question": "Le professeur veut que la classe dise encore le mot. Il dit :",
+  "question": "Inès veut que le groupe dise encore le mot. Elle dit :",
   "options": [
     {
       "text": "Asseyez-vous.",
@@ -1713,28 +3792,80 @@ Je comprends. → Je ne comprends pas.$c$,
       "correct": true
     },
     {
-      "text": "Fermez le cahier.",
+      "text": "Au revoir.",
       "correct": false
     },
     {
-      "text": "Au revoir.",
+      "text": "J'ai huit ans.",
       "correct": false
     }
   ],
-  "explanation": "Répétez = dire encore. Écoutez = entendre. Ouvrez / fermez = le livre ou le cahier."
+  "explanation": "Répétez."
 }$j$::jsonb,
-    0
+    1
   );
 
   PERFORM pg_temp.mfk_seed_exercise(
     v_lesson_id,
-    'Lettres dans l''ordre : LIVRE',
+    'Associez',
+    'matching',
+    $j${
+  "pairs": [
+    {
+      "left": "un",
+      "right": "livre / cahier / stylo"
+    },
+    {
+      "left": "une",
+      "right": "chaise / table / affiche"
+    },
+    {
+      "left": "Écoutez",
+      "right": "impératif"
+    },
+    {
+      "left": "pas",
+      "right": "négation avec ne"
+    }
+  ]
+}$j$::jsonb,
+    2
+  );
+
+  PERFORM pg_temp.mfk_seed_exercise(
+    v_lesson_id,
+    'Complétez',
+    'fill_blank',
+    $j${
+  "prompt": "Complétez :\nJe ne comprends ___.",
+  "answer": "pas"
+}$j$::jsonb,
+    3
+  );
+
+  PERFORM pg_temp.mfk_seed_exercise(
+    v_lesson_id,
+    'Remettez les mots dans l''ordre',
+    'word_order',
+    $j${
+  "words": [
+    "Comment",
+    "dit-on",
+    "ça"
+  ]
+}$j$::jsonb,
+    4
+  );
+
+  PERFORM pg_temp.mfk_seed_exercise(
+    v_lesson_id,
+    'Lettres dans l''ordre',
     'anagram',
     $j${
-  "word": "livre",
-  "hint": "On dit : un livre. Comment dit-on « book » ?"
+  "word": "stylo",
+  "hint": "C'est un stylo. Objet masculin de la table."
 }$j$::jsonb,
-    1
+    5
   );
 
   PERFORM pg_temp.mfk_seed_exercise(
@@ -1744,9 +3875,56 @@ Je comprends. → Je ne comprends pas.$c$,
     $j${
   "sentence_with_error": "Je ne comprends.",
   "correct_sentence": "Je ne comprends pas.",
-  "explanation": "La négation : ne … pas. Je ne comprends pas."
+  "explanation": "ne … pas."
 }$j$::jsonb,
-    2
+    6
+  );
+
+  PERFORM pg_temp.mfk_seed_exercise(
+    v_lesson_id,
+    'Image et mot',
+    'image_match',
+    $j${
+  "pairs": [
+    {
+      "image_path": "/elearning/mfk-a1/livre.svg",
+      "word": "un livre"
+    },
+    {
+      "image_path": "/elearning/mfk-a1/stylo.svg",
+      "word": "un stylo"
+    },
+    {
+      "image_path": "/elearning/mfk-a1/chaise.svg",
+      "word": "une chaise"
+    },
+    {
+      "image_path": "/elearning/mfk-a1/cahier.svg",
+      "word": "un cahier"
+    }
+  ]
+}$j$::jsonb,
+    7
+  );
+
+  PERFORM pg_temp.mfk_seed_exercise(
+    v_lesson_id,
+    'Réponse libre',
+    'short_answer',
+    $j${
+  "prompt": "Écrivez 4 impératifs et 4 objets avec un ou une."
+}$j$::jsonb,
+    8
+  );
+
+  PERFORM pg_temp.mfk_seed_exercise(
+    v_lesson_id,
+    'Enregistrez',
+    'audio_record',
+    $j${
+  "instructions": "Dites les consignes de la fiche, puis : je ne comprends pas. Répétez, s'il vous plaît."
+}$j$::jsonb,
+    9
   );
 
   RAISE NOTICE 'Seed Module 1 terminé (module %)', v_module_id;

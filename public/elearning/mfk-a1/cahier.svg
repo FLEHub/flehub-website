@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 160" role="img" aria-label="un cahier">
+  <rect width="160" height="160" rx="18" fill="#F0FDF4"/>
+  <rect x="48" y="32" width="64" height="84" rx="6" fill="#fff" stroke="#14532d" stroke-width="3"/>
+  <path d="M60 52 h40 M60 68 h40 M60 84 h28" stroke="#1A7F4C" stroke-width="4" stroke-linecap="round"/>
+  <text x="80" y="148" text-anchor="middle" font-family="system-ui,sans-serif" font-size="13" font-weight="700" fill="#14532d">un cahier</text>
+</svg>

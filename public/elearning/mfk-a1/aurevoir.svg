@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 160" role="img" aria-label="au revoir">
+  <rect width="160" height="160" rx="18" fill="#FEF3C7"/>
+  <rect x="28" y="36" width="70" height="78" rx="8" fill="#86EFAC"/>
+  <rect x="90" y="48" width="42" height="66" rx="6" fill="#166534"/>
+  <path d="M40 118 L40 36 L70 24 L70 118" fill="#BBF7D0"/>
+  <circle cx="118" cy="92" r="10" fill="#F4C27A"/>
+  <text x="80" y="148" text-anchor="middle" font-family="system-ui,sans-serif" font-size="13" font-weight="700" fill="#14532d">au revoir</text>
+</svg>

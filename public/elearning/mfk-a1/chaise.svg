@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 160" role="img" aria-label="une chaise">
+  <rect width="160" height="160" rx="18" fill="#FEF3C7"/>
+  <rect x="50" y="58" width="60" height="12" rx="3" fill="#92400E"/>
+  <rect x="50" y="34" width="12" height="70" fill="#78350F"/>
+  <rect x="98" y="70" width="12" height="34" fill="#78350F"/>
+  <rect x="50" y="70" width="12" height="34" fill="#78350F"/>
+  <text x="80" y="148" text-anchor="middle" font-family="system-ui,sans-serif" font-size="13" font-weight="700" fill="#14532d">une chaise</text>
+</svg>

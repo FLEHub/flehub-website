@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 160" role="img" aria-label="un livre">
+  <rect width="160" height="160" rx="18" fill="#DBEAFE"/>
+  <path d="M44 40 h36 v72 h-36 a8 8 0 0 1 -8 -8 v-56 a8 8 0 0 1 8 -8 z" fill="#1D4ED8"/>
+  <path d="M80 40 h36 a8 8 0 0 1 8 8 v56 a8 8 0 0 1 -8 8 h-36 z" fill="#2563EB"/>
+  <path d="M80 40 v72" stroke="#fff" stroke-width="3"/>
+  <text x="80" y="148" text-anchor="middle" font-family="system-ui,sans-serif" font-size="13" font-weight="700" fill="#14532d">un livre</text>
+</svg>
