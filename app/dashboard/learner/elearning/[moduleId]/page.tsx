@@ -21,7 +21,7 @@ import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Progress } from '@/components/ui/progress';
-import { Textarea } from '@/components/ui/textarea';
+import { FrenchAccentTextarea } from '@/components/dashboard/french-accent-bar';
 import { LessonContentView } from '@/components/dashboard/lesson-content-view';
 import {
   PeHighlightViewer,
@@ -733,9 +733,9 @@ export default function LearnerModulePage() {
                           </p>
                         )}
                         {selectedLesson.competency === 'PE' ? (
-                          <Textarea
+                          <FrenchAccentTextarea
                             value={peText}
-                            onChange={(e) => setPeText(e.target.value)}
+                            onChange={setPeText}
                             rows={8}
                             placeholder="Écrivez votre texte…"
                           />
