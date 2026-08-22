@@ -7,6 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { createClient } from '@/lib/supabase/client';
 import { BrandMark } from '@/components/brand-mark';
+import { BrandLogo } from '@/components/brand-logo';
 import {
   getProvinces,
   getDistrictsByProvince,
@@ -351,9 +352,7 @@ export default function RegisterPage() {
         <div className="relative z-10 max-w-sm text-center">
           {/* Logo */}
           <div className="flex items-center justify-center gap-3 mb-10">
-            <div className="w-14 h-14 bg-white/20 rounded-2xl flex items-center justify-center backdrop-blur-sm flex-shrink-0">
-              <GraduationCap className="w-8 h-8 text-white" />
-            </div>
+            <BrandLogo size={64} className="drop-shadow-md" />
             <BrandMark size="lg" variant="onDark" align="left" />
           </div>
 
@@ -389,9 +388,7 @@ export default function RegisterPage() {
       <div className="flex-1 flex flex-col items-center justify-center px-6 py-10 bg-white overflow-y-auto">
         {/* Mobile logo */}
         <div className="lg:hidden flex items-center gap-2.5 mb-6">
-          <div className="w-9 h-9 bg-flehub-green rounded-lg flex items-center justify-center flex-shrink-0">
-            <GraduationCap className="w-5 h-5 text-white" />
-          </div>
+          <BrandLogo size={40} />
           <BrandMark size="md" className="[&>p:first-child]:text-flehub-green" />
         </div>
 

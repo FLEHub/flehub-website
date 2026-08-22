@@ -13,7 +13,7 @@ type Props = {
 
 export function HomeHero({ item }: Props) {
   return (
-    <section className="relative w-full min-h-[52vh] sm:min-h-[62vh] bg-[#003d1f] overflow-hidden">
+    <section className="relative w-full min-h-[52vh] sm:min-h-[62vh] bg-[#0B1F3A] overflow-hidden">
       {item.image_url ? (
         // eslint-disable-next-line @next/next/no-img-element
         <img
@@ -22,11 +22,11 @@ export function HomeHero({ item }: Props) {
           className="absolute inset-0 w-full h-full object-cover scale-105 animate-in fade-in duration-700"
         />
       ) : (
-        <div className="absolute inset-0 bg-gradient-to-br from-[#005c2e] via-[#00A550] to-[#F59E0B]" />
+        <div className="absolute inset-0 bg-gradient-to-br from-[#0B1F3A] via-[#1E5FA8] to-[#F2B705]" />
       )}
-      {/* Overlay coloré : vert MFK + accent ambre pour plus de chaleur */}
-      <div className="absolute inset-0 bg-gradient-to-t from-[#003d1f]/95 via-[#00A550]/45 to-[#F59E0B]/25" />
-      <div className="absolute inset-0 bg-gradient-to-r from-[#003d1f]/70 via-transparent to-transparent" />
+      {/* Overlay : bleu nuit + azur + or du logo */}
+      <div className="absolute inset-0 bg-gradient-to-t from-[#0B1F3A]/95 via-[#1E5FA8]/45 to-[#F2B705]/25" />
+      <div className="absolute inset-0 bg-gradient-to-r from-[#0B1F3A]/70 via-transparent to-transparent" />
 
       <div className="relative max-w-5xl mx-auto px-6 pb-10 pt-28 sm:pt-36 sm:pb-14 flex flex-col justify-end min-h-[52vh] sm:min-h-[62vh]">
         <div className="max-w-3xl space-y-4 animate-in fade-in slide-in-from-bottom-4 duration-500">
@@ -62,7 +62,7 @@ export function HomeHero({ item }: Props) {
           )}
           <Link
             href={item.href}
-            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-[#F59E0B] hover:bg-[#D97706] text-gray-900 text-sm font-bold shadow-md transition-colors"
+            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-[#F2B705] hover:bg-[#C99404] text-[#0B1F3A] text-sm font-bold shadow-md transition-colors"
           >
             Lire la suite
             <ArrowRight className="w-4 h-4" />

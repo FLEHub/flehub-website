@@ -99,14 +99,14 @@ export async function generateElearningCertificatePdf(
   const pageW = doc.internal.pageSize.getWidth()
   const pageH = doc.internal.pageSize.getHeight()
 
-  doc.setDrawColor(0, 165, 80)
+  doc.setDrawColor(11, 31, 58)
   doc.setLineWidth(1.5)
   doc.rect(10, 10, pageW - 20, pageH - 20)
   doc.setLineWidth(0.5)
   doc.rect(14, 14, pageW - 28, pageH - 28)
 
-  const topLogoW = 24
-  const topLogoH = 16
+  // Official circular MFK emblem — keep a square box so the round logo is not stretched
+  const topLogoSize = 16
   const topLogoY = 20
   const leftLogoX = 20
 
@@ -117,8 +117,8 @@ export async function generateElearningCertificatePdf(
         imageFormatFromDataUrl(params.adminLogoDataUrl),
         leftLogoX,
         topLogoY,
-        topLogoW,
-        topLogoH
+        topLogoSize,
+        topLogoSize
       )
     } catch {
       // Continue without admin logo.
@@ -131,7 +131,7 @@ export async function generateElearningCertificatePdf(
   const adminLabel = adminOrgLabel(shortName)
   doc.setFont('helvetica', 'bold')
   doc.setFontSize(26)
-  doc.setTextColor(0, 165, 80)
+  doc.setTextColor(11, 31, 58)
   doc.text(brandName, pageW / 2, 32, { align: 'center' })
 
   doc.setFontSize(11)
@@ -172,7 +172,7 @@ export async function generateElearningCertificatePdf(
   )
 
   doc.setFontSize(18)
-  doc.setTextColor(0, 165, 80)
+  doc.setTextColor(30, 95, 168)
   doc.setFont('helvetica', 'bold')
   doc.text(
     `${params.cefrLevel} — ${CEFR_LABELS[params.cefrLevel]}`,

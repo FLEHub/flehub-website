@@ -1,6 +1,6 @@
 import Link from 'next/link'
-import { GraduationCap } from 'lucide-react'
 import { BrandMark } from '@/components/brand-mark'
+import { BrandLogo } from '@/components/brand-logo'
 
 type Props = {
   shortName: string
@@ -32,12 +32,10 @@ export function PortalHeader({
   showAppCta = false,
 }: Props) {
   return (
-    <header className="border-b-2 border-[#00A550]/20 bg-white/95 backdrop-blur-sm sticky top-0 z-20 shadow-sm">
+    <header className="border-b-2 border-[#1E5FA8]/20 bg-white/95 backdrop-blur-sm sticky top-0 z-20 shadow-sm">
       <div className="max-w-5xl mx-auto px-6 h-16 flex items-center justify-between gap-3">
         <Link href="/" className="flex items-center gap-2.5 min-w-0">
-          <div className="w-9 h-9 rounded-lg bg-[#00A550] flex items-center justify-center flex-shrink-0 shadow-sm">
-            <GraduationCap className="w-5 h-5 text-white" />
-          </div>
+          <BrandLogo size={40} />
           <BrandMark shortName={shortName} tagline={tagline} size="md" />
         </Link>
         <nav className="flex items-center gap-2 sm:gap-3 lg:gap-4 text-xs sm:text-sm font-medium flex-wrap justify-end">
@@ -47,8 +45,8 @@ export function PortalHeader({
               href={item.href}
               className={
                 active === item.key
-                  ? 'text-[#00A550] font-semibold'
-                  : 'text-gray-600 hover:text-[#00A550] transition-colors'
+                  ? 'text-[#1E5FA8] font-semibold'
+                  : 'text-gray-600 hover:text-[#1E5FA8] transition-colors'
               }
             >
               {item.label}
@@ -57,14 +55,14 @@ export function PortalHeader({
           {showAppCta && (
             <Link
               href="/app"
-              className="hidden sm:inline-flex items-center px-3.5 py-1.5 rounded-lg bg-[#F59E0B] hover:bg-[#D97706] text-gray-900 text-xs sm:text-sm font-bold shadow-sm transition-colors"
+              className="hidden sm:inline-flex items-center px-3.5 py-1.5 rounded-lg bg-[#F2B705] hover:bg-[#C99404] text-[#0B1F3A] text-xs sm:text-sm font-bold shadow-sm transition-colors"
             >
               {shortName} App
             </Link>
           )}
           <Link
             href="/login"
-            className="inline-flex items-center px-3 py-1.5 rounded-lg border border-[#00A550]/30 text-[#00A550] hover:bg-[#E6F5EE] font-semibold transition-colors"
+            className="inline-flex items-center px-3 py-1.5 rounded-lg border border-[#1E5FA8]/30 text-[#1E5FA8] hover:bg-[#E8F1FA] font-semibold transition-colors"
           >
             Connexion
           </Link>

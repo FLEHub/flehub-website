@@ -19,7 +19,7 @@ export function HomeSection({
   linkLabel = 'Voir tout',
   children,
   className = '',
-  accentClassName = 'bg-[#00A550]',
+  accentClassName = 'bg-[#1E5FA8]',
 }: Props) {
   return (
     <section className={className}>
@@ -34,7 +34,7 @@ export function HomeSection({
           {href && (
             <Link
               href={href}
-              className="inline-flex items-center gap-1.5 self-start sm:self-auto px-3.5 py-2 rounded-lg bg-[#00A550] hover:bg-[#008040] text-white text-sm font-semibold shadow-sm transition-colors"
+              className="inline-flex items-center gap-1.5 self-start sm:self-auto px-3.5 py-2 rounded-lg bg-[#1E5FA8] hover:bg-[#164A82] text-white text-sm font-semibold shadow-sm transition-colors"
             >
               {linkLabel}
               <ArrowRight className="w-3.5 h-3.5" />

@@ -76,7 +76,7 @@ function normalizeAccessRow(raw: AccessRowRaw): AccessRow {
 
 const STATUS_COLORS: Record<string, string> = {
   pending: 'bg-amber-50 text-amber-700',
-  completed: 'bg-[#E6F5EE] text-[#00A550]',
+  completed: 'bg-[#E8F1FA] text-[#1E5FA8]',
   failed: 'bg-red-50 text-red-600',
   refunded: 'bg-blue-50 text-blue-600',
 }
@@ -182,7 +182,7 @@ export default function AdminSchoolExamAccessPage() {
       )}
 
       {success && (
-        <div className="flex items-center gap-2 rounded-lg bg-[#E6F5EE] border border-green-200 px-4 py-3 text-sm text-[#00A550]">
+        <div className="flex items-center gap-2 rounded-lg bg-[#E8F1FA] border border-green-200 px-4 py-3 text-sm text-[#1E5FA8]">
           <CheckCircle2 className="w-4 h-4 flex-shrink-0" />
           {success}
         </div>
@@ -232,7 +232,7 @@ export default function AdminSchoolExamAccessPage() {
           <Button
             onClick={handleMarkCompleted}
             disabled={saving || !selectedSchoolId || !selectedSessionId}
-            className="bg-[#00A550] hover:bg-[#00A550]/90 text-white"
+            className="bg-[#1E5FA8] hover:bg-[#1E5FA8]/90 text-white"
           >
             {saving ? 'Saving…' : 'Mark as completed (paid today)'}
           </Button>

@@ -122,7 +122,7 @@ const STATUS_CONFIG: Record<
   },
   ongoing: {
     label: 'Ongoing',
-    className: 'bg-[#E6F5EE] text-[#00A550] border border-green-200',
+    className: 'bg-[#E8F1FA] text-[#1E5FA8] border border-green-200',
   },
   completed: {
     label: 'Completed',
@@ -138,7 +138,7 @@ const CEFR_COLORS: Record<CefrLevel, string> = {
   A1: 'bg-slate-100 text-slate-600',
   A2: 'bg-blue-50 text-blue-600',
   B1: 'bg-teal-50 text-teal-600',
-  B2: 'bg-[#E6F5EE] text-[#00A550]',
+  B2: 'bg-[#E8F1FA] text-[#1E5FA8]',
   C1: 'bg-orange-50 text-orange-600',
   C2: 'bg-purple-50 text-purple-700',
 }
@@ -295,8 +295,8 @@ function ExamPapersSection({
   return (
     <div className="space-y-4">
       <div className="flex items-center gap-2">
-        <div className="w-8 h-8 rounded-lg bg-[#E6F5EE] flex items-center justify-center">
-          <FilePlus2 className="w-4 h-4 text-[#00A550]" />
+        <div className="w-8 h-8 rounded-lg bg-[#E8F1FA] flex items-center justify-center">
+          <FilePlus2 className="w-4 h-4 text-[#1E5FA8]" />
         </div>
         <div>
           <h2 className="text-lg font-semibold text-gray-900">Exam Papers</h2>
@@ -350,11 +350,11 @@ function ExamPapersSection({
                 </div>
                 <div className="flex items-center gap-3 flex-shrink-0 ml-4">
                   <div className="hidden sm:flex items-center gap-2 text-xs">
-                    <span className={`flex items-center gap-1 px-2 py-0.5 rounded-full font-medium ${pdfCount === totalExpected ? 'bg-[#E6F5EE] text-[#00A550]' : 'bg-gray-100 text-gray-500'}`}>
+                    <span className={`flex items-center gap-1 px-2 py-0.5 rounded-full font-medium ${pdfCount === totalExpected ? 'bg-[#E8F1FA] text-[#1E5FA8]' : 'bg-gray-100 text-gray-500'}`}>
                       <FileText className="w-3 h-3" />
                       {pdfCount}/{totalExpected} PDFs
                     </span>
-                    <span className={`flex items-center gap-1 px-2 py-0.5 rounded-full font-medium ${audioCount === audioExpected ? 'bg-[#E6F5EE] text-[#00A550]' : 'bg-gray-100 text-gray-500'}`}>
+                    <span className={`flex items-center gap-1 px-2 py-0.5 rounded-full font-medium ${audioCount === audioExpected ? 'bg-[#E8F1FA] text-[#1E5FA8]' : 'bg-gray-100 text-gray-500'}`}>
                       <Music className="w-3 h-3" />
                       {audioCount}/{audioExpected} Audio
                     </span>
@@ -402,8 +402,8 @@ function ExamPapersSection({
                               disabled={uploadingPdf}
                               className={`flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg font-medium transition-colors border ${
                                 hasPdf
-                                  ? 'bg-[#E6F5EE] text-[#00A550] border-green-200 hover:bg-green-100'
-                                  : 'bg-white text-gray-600 border-gray-200 hover:border-[#00A550] hover:text-[#00A550]'
+                                  ? 'bg-[#E8F1FA] text-[#1E5FA8] border-green-200 hover:bg-green-100'
+                                  : 'bg-white text-gray-600 border-gray-200 hover:border-[#1E5FA8] hover:text-[#1E5FA8]'
                               }`}
                             >
                               {uploadingPdf ? (
@@ -425,8 +425,8 @@ function ExamPapersSection({
                                 disabled={uploadingAudio}
                                 className={`flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg font-medium transition-colors border ${
                                   hasAudio
-                                    ? 'bg-[#E6F5EE] text-[#00A550] border-green-200 hover:bg-green-100'
-                                    : 'bg-white text-gray-600 border-gray-200 hover:border-[#00A550] hover:text-[#00A550]'
+                                    ? 'bg-[#E8F1FA] text-[#1E5FA8] border-green-200 hover:bg-green-100'
+                                    : 'bg-white text-gray-600 border-gray-200 hover:border-[#1E5FA8] hover:text-[#1E5FA8]'
                                 }`}
                               >
                                 {uploadingAudio ? (
@@ -660,7 +660,7 @@ export default function AdminExamsPage() {
           </Button>
           <Button
             onClick={openCreateForm}
-            className="bg-[#00A550] hover:bg-[#008040] text-white flex items-center gap-1.5"
+            className="bg-[#1E5FA8] hover:bg-[#164A82] text-white flex items-center gap-1.5"
           >
             <Plus className="w-4 h-4" />
             Create New Session
@@ -732,8 +732,8 @@ export default function AdminExamsPage() {
                     className="text-center py-20 text-gray-500"
                   >
                     <div className="flex flex-col items-center gap-3">
-                      <div className="w-12 h-12 rounded-xl bg-[#E6F5EE] flex items-center justify-center">
-                        <FileText className="w-6 h-6 text-[#00A550]" />
+                      <div className="w-12 h-12 rounded-xl bg-[#E8F1FA] flex items-center justify-center">
+                        <FileText className="w-6 h-6 text-[#1E5FA8]" />
                       </div>
                       <p className="text-sm font-medium text-gray-700">
                         No exam sessions yet
@@ -743,7 +743,7 @@ export default function AdminExamsPage() {
                       </p>
                       <Button
                         onClick={openCreateForm}
-                        className="mt-1 bg-[#00A550] hover:bg-[#008040] text-white text-sm"
+                        className="mt-1 bg-[#1E5FA8] hover:bg-[#164A82] text-white text-sm"
                       >
                         <Plus className="w-4 h-4 mr-1" />
                         Create New Session
@@ -851,7 +851,7 @@ export default function AdminExamsPage() {
                             size="sm"
                             variant="outline"
                             onClick={() => openEditForm(session)}
-                            className="h-7 w-7 p-0 border-gray-200 hover:border-[#00A550] hover:text-[#00A550]"
+                            className="h-7 w-7 p-0 border-gray-200 hover:border-[#1E5FA8] hover:text-[#1E5FA8]"
                             title="Edit session"
                           >
                             <Pencil className="w-3.5 h-3.5" />
@@ -904,7 +904,7 @@ export default function AdminExamsPage() {
                 placeholder="e.g., DELF B2 – Session Juin 2026"
                 value={form.title}
                 onChange={(e) => updateField('title', e.target.value)}
-                className={formErrors.title ? 'border-red-300 focus:border-red-400' : 'border-gray-200 focus:border-[#00A550]'}
+                className={formErrors.title ? 'border-red-300 focus:border-red-400' : 'border-gray-200 focus:border-[#1E5FA8]'}
               />
               {formErrors.title && (
                 <p className="text-xs text-red-600">{formErrors.title}</p>
@@ -921,7 +921,7 @@ export default function AdminExamsPage() {
                 onValueChange={(val) => updateField('cefr_level', val as CefrLevel)}
               >
                 <SelectTrigger
-                  className={formErrors.cefr_level ? 'border-red-300' : 'border-gray-200 focus:border-[#00A550]'}
+                  className={formErrors.cefr_level ? 'border-red-300' : 'border-gray-200 focus:border-[#1E5FA8]'}
                 >
                   <SelectValue placeholder="Select level…" />
                 </SelectTrigger>
@@ -960,7 +960,7 @@ export default function AdminExamsPage() {
                   type="date"
                   value={form.exam_date}
                   onChange={(e) => updateField('exam_date', e.target.value)}
-                  className={formErrors.exam_date ? 'border-red-300' : 'border-gray-200 focus:border-[#00A550]'}
+                  className={formErrors.exam_date ? 'border-red-300' : 'border-gray-200 focus:border-[#1E5FA8]'}
                 />
                 {formErrors.exam_date && (
                   <p className="text-xs text-red-600">{formErrors.exam_date}</p>
@@ -978,7 +978,7 @@ export default function AdminExamsPage() {
                   onChange={(e) =>
                     updateField('registration_deadline', e.target.value)
                   }
-                  className={formErrors.registration_deadline ? 'border-red-300' : 'border-gray-200 focus:border-[#00A550]'}
+                  className={formErrors.registration_deadline ? 'border-red-300' : 'border-gray-200 focus:border-[#1E5FA8]'}
                 />
                 {formErrors.registration_deadline && (
                   <p className="text-xs text-red-600">{formErrors.registration_deadline}</p>
@@ -999,7 +999,7 @@ export default function AdminExamsPage() {
                   placeholder="e.g., 45000"
                   value={form.price_rwf}
                   onChange={(e) => updateField('price_rwf', e.target.value)}
-                  className={`pr-12 ${formErrors.price_rwf ? 'border-red-300' : 'border-gray-200 focus:border-[#00A550]'}`}
+                  className={`pr-12 ${formErrors.price_rwf ? 'border-red-300' : 'border-gray-200 focus:border-[#1E5FA8]'}`}
                 />
                 <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-gray-400 font-medium">
                   RWF
@@ -1020,7 +1020,7 @@ export default function AdminExamsPage() {
                 placeholder="e.g., Alliance Française Kigali"
                 value={form.venue}
                 onChange={(e) => updateField('venue', e.target.value)}
-                className="border-gray-200 focus:border-[#00A550]"
+                className="border-gray-200 focus:border-[#1E5FA8]"
               />
             </div>
 
@@ -1039,7 +1039,7 @@ export default function AdminExamsPage() {
                   onChange={(e) =>
                     updateField('max_candidates', e.target.value)
                   }
-                  className={formErrors.max_candidates ? 'border-red-300' : 'border-gray-200 focus:border-[#00A550]'}
+                  className={formErrors.max_candidates ? 'border-red-300' : 'border-gray-200 focus:border-[#1E5FA8]'}
                 />
                 {formErrors.max_candidates && (
                   <p className="text-xs text-red-600">{formErrors.max_candidates}</p>
@@ -1059,7 +1059,7 @@ export default function AdminExamsPage() {
                   onChange={(e) =>
                     updateField('retake_waiting_days', e.target.value)
                   }
-                  className={formErrors.retake_waiting_days ? 'border-red-300' : 'border-gray-200 focus:border-[#00A550]'}
+                  className={formErrors.retake_waiting_days ? 'border-red-300' : 'border-gray-200 focus:border-[#1E5FA8]'}
                 />
                 {formErrors.retake_waiting_days && (
                   <p className="text-xs text-red-600">{formErrors.retake_waiting_days}</p>
@@ -1080,7 +1080,7 @@ export default function AdminExamsPage() {
             <Button
               onClick={handleSubmit}
               disabled={submitting}
-              className="bg-[#00A550] hover:bg-[#008040] text-white min-w-[100px]"
+              className="bg-[#1E5FA8] hover:bg-[#164A82] text-white min-w-[100px]"
             >
               {submitting
                 ? 'Saving…'

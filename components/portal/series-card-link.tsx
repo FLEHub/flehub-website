@@ -22,7 +22,7 @@ export function SeriesCardLink({ series }: Props) {
   return (
     <Link
       href={`${base}/${series.slug}`}
-      className="group block rounded-xl overflow-hidden border border-gray-100 bg-white hover:border-[#00A550]/40 transition-colors"
+      className="group block rounded-xl overflow-hidden border border-gray-100 bg-white hover:border-[#1E5FA8]/40 transition-colors"
     >
       {series.cover_image_url ? (
         // eslint-disable-next-line @next/next/no-img-element
@@ -32,12 +32,12 @@ export function SeriesCardLink({ series }: Props) {
           className="w-full aspect-[4/3] object-cover transition-transform duration-300 group-hover:scale-[1.02]"
         />
       ) : (
-        <div className="w-full aspect-[4/3] bg-[#E6F5EE]" />
+        <div className="w-full aspect-[4/3] bg-[#E8F1FA]" />
       )}
       <div className="p-4 space-y-1.5">
         <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-gray-500">
           {series.category_name && (
-            <span className="text-[#00A550] font-medium">
+            <span className="text-[#1E5FA8] font-medium">
               {series.category_name}
             </span>
           )}
@@ -51,7 +51,7 @@ export function SeriesCardLink({ series }: Props) {
             </span>
           )}
         </div>
-        <h2 className="text-base sm:text-lg font-semibold text-gray-900 group-hover:text-[#00A550] transition-colors leading-snug">
+        <h2 className="text-base sm:text-lg font-semibold text-gray-900 group-hover:text-[#1E5FA8] transition-colors leading-snug">
           {series.title}
         </h2>
         {series.description && (

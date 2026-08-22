@@ -347,7 +347,7 @@ export function SeriesEditor({
         <Button
           type="button"
           disabled={busy}
-          className="bg-[#00A550] hover:bg-[#008040]"
+          className="bg-[#1E5FA8] hover:bg-[#164A82]"
           onClick={() => void save('published')}
         >
           {saving === 'publish' ? (

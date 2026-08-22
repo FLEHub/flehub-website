@@ -7,6 +7,7 @@ import {
   DEFAULT_ORG_SHORT_NAME,
   DEFAULT_ORG_TAGLINE,
   adminOrgLabel,
+  MFK_LOGO_SRC,
 } from '@/lib/org-branding'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -67,7 +68,7 @@ interface ExamSession {
 
 const CEFR_COLORS: Record<CEFR, string> = {
   A1: 'bg-slate-100 text-slate-600', A2: 'bg-blue-50 text-blue-600',
-  B1: 'bg-teal-50 text-teal-600', B2: 'bg-[#E6F5EE] text-[#00A550]',
+  B1: 'bg-teal-50 text-teal-600', B2: 'bg-[#E8F1FA] text-[#1E5FA8]',
   C1: 'bg-orange-50 text-orange-600', C2: 'bg-purple-50 text-purple-700',
 }
 
@@ -135,18 +136,19 @@ async function generateCertificatePdf(params: {
   const pageW = doc.internal.pageSize.getWidth()
   const pageH = doc.internal.pageSize.getHeight()
 
-  doc.setDrawColor(0, 165, 80)
+  doc.setDrawColor(11, 31, 58)
   doc.setLineWidth(1.5)
   doc.rect(10, 10, pageW - 20, pageH - 20)
   doc.setLineWidth(0.5)
   doc.rect(14, 14, pageW - 28, pageH - 28)
 
-  // Header logos: school top-left, admin top-right; org name stays centered between them
-  const topLogoW = 24
-  const topLogoH = 16
+  // Header logos: school (partner) top-left, official MFK emblem top-right (square, circular asset)
+  const schoolLogoW = 24
+  const schoolLogoH = 16
+  const mfkLogoSize = 16
   const topLogoY = 20
   const leftLogoX = 20
-  const rightLogoX = pageW - 20 - topLogoW
+  const rightLogoX = pageW - 20 - mfkLogoSize
 
   if (params.schoolLogoDataUrl) {
     try {
@@ -155,8 +157,8 @@ async function generateCertificatePdf(params: {
         imageFormatFromDataUrl(params.schoolLogoDataUrl),
         leftLogoX,
         topLogoY,
-        topLogoW,
-        topLogoH,
+        schoolLogoW,
+        schoolLogoH,
       )
     } catch {
       // Image load/format failure: continue without school logo.
@@ -170,8 +172,8 @@ async function generateCertificatePdf(params: {
         imageFormatFromDataUrl(params.adminLogoDataUrl),
         rightLogoX,
         topLogoY,
-        topLogoW,
-        topLogoH,
+        mfkLogoSize,
+        mfkLogoSize,
       )
     } catch {
       // Continue without admin logo.
@@ -184,7 +186,7 @@ async function generateCertificatePdf(params: {
   const adminLabel = adminOrgLabel(shortName)
   doc.setFont('helvetica', 'bold')
   doc.setFontSize(26)
-  doc.setTextColor(0, 165, 80)
+  doc.setTextColor(11, 31, 58)
   doc.text(brandName, pageW / 2, 32, { align: 'center' })
 
   doc.setFontSize(11)
@@ -215,7 +217,7 @@ async function generateCertificatePdf(params: {
   doc.text('a obtenu avec succès le niveau CECRL', pageW / 2, bodyStartY + 26, { align: 'center' })
 
   doc.setFontSize(18)
-  doc.setTextColor(0, 165, 80)
+  doc.setTextColor(30, 95, 168)
   doc.setFont('helvetica', 'bold')
   doc.text(`${params.cefrLevel} — ${CEFR_LABELS[params.cefrLevel]}`, pageW / 2, bodyStartY + 38, { align: 'center' })
 
@@ -534,9 +536,8 @@ export default function SchoolCertificatesPage() {
             orgSettings.admin_gender === 'M' || orgSettings.admin_gender === 'F'
               ? orgSettings.admin_gender
               : null
-          // admin-assets bucket is public — logo_url / signature_url / stamp_url are direct public URLs
           const [adminLogo, adminSig, adminStamp] = await Promise.all([
-            orgSettings.logo_url ? loadImageAsDataUrl(orgSettings.logo_url) : Promise.resolve(null),
+            loadImageAsDataUrl(MFK_LOGO_SRC),
             orgSettings.signature_url ? loadImageAsDataUrl(orgSettings.signature_url) : Promise.resolve(null),
             orgSettings.stamp_url ? loadImageAsDataUrl(orgSettings.stamp_url) : Promise.resolve(null),
           ])
@@ -546,6 +547,9 @@ export default function SchoolCertificatesPage() {
         }
       } catch {
         // Continue PDF generation without admin branding assets.
+      }
+      if (!adminLogoDataUrl) {
+        adminLogoDataUrl = await loadImageAsDataUrl(MFK_LOGO_SRC)
       }
 
       let pdfBlob: Blob
@@ -643,13 +647,13 @@ export default function SchoolCertificatesPage() {
       )}
 
       {!loading && pendingGeneration.length > 0 && (
-        <Card className="border-0 shadow-sm border-l-4 border-l-[#00A550]">
+        <Card className="border-0 shadow-sm border-l-4 border-l-[#1E5FA8]">
           <CardHeader className="pb-2">
             <div className="flex items-center gap-2">
-              <div className="w-8 h-8 rounded-lg bg-[#E6F5EE] flex items-center justify-center">
-                <FilePlus2 className="w-4 h-4 text-[#00A550]" />
+              <div className="w-8 h-8 rounded-lg bg-[#E8F1FA] flex items-center justify-center">
+                <FilePlus2 className="w-4 h-4 text-[#1E5FA8]" />
               </div>
-              <CardTitle className="text-sm font-semibold text-[#00A550]">
+              <CardTitle className="text-sm font-semibold text-[#1E5FA8]">
                 Ready to Generate ({pendingGeneration.length})
               </CardTitle>
             </div>
@@ -660,12 +664,12 @@ export default function SchoolCertificatesPage() {
               {pendingGeneration.map((r) => {
                 const session = getSession(r.exam_session_id)
                 return (
-                  <div key={r.id} className="flex items-center justify-between p-3 rounded-lg bg-[#E6F5EE]/60 border border-green-100">
+                  <div key={r.id} className="flex items-center justify-between p-3 rounded-lg bg-[#E8F1FA]/60 border border-green-100">
                     <div>
                       <p className="text-sm font-semibold text-gray-900">{getStudentName(r.school_student_id)}</p>
                       <p className="text-xs text-gray-500">{session?.title} — {session?.cefr_level} — Score: {r.total_score}/100</p>
                     </div>
-                    <Button size="sm" className="bg-[#00A550] hover:bg-[#008040] text-white"
+                    <Button size="sm" className="bg-[#1E5FA8] hover:bg-[#164A82] text-white"
                       onClick={() => handleGenerate(r)} disabled={generating === r.id}>
                       {generating === r.id ? <RefreshCw className="w-3.5 h-3.5 animate-spin mr-1" /> : <Award className="w-3.5 h-3.5 mr-1" />}
                       Generate
@@ -755,7 +759,7 @@ export default function SchoolCertificatesPage() {
                     </TableCell>
                     <TableCell className="py-3">
                       <div className="flex items-center gap-1.5">
-                        <ShieldCheck className="w-3.5 h-3.5 text-[#00A550] flex-shrink-0" />
+                        <ShieldCheck className="w-3.5 h-3.5 text-[#1E5FA8] flex-shrink-0" />
                         <span className="font-mono text-xs text-gray-600">{cert.certificate_number.slice(-8)}</span>
                       </div>
                     </TableCell>
@@ -768,7 +772,7 @@ export default function SchoolCertificatesPage() {
                           Download
                         </Button>
                       ) : (
-                        <span className="flex items-center justify-end gap-1 text-xs text-[#00A550]">
+                        <span className="flex items-center justify-end gap-1 text-xs text-[#1E5FA8]">
                           <CheckCircle2 className="w-3.5 h-3.5" /> Issued
                         </span>
                       )}

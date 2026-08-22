@@ -6,6 +6,7 @@ import {
   DEFAULT_ORG_TAGLINE,
 } from '@/lib/org-branding'
 import { PortalHeader } from '@/components/portal/portal-header'
+import { PortalFooter } from '@/components/portal/portal-footer'
 import { SeriesCardLink } from '@/components/portal/series-card-link'
 import type { SeriesType } from '@/lib/series'
 
@@ -89,7 +90,7 @@ export default async function PodcastsPage({ searchParams }: Props) {
   const tagline = branding.orgTagline || DEFAULT_ORG_TAGLINE
 
   return (
-    <div className="min-h-screen flex flex-col bg-gradient-to-b from-[#E8F8F0] via-white to-gray-50">
+    <div className="min-h-screen flex flex-col bg-gradient-to-b from-[#E8F1FA] via-white to-gray-50">
       <PortalHeader shortName={shortName} tagline={tagline} active="podcasts" />
 
       <main className="flex-1 max-w-5xl w-full mx-auto px-6 py-10 sm:py-14">
@@ -107,8 +108,8 @@ export default async function PodcastsPage({ searchParams }: Props) {
             href="/podcasts"
             className={
               !categorySlug
-                ? 'text-sm font-medium px-3 py-1.5 rounded-lg bg-[#00A550] text-white'
-                : 'text-sm font-medium px-3 py-1.5 rounded-lg bg-white border border-gray-200 text-gray-600 hover:border-[#00A550] hover:text-[#00A550] transition-colors'
+                ? 'text-sm font-medium px-3 py-1.5 rounded-lg bg-[#1E5FA8] text-white'
+                : 'text-sm font-medium px-3 py-1.5 rounded-lg bg-white border border-gray-200 text-gray-600 hover:border-[#1E5FA8] hover:text-[#1E5FA8] transition-colors'
             }
           >
             Toutes
@@ -119,8 +120,8 @@ export default async function PodcastsPage({ searchParams }: Props) {
               href={`/podcasts?categorie=${c.slug}`}
               className={
                 categorySlug === c.slug
-                  ? 'text-sm font-medium px-3 py-1.5 rounded-lg bg-[#00A550] text-white'
-                  : 'text-sm font-medium px-3 py-1.5 rounded-lg bg-white border border-gray-200 text-gray-600 hover:border-[#00A550] hover:text-[#00A550] transition-colors'
+                  ? 'text-sm font-medium px-3 py-1.5 rounded-lg bg-[#1E5FA8] text-white'
+                  : 'text-sm font-medium px-3 py-1.5 rounded-lg bg-white border border-gray-200 text-gray-600 hover:border-[#1E5FA8] hover:text-[#1E5FA8] transition-colors'
               }
             >
               {c.name}
@@ -143,9 +144,7 @@ export default async function PodcastsPage({ searchParams }: Props) {
         )}
       </main>
 
-      <footer className="border-t border-gray-100 py-6 text-center text-xs text-gray-400">
-        © {new Date().getFullYear()} {shortName} — {tagline}
-      </footer>
+      <PortalFooter shortName={shortName} tagline={tagline} />
     </div>
   )
 }

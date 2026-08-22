@@ -193,7 +193,7 @@ export default function SchoolSettingsPage() {
       )}
 
       {success && (
-        <div className="flex items-center gap-2 rounded-lg bg-[#E6F5EE] border border-green-200 px-4 py-3 text-sm text-[#00A550]">
+        <div className="flex items-center gap-2 rounded-lg bg-[#E8F1FA] border border-green-200 px-4 py-3 text-sm text-[#1E5FA8]">
           <CheckCircle2 className="w-4 h-4 flex-shrink-0" />
           Settings saved successfully.
         </div>
@@ -203,8 +203,8 @@ export default function SchoolSettingsPage() {
       <Card className="border-0 shadow-sm">
         <CardHeader className="pb-3">
           <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-lg bg-[#E6F5EE] flex items-center justify-center">
-              <User className="w-4 h-4 text-[#00A550]" />
+            <div className="w-8 h-8 rounded-lg bg-[#E8F1FA] flex items-center justify-center">
+              <User className="w-4 h-4 text-[#1E5FA8]" />
             </div>
             <CardTitle className="text-base font-semibold">Examiner Details</CardTitle>
           </div>
@@ -221,7 +221,7 @@ export default function SchoolSettingsPage() {
                   placeholder="e.g., UWIMANA Marie Claire"
                   value={examinerName}
                   onChange={(e) => setExaminerName(e.target.value)}
-                  className="border-gray-200 focus:border-[#00A550] max-w-sm"
+                  className="border-gray-200 focus:border-[#1E5FA8] max-w-sm"
                 />
                 <p className="text-xs text-gray-400">This name appears on issued certificates.</p>
               </div>
@@ -233,7 +233,7 @@ export default function SchoolSettingsPage() {
                 >
                   <SelectTrigger
                     id="examiner-gender"
-                    className="border-gray-200 focus:border-[#00A550]"
+                    className="border-gray-200 focus:border-[#1E5FA8]"
                   >
                     <SelectValue placeholder="Sélectionner" />
                   </SelectTrigger>
@@ -247,7 +247,7 @@ export default function SchoolSettingsPage() {
                 </p>
               </div>
               <Button onClick={handleSaveName} disabled={saving || !examinerName.trim()}
-                className="bg-[#00A550] hover:bg-[#008040] text-white">
+                className="bg-[#1E5FA8] hover:bg-[#164A82] text-white">
                 {saving ? <RefreshCw className="w-3.5 h-3.5 animate-spin mr-1.5" /> : <Settings className="w-3.5 h-3.5 mr-1.5" />}
                 {saving ? 'Saving…' : 'Save Details'}
               </Button>
@@ -278,7 +278,7 @@ export default function SchoolSettingsPage() {
               onChange={(e) => { const f = e.target.files?.[0]; if (f) uploadAsset(f, 'signature') }} />
             <Button variant="outline" onClick={() => sigInputRef.current?.click()}
               disabled={uploadingKey === 'signature'}
-              className="border-gray-200 hover:border-[#00A550] hover:text-[#00A550]">
+              className="border-gray-200 hover:border-[#1E5FA8] hover:text-[#1E5FA8]">
               {uploadingKey === 'signature'
                 ? <RefreshCw className="w-3.5 h-3.5 animate-spin mr-1.5" />
                 : <Upload className="w-3.5 h-3.5 mr-1.5" />}
@@ -310,7 +310,7 @@ export default function SchoolSettingsPage() {
               onChange={(e) => { const f = e.target.files?.[0]; if (f) uploadAsset(f, 'logo') }} />
             <Button variant="outline" onClick={() => logoInputRef.current?.click()}
               disabled={uploadingKey === 'logo'}
-              className="border-gray-200 hover:border-[#00A550] hover:text-[#00A550]">
+              className="border-gray-200 hover:border-[#1E5FA8] hover:text-[#1E5FA8]">
               {uploadingKey === 'logo'
                 ? <RefreshCw className="w-3.5 h-3.5 animate-spin mr-1.5" />
                 : <Upload className="w-3.5 h-3.5 mr-1.5" />}
@@ -344,7 +344,7 @@ export default function SchoolSettingsPage() {
               onChange={(e) => { const f = e.target.files?.[0]; if (f) uploadAsset(f, 'stamp') }} />
             <Button variant="outline" onClick={() => stampInputRef.current?.click()}
               disabled={uploadingKey === 'stamp'}
-              className="border-gray-200 hover:border-[#00A550] hover:text-[#00A550]">
+              className="border-gray-200 hover:border-[#1E5FA8] hover:text-[#1E5FA8]">
               {uploadingKey === 'stamp'
                 ? <RefreshCw className="w-3.5 h-3.5 animate-spin mr-1.5" />
                 : <Upload className="w-3.5 h-3.5 mr-1.5" />}

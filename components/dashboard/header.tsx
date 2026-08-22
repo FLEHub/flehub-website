@@ -165,7 +165,7 @@ export function Header({ title, profile }: HeaderProps) {
             >
               <Bell className="w-5 h-5" />
               {unreadCount > 0 && (
-                <span className="absolute -top-0.5 -right-0.5 flex items-center justify-center w-4 h-4 rounded-full bg-[#00A550] text-white text-[10px] font-bold leading-none">
+                <span className="absolute -top-0.5 -right-0.5 flex items-center justify-center w-4 h-4 rounded-full bg-[#1E5FA8] text-white text-[10px] font-bold leading-none">
                   {unreadCount > 9 ? '9+' : unreadCount}
                 </span>
               )}
@@ -178,7 +178,7 @@ export function Header({ title, profile }: HeaderProps) {
                   {unreadCount > 0 && (
                     <button
                       onClick={markAllRead}
-                      className="text-xs text-[#00A550] hover:underline font-medium"
+                      className="text-xs text-[#1E5FA8] hover:underline font-medium"
                     >
                       Mark all read
                     </button>
@@ -220,7 +220,7 @@ export function Header({ title, profile }: HeaderProps) {
                 <div className="border-t border-gray-100 px-4 py-2">
                   <Link
                     href={`${roleDashboardPath}/notifications`}
-                    className="block text-center text-xs text-[#00A550] hover:underline py-1"
+                    className="block text-center text-xs text-[#1E5FA8] hover:underline py-1"
                     onClick={() => setNotifOpen(false)}
                   >
                     View all notifications
@@ -241,7 +241,7 @@ export function Header({ title, profile }: HeaderProps) {
               aria-label="User menu"
             >
               <Avatar className="w-7 h-7">
-                <AvatarFallback className="bg-[#00A550] text-white text-xs font-semibold">
+                <AvatarFallback className="bg-[#1E5FA8] text-white text-xs font-semibold">
                   {initials}
                 </AvatarFallback>
               </Avatar>
@@ -265,7 +265,7 @@ export function Header({ title, profile }: HeaderProps) {
                   <p className="text-xs text-gray-500 truncate">{profile.email}</p>
                   <Badge
                     variant="secondary"
-                    className="mt-1 text-[10px] capitalize bg-[#E6F5EE] text-[#00A550] border-0"
+                    className="mt-1 text-[10px] capitalize bg-[#E8F1FA] text-[#1E5FA8] border-0"
                   >
                     {profile.role}
                   </Badge>

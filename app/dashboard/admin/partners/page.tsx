@@ -236,7 +236,7 @@ export default function AdminPartnersPage() {
           <Button
             type="button"
             size="sm"
-            className="bg-[#00A550] hover:bg-[#008040]"
+            className="bg-[#1E5FA8] hover:bg-[#164A82]"
             onClick={() => {
               resetAddForm()
               setAddOpen(true)
@@ -258,7 +258,7 @@ export default function AdminPartnersPage() {
         </div>
       )}
       {success && (
-        <div className="flex items-center gap-2 rounded-lg bg-[#E6F5EE] border border-green-200 px-4 py-3 text-sm text-[#00A550]">
+        <div className="flex items-center gap-2 rounded-lg bg-[#E8F1FA] border border-green-200 px-4 py-3 text-sm text-[#1E5FA8]">
           <CheckCircle2 className="w-4 h-4 flex-shrink-0" />
           {success}
         </div>
@@ -340,7 +340,7 @@ export default function AdminPartnersPage() {
                             href={row.website_url}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="text-[#00A550] hover:underline"
+                            className="text-[#1E5FA8] hover:underline"
                           >
                             {row.website_url}
                           </a>
@@ -469,7 +469,7 @@ export default function AdminPartnersPage() {
               <Button
                 type="submit"
                 disabled={saving || uploading}
-                className="bg-[#00A550] hover:bg-[#008040] text-white"
+                className="bg-[#1E5FA8] hover:bg-[#164A82] text-white"
               >
                 {saving ? 'Saving…' : 'Add partner'}
               </Button>

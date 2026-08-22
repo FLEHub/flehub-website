@@ -610,7 +610,7 @@ export default function LearnerTakeTcfCoSession() {
                     value={letter}
                     id={`choice-${letter}`}
                     className="mt-0.5"
-                    style={{ accentColor: '#00A550' }}
+                    style={{ accentColor: '#1E5FA8' }}
                   />
                   <div className="min-w-0">
                     <Label

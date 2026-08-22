@@ -7,6 +7,7 @@ import {
   DEFAULT_ORG_TAGLINE,
 } from '@/lib/org-branding'
 import { PortalHeader } from '@/components/portal/portal-header'
+import { PortalFooter } from '@/components/portal/portal-footer'
 import { GalleryPhotoGrid } from '@/components/galleries/gallery-photo-grid'
 import { formatArticleDate } from '@/lib/articles'
 import { ArrowLeft } from 'lucide-react'
@@ -89,13 +90,13 @@ export default async function GalerieDetailPage({ params }: Props) {
   }
 
   return (
-    <div className="min-h-screen flex flex-col bg-gradient-to-b from-[#E8F8F0] via-white to-gray-50">
+    <div className="min-h-screen flex flex-col bg-gradient-to-b from-[#E8F1FA] via-white to-gray-50">
       <PortalHeader shortName={shortName} tagline={tagline} active="galeries" />
 
       <main className="flex-1 max-w-5xl w-full mx-auto px-6 py-10 sm:py-14">
         <Link
           href="/galeries"
-          className="inline-flex items-center gap-1.5 text-sm text-gray-500 hover:text-[#00A550] mb-6"
+          className="inline-flex items-center gap-1.5 text-sm text-gray-500 hover:text-[#1E5FA8] mb-6"
         >
           <ArrowLeft className="w-4 h-4" />
           Toutes les galeries
@@ -107,7 +108,7 @@ export default async function GalerieDetailPage({ params }: Props) {
               {category && (
                 <Link
                   href={`/galeries?categorie=${category.slug}`}
-                  className="text-[#00A550] font-medium hover:underline"
+                  className="text-[#1E5FA8] font-medium hover:underline"
                 >
                   {category.name}
                 </Link>
@@ -138,9 +139,7 @@ export default async function GalerieDetailPage({ params }: Props) {
         </article>
       </main>
 
-      <footer className="border-t border-gray-100 py-6 text-center text-xs text-gray-400">
-        © {new Date().getFullYear()} {shortName} — {tagline}
-      </footer>
+      <PortalFooter shortName={shortName} tagline={tagline} />
     </div>
   )
 }

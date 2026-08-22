@@ -219,7 +219,7 @@ export default function MessagesPage() {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-full min-h-[60vh]">
-        <Loader2 className="h-8 w-8 animate-spin" style={{ color: '#00A550' }} />
+        <Loader2 className="h-8 w-8 animate-spin" style={{ color: '#1E5FA8' }} />
       </div>
     );
   }
@@ -234,7 +234,7 @@ export default function MessagesPage() {
             <Button
               size="sm"
               onClick={() => setComposeOpen(true)}
-              style={{ backgroundColor: '#00A550' }}
+              style={{ backgroundColor: '#1E5FA8' }}
               className="text-white hover:opacity-90"
             >
               <PenSquare className="h-4 w-4 mr-1" />
@@ -272,7 +272,7 @@ export default function MessagesPage() {
                 <Avatar className="h-9 w-9 shrink-0">
                   <AvatarFallback
                     className="text-white text-xs"
-                    style={{ backgroundColor: '#00A550' }}
+                    style={{ backgroundColor: '#1E5FA8' }}
                   >
                     {initials(conv.otherParty.full_name)}
                   </AvatarFallback>
@@ -295,7 +295,7 @@ export default function MessagesPage() {
                     {conv.unreadCount > 0 && (
                       <Badge
                         className="h-4 min-w-4 text-[10px] px-1 text-white ml-1 shrink-0"
-                        style={{ backgroundColor: '#00A550' }}
+                        style={{ backgroundColor: '#1E5FA8' }}
                       >
                         {conv.unreadCount}
                       </Badge>
@@ -317,7 +317,7 @@ export default function MessagesPage() {
               <Avatar className="h-9 w-9">
                 <AvatarFallback
                   className="text-white text-xs"
-                  style={{ backgroundColor: '#00A550' }}
+                  style={{ backgroundColor: '#1E5FA8' }}
                 >
                   {initials(activeConversation.otherParty.full_name)}
                 </AvatarFallback>
@@ -348,7 +348,7 @@ export default function MessagesPage() {
                             ? 'text-white rounded-br-sm'
                             : 'bg-muted text-foreground rounded-bl-sm'
                         }`}
-                        style={isSent ? { backgroundColor: '#00A550' } : {}}
+                        style={isSent ? { backgroundColor: '#1E5FA8' } : {}}
                       >
                         {msg.subject && (
                           <p className="font-semibold text-xs opacity-80 mb-1">
@@ -392,7 +392,7 @@ export default function MessagesPage() {
                 onClick={sendMessage}
                 disabled={sending || !newMessage.trim()}
                 className="text-white h-11 px-4 shrink-0"
-                style={{ backgroundColor: '#00A550' }}
+                style={{ backgroundColor: '#1E5FA8' }}
               >
                 {sending ? (
                   <Loader2 className="h-4 w-4 animate-spin" />
@@ -449,7 +449,7 @@ export default function MessagesPage() {
                         <Avatar className="h-6 w-6">
                           <AvatarFallback
                             className="text-white text-[10px]"
-                            style={{ backgroundColor: '#00A550' }}
+                            style={{ backgroundColor: '#1E5FA8' }}
                           >
                             {initials(r.full_name)}
                           </AvatarFallback>
@@ -490,7 +490,7 @@ export default function MessagesPage() {
               onClick={sendCompose}
               disabled={composeSending || !selectedRecipient || !composeBody.trim()}
               className="text-white"
-              style={{ backgroundColor: '#00A550' }}
+              style={{ backgroundColor: '#1E5FA8' }}
             >
               {composeSending ? (
                 <Loader2 className="h-4 w-4 animate-spin mr-2" />

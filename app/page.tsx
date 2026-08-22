@@ -7,6 +7,7 @@ import {
   DEFAULT_ORG_TAGLINE,
 } from '@/lib/org-branding'
 import { PortalHeader } from '@/components/portal/portal-header'
+import { PortalFooter } from '@/components/portal/portal-footer'
 import { PartnersSection } from '@/components/portal/partners-section'
 import { HomeHero } from '@/components/portal/home-hero'
 import { HomeContentCard } from '@/components/portal/home-content-card'
@@ -75,9 +76,9 @@ export default async function HomePage() {
         {feed.hero ? (
           <HomeHero item={feed.hero} />
         ) : (
-          <section className="bg-gradient-to-br from-[#00A550] via-[#008040] to-[#F59E0B] text-white">
+          <section className="bg-gradient-to-br from-[#0B1F3A] via-[#1E5FA8] to-[#F2B705] text-white">
             <div className="max-w-5xl mx-auto px-6 py-16 sm:py-20 text-center space-y-3">
-              <p className="text-sm font-bold uppercase tracking-wide text-[#FDE68A]">
+              <p className="text-sm font-bold uppercase tracking-wide text-[#F9E38A]">
                 {shortName}
               </p>
               <h1 className="text-3xl sm:text-4xl font-extrabold tracking-tight">
@@ -91,7 +92,7 @@ export default async function HomePage() {
         )}
 
         {/* App CTA strip — bandeau vibrant */}
-        <section className="bg-gradient-to-r from-[#00A550] via-[#00B85C] to-[#F59E0B]">
+        <section className="bg-gradient-to-r from-[#1E5FA8] via-[#3A92D1] to-[#F2B705]">
           <div className="max-w-5xl mx-auto px-6 py-5 flex flex-col sm:flex-row items-center justify-between gap-4">
             <p className="text-sm sm:text-base text-white font-medium text-center sm:text-left">
               Accédez à la plateforme e-learning et aux services {shortName}.
@@ -99,7 +100,7 @@ export default async function HomePage() {
             <div className="flex items-center gap-2">
               <Link
                 href="/app"
-                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-white hover:bg-[#FFFBEB] text-[#007A3D] text-sm font-bold shadow-md transition-colors"
+                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-white hover:bg-[#FFF8E1] text-[#0B1F3A] text-sm font-bold shadow-md transition-colors"
               >
                 Accéder à {shortName} App
                 <ArrowRight className="w-4 h-4" />
@@ -123,8 +124,8 @@ export default async function HomePage() {
         {feed.featured.length > 0 && (
           <HomeSection
             title="À la une"
-            className="bg-[#9DD9B5]/90"
-            accentClassName="bg-[#F59E0B]"
+            className="bg-[#A8C5E0]/90"
+            accentClassName="bg-[#F2B705]"
           >
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 sm:gap-6">
               {feed.featured.map((item) => (
@@ -139,10 +140,10 @@ export default async function HomePage() {
             title="Dernières actualités"
             href="/actualites"
             linkLabel="Voir toutes les actualités"
-            className="bg-[#6FCF97]/85"
-            accentClassName="bg-[#007A3D]"
+            className="bg-[#7BA7D4]/85"
+            accentClassName="bg-[#0B1F3A]"
           >
-            <div className="rounded-2xl bg-[#E2F6EA]/90 border-[2.5px] border-[#00A550]/40 shadow-sm p-2 sm:p-3 space-y-2">
+            <div className="rounded-2xl bg-[#E3EEF7]/90 border-[2.5px] border-[#1E5FA8]/40 shadow-sm p-2 sm:p-3 space-y-2">
               {feed.articles.map((item) => (
                 <HomeContentCard key={item.id} item={item} variant="list" />
               ))}
@@ -155,8 +156,8 @@ export default async function HomePage() {
             title="Vidéos à la une"
             href="/videos"
             linkLabel="Voir toutes les vidéos"
-            className="bg-[#93C5FD]/80"
-            accentClassName="bg-[#1D7AFC]"
+            className="bg-[#D6E8F6]/90"
+            accentClassName="bg-[#3A92D1]"
           >
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 sm:gap-6">
               {feed.videos.map((item) => (
@@ -171,8 +172,8 @@ export default async function HomePage() {
             title="Reportages"
             href="/reportages"
             linkLabel="Voir tous les reportages"
-            className="bg-[#FCD34D]/75"
-            accentClassName="bg-[#D97706]"
+            className="bg-[#FFF6D6]/90"
+            accentClassName="bg-[#F2B705]"
           >
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 sm:gap-6">
               {feed.reportages.map((item) => (
@@ -185,20 +186,20 @@ export default async function HomePage() {
         {feed.series.length > 0 && (
           <HomeSection
             title="Web-séries & Podcasts"
-            className="bg-[#5EEAD4]/75"
-            accentClassName="bg-[#0D9488]"
+            className="bg-[#E8EEF4]/90"
+            accentClassName="bg-[#0B1F3A]"
           >
             <div className="flex flex-wrap gap-2 mb-6 -mt-1">
               <Link
                 href="/webseries"
-                className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg bg-[#0EA5E9] hover:bg-[#0284C7] text-white text-sm font-semibold shadow-sm transition-colors"
+                className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg bg-[#1E5FA8] hover:bg-[#0B1F3A] text-white text-sm font-semibold shadow-sm transition-colors"
               >
                 Voir les web-séries
                 <ArrowRight className="w-3.5 h-3.5" />
               </Link>
               <Link
                 href="/podcasts"
-                className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg bg-[#0D9488] hover:bg-[#0F766E] text-white text-sm font-semibold shadow-sm transition-colors"
+                className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg bg-[#2E7D32] hover:bg-[#1B5E20] text-white text-sm font-semibold shadow-sm transition-colors"
               >
                 Voir les podcasts
                 <ArrowRight className="w-3.5 h-3.5" />
@@ -217,8 +218,8 @@ export default async function HomePage() {
             title="Galerie photo"
             href="/galeries"
             linkLabel="Voir toutes les galeries"
-            className="bg-[#FDBA74]/80"
-            accentClassName="bg-[#EA580C]"
+            className="bg-[#E6F2E7]/90"
+            accentClassName="bg-[#2E7D32]"
           >
             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-5">
               {feed.galleries.map((item) => (
@@ -231,9 +232,7 @@ export default async function HomePage() {
         <PartnersSection partners={partners} />
       </main>
 
-      <footer className="bg-[#003d1f] py-7 text-center text-xs text-white/75">
-        © {new Date().getFullYear()} {shortName} — {tagline}
-      </footer>
+      <PortalFooter shortName={shortName} tagline={tagline} variant="dark" />
     </div>
   )
 }

@@ -112,7 +112,7 @@ function buildMethodBreakdown(payments: Payment[]) {
 }
 
 const chartConfig = {
-  revenue: { label: 'Revenue (RWF)', color: '#00A550' },
+  revenue: { label: 'Revenue (RWF)', color: '#1E5FA8' },
 };
 
 export default function AdminFinancesPage() {
@@ -221,7 +221,7 @@ export default function AdminFinancesPage() {
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
-        <Loader2 className="h-8 w-8 animate-spin" style={{ color: '#00A550' }} />
+        <Loader2 className="h-8 w-8 animate-spin" style={{ color: '#1E5FA8' }} />
       </div>
     );
   }
@@ -248,19 +248,19 @@ export default function AdminFinancesPage() {
             title: 'Total Revenue',
             value: `RWF ${fmtRwf(totalRevenue)}`,
             icon: DollarSign,
-            color: '#00A550',
+            color: '#1E5FA8',
           },
           {
             title: 'This Month',
             value: `RWF ${fmtRwf(thisMonthRevenue)}`,
             icon: TrendingUp,
-            color: '#00A550',
+            color: '#1E5FA8',
           },
           {
             title: 'Pending Payments',
             value: `RWF ${fmtRwf(pendingTotal)}`,
             icon: Clock,
-            color: '#F59E0B',
+            color: '#F2B705',
           },
           {
             title: 'Refunds',
@@ -314,7 +314,7 @@ export default function AdminFinancesPage() {
                     content={<ChartTooltipContent />}
                     formatter={(value: number) => [`RWF ${fmtRwf(value)}`, 'Revenue']}
                   />
-                  <Bar dataKey="revenue" fill="#00A550" radius={[4, 4, 0, 0]} />
+                  <Bar dataKey="revenue" fill="#1E5FA8" radius={[4, 4, 0, 0]} />
                 </BarChart>
               </ResponsiveContainer>
             </ChartContainer>
@@ -336,7 +336,7 @@ export default function AdminFinancesPage() {
                 <div className="h-2 rounded-full bg-muted overflow-hidden">
                   <div
                     className="h-full rounded-full transition-all"
-                    style={{ width: `${m.pct}%`, backgroundColor: '#00A550' }}
+                    style={{ width: `${m.pct}%`, backgroundColor: '#1E5FA8' }}
                   />
                 </div>
                 <p className="text-xs text-muted-foreground mt-1">RWF {fmtRwf(m.amount)}</p>
@@ -460,7 +460,7 @@ export default function AdminFinancesPage() {
             onClick={saveRetakeSettings}
             disabled={savingRetake}
             className="text-white"
-            style={{ backgroundColor: '#00A550' }}
+            style={{ backgroundColor: '#1E5FA8' }}
           >
             {savingRetake ? (
               <Loader2 className="h-4 w-4 animate-spin mr-2" />

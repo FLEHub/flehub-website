@@ -57,14 +57,14 @@ const CEFR_COLORS: Record<CEFR, string> = {
   A1: 'bg-slate-100 text-slate-600',
   A2: 'bg-blue-50 text-blue-600',
   B1: 'bg-teal-50 text-teal-600',
-  B2: 'bg-[#E6F5EE] text-[#00A550]',
+  B2: 'bg-[#E8F1FA] text-[#1E5FA8]',
   C1: 'bg-orange-50 text-orange-600',
   C2: 'bg-purple-50 text-purple-700',
 }
 
 const STATUS_COLORS: Record<string, string> = {
   upcoming: 'bg-blue-50 text-blue-700 border border-blue-200',
-  ongoing: 'bg-[#E6F5EE] text-[#00A550] border border-green-200',
+  ongoing: 'bg-[#E8F1FA] text-[#1E5FA8] border border-green-200',
   completed: 'bg-gray-100 text-gray-600 border border-gray-200',
   cancelled: 'bg-red-50 text-red-600 border border-red-200',
 }
@@ -268,8 +268,8 @@ export default function SchoolExamsPage() {
       ) : sessions.length === 0 ? (
         <Card className="border-0 shadow-sm">
           <CardContent className="flex flex-col items-center py-16">
-            <div className="w-12 h-12 rounded-xl bg-[#E6F5EE] flex items-center justify-center mb-3">
-              <BookOpen className="w-6 h-6 text-[#00A550]" />
+            <div className="w-12 h-12 rounded-xl bg-[#E8F1FA] flex items-center justify-center mb-3">
+              <BookOpen className="w-6 h-6 text-[#1E5FA8]" />
             </div>
             <p className="text-sm font-medium text-gray-700">No exam sessions available</p>
             <p className="text-xs text-gray-400 mt-1">
@@ -309,11 +309,11 @@ export default function SchoolExamsPage() {
                       {session.status}
                     </span>
                     <div className="hidden sm:flex items-center gap-2 text-xs">
-                      <span className={`flex items-center gap-1 px-2 py-0.5 rounded-full font-medium ${pdfCount === COMPETENCIES.length ? 'bg-[#E6F5EE] text-[#00A550]' : 'bg-gray-100 text-gray-500'}`}>
+                      <span className={`flex items-center gap-1 px-2 py-0.5 rounded-full font-medium ${pdfCount === COMPETENCIES.length ? 'bg-[#E8F1FA] text-[#1E5FA8]' : 'bg-gray-100 text-gray-500'}`}>
                         <FileText className="w-3 h-3" />
                         {pdfCount}/{COMPETENCIES.length} PDFs
                       </span>
-                      <span className={`flex items-center gap-1 px-2 py-0.5 rounded-full font-medium ${audioCount === audioExpected ? 'bg-[#E6F5EE] text-[#00A550]' : 'bg-gray-100 text-gray-500'}`}>
+                      <span className={`flex items-center gap-1 px-2 py-0.5 rounded-full font-medium ${audioCount === audioExpected ? 'bg-[#E8F1FA] text-[#1E5FA8]' : 'bg-gray-100 text-gray-500'}`}>
                         <Music className="w-3 h-3" />
                         {audioCount}/{audioExpected} Audio
                       </span>
@@ -352,7 +352,7 @@ export default function SchoolExamsPage() {
                                   <Button size="sm" variant="outline"
                                     disabled={loadingUrl === paper?.file_path}
                                     onClick={() => handleDownload('exam-papers', paper!.file_path!, `${comp.key}.pdf`)}
-                                    className="h-7 text-xs border-[#00A550] text-[#00A550] hover:bg-[#E6F5EE]">
+                                    className="h-7 text-xs border-[#1E5FA8] text-[#1E5FA8] hover:bg-[#E8F1FA]">
                                     {loadingUrl === paper?.file_path
                                       ? <RefreshCw className="w-3 h-3 animate-spin mr-1" />
                                       : <Download className="w-3 h-3 mr-1" />}
@@ -373,7 +373,7 @@ export default function SchoolExamsPage() {
                                       ) : (
                                         <Button size="sm" variant="outline"
                                           onClick={() => loadAudio(audioPath)}
-                                          className="h-7 text-xs border-[#00A550] text-[#00A550] hover:bg-[#E6F5EE]">
+                                          className="h-7 text-xs border-[#1E5FA8] text-[#1E5FA8] hover:bg-[#E8F1FA]">
                                           <Music className="w-3 h-3 mr-1" />
                                           Load Audio
                                         </Button>

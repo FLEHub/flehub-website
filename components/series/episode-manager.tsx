@@ -33,7 +33,7 @@ type Props = {
 
 const STATUS_CLASS: Record<EpisodeStatus, string> = {
   draft: 'bg-yellow-50 text-yellow-700 border-yellow-200',
-  published: 'bg-[#E6F5EE] text-[#00A550] border-green-200',
+  published: 'bg-[#E8F1FA] text-[#1E5FA8] border-[#1E5FA8]/30',
 }
 
 export function EpisodeManager({
@@ -278,7 +278,7 @@ export function EpisodeManager({
           <Button
             type="button"
             size="sm"
-            className="bg-[#00A550] hover:bg-[#008040]"
+            className="bg-[#1E5FA8] hover:bg-[#164A82]"
             onClick={openNew}
           >
             <Plus className="w-4 h-4 mr-1.5" />
@@ -412,7 +412,7 @@ export function EpisodeManager({
             <Button
               type="button"
               disabled={busy}
-              className="bg-[#00A550] hover:bg-[#008040]"
+              className="bg-[#1E5FA8] hover:bg-[#164A82]"
               onClick={() => void saveEpisode('published')}
             >
               {saving ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : null}
@@ -444,7 +444,7 @@ export function EpisodeManager({
               key={ep.id}
               className="flex flex-col sm:flex-row gap-3 rounded-xl border border-gray-100 bg-white p-4"
             >
-              <div className="flex-shrink-0 w-12 h-12 rounded-lg bg-[#E6F5EE] flex items-center justify-center text-sm font-bold text-[#00A550]">
+              <div className="flex-shrink-0 w-12 h-12 rounded-lg bg-[#E8F1FA] flex items-center justify-center text-sm font-bold text-[#1E5FA8]">
                 {ep.episode_number}
               </div>
               <div className="min-w-0 flex-1 space-y-1">

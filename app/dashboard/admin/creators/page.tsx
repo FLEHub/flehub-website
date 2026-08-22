@@ -51,7 +51,7 @@ interface CreatorRow {
 
 const STATUS_CLASS: Record<UserStatus, string> = {
   pending: 'bg-yellow-50 text-yellow-700 border-yellow-200',
-  approved: 'bg-[#E6F5EE] text-[#00A550] border-green-200',
+  approved: 'bg-[#E8F1FA] text-[#1E5FA8] border-green-200',
   rejected: 'bg-red-50 text-red-700 border-red-200',
   suspended: 'bg-orange-50 text-orange-700 border-orange-200',
 }
@@ -256,7 +256,7 @@ export default function AdminCreatorsPage() {
         </div>
       )}
       {success && (
-        <div className="flex items-center gap-2 rounded-lg bg-[#E6F5EE] border border-green-200 px-4 py-3 text-sm text-[#00A550]">
+        <div className="flex items-center gap-2 rounded-lg bg-[#E8F1FA] border border-green-200 px-4 py-3 text-sm text-[#1E5FA8]">
           <CheckCircle2 className="w-4 h-4 flex-shrink-0" />
           {success}
         </div>
@@ -265,8 +265,8 @@ export default function AdminCreatorsPage() {
       <Card className="border-0 shadow-sm">
         <CardHeader className="pb-3">
           <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-lg bg-[#E6F5EE] flex items-center justify-center">
-              <Plus className="w-4 h-4 text-[#00A550]" />
+            <div className="w-8 h-8 rounded-lg bg-[#E8F1FA] flex items-center justify-center">
+              <Plus className="w-4 h-4 text-[#1E5FA8]" />
             </div>
             <CardTitle className="text-base">Create creator</CardTitle>
           </div>
@@ -320,7 +320,7 @@ export default function AdminCreatorsPage() {
               <Button
                 type="submit"
                 disabled={creating}
-                className="bg-[#00A550] hover:bg-[#008040] text-white"
+                className="bg-[#1E5FA8] hover:bg-[#164A82] text-white"
               >
                 {creating ? (
                   <RefreshCw className="w-4 h-4 animate-spin mr-1.5" />
@@ -414,7 +414,7 @@ export default function AdminCreatorsPage() {
                             size="sm"
                             disabled={actionId === row.profile_id + 'approved'}
                             onClick={() => updateStatus(row.profile_id, 'approved')}
-                            className="border-green-200 text-[#00A550]"
+                            className="border-green-200 text-[#1E5FA8]"
                           >
                             <CheckCircle2 className="w-3.5 h-3.5 mr-1" />
                             Reactivate
@@ -510,7 +510,7 @@ export default function AdminCreatorsPage() {
             <Button
               onClick={saveEdit}
               disabled={editSaving}
-              className="bg-[#00A550] hover:bg-[#008040] text-white"
+              className="bg-[#1E5FA8] hover:bg-[#164A82] text-white"
             >
               {editSaving ? 'Saving…' : 'Save'}
             </Button>

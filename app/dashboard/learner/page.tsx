@@ -683,7 +683,7 @@ export default function LearnerDashboard() {
                   </div>
                   <div className="w-full bg-gray-200 rounded-full h-1.5">
                     <div
-                      className="bg-[#00A550] h-1.5 rounded-full transition-all"
+                      className="bg-[#1E5FA8] h-1.5 rounded-full transition-all"
                       style={{ width: `${Math.min(100, p.average_score)}%` }}
                     />
                   </div>

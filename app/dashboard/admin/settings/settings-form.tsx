@@ -86,7 +86,7 @@ function ImageUploadCard({
   return (
     <div className="space-y-3">
       <div className="flex items-center gap-2">
-        <Icon className="w-4 h-4 text-[#00A550]" />
+        <Icon className="w-4 h-4 text-[#1E5FA8]" />
         <Label className="text-sm font-semibold text-gray-800">{label}</Label>
       </div>
       <p className="text-xs text-gray-500 -mt-1">{description}</p>
@@ -109,11 +109,11 @@ function ImageUploadCard({
         onClick={() => inputRef.current?.click()}
         className={`flex flex-col items-center justify-center gap-2 h-24 rounded-xl border-2 border-dashed cursor-pointer transition-colors ${
           dragOver
-            ? 'border-[#00A550] bg-[#E6F5EE]'
-            : 'border-gray-200 hover:border-[#00A550] hover:bg-[#E6F5EE]/40 bg-gray-50/60'
+            ? 'border-[#1E5FA8] bg-[#E8F1FA]'
+            : 'border-gray-200 hover:border-[#1E5FA8] hover:bg-[#E8F1FA]/40 bg-gray-50/60'
         }`}
       >
-        <Upload className={`w-5 h-5 ${dragOver ? 'text-[#00A550]' : 'text-gray-400'}`} />
+        <Upload className={`w-5 h-5 ${dragOver ? 'text-[#1E5FA8]' : 'text-gray-400'}`} />
         <span className="text-xs text-gray-500">
           {uploading ? 'Uploading…' : 'Click or drag to upload'}
         </span>
@@ -222,7 +222,7 @@ export function AdminSettingsForm({ initialSettings }: Props) {
         <div
           className={`flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium shadow-sm border transition-all ${
             toast.type === 'success'
-              ? 'bg-[#E6F5EE] text-[#00A550] border-green-200'
+              ? 'bg-[#E8F1FA] text-[#1E5FA8] border-green-200'
               : 'bg-red-50 text-red-700 border-red-200'
           }`}
         >
@@ -239,8 +239,8 @@ export function AdminSettingsForm({ initialSettings }: Props) {
       <Card className="border-0 shadow-sm">
         <CardHeader className="pb-4">
           <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-lg bg-[#E6F5EE] flex items-center justify-center">
-              <Building2 className="w-4 h-4 text-[#00A550]" />
+            <div className="w-8 h-8 rounded-lg bg-[#E8F1FA] flex items-center justify-center">
+              <Building2 className="w-4 h-4 text-[#1E5FA8]" />
             </div>
             <CardTitle className="text-base font-semibold">Organization Information</CardTitle>
           </div>
@@ -256,7 +256,7 @@ export function AdminSettingsForm({ initialSettings }: Props) {
                 value={settings.org_short_name ?? ''}
                 onChange={(e) => setSettings((p) => ({ ...p, org_short_name: e.target.value }))}
                 placeholder="MFK"
-                className="border-gray-200 focus:border-[#00A550] focus:ring-[#00A550]/20"
+                className="border-gray-200 focus:border-[#1E5FA8] focus:ring-[#1E5FA8]/20"
               />
               <p className="text-xs text-gray-400">Affiché dans la sidebar, login et certificats (ex. Administration MFK).</p>
             </div>
@@ -269,7 +269,7 @@ export function AdminSettingsForm({ initialSettings }: Props) {
                 value={settings.org_name}
                 onChange={(e) => setSettings((p) => ({ ...p, org_name: e.target.value }))}
                 placeholder="MFK"
-                className="border-gray-200 focus:border-[#00A550] focus:ring-[#00A550]/20"
+                className="border-gray-200 focus:border-[#1E5FA8] focus:ring-[#1E5FA8]/20"
               />
             </div>
           </div>
@@ -283,7 +283,7 @@ export function AdminSettingsForm({ initialSettings }: Props) {
               value={settings.org_tagline ?? ''}
               onChange={(e) => setSettings((p) => ({ ...p, org_tagline: e.target.value }))}
               placeholder="Maison de la Francophonie Kigali"
-              className="border-gray-200 focus:border-[#00A550] focus:ring-[#00A550]/20"
+              className="border-gray-200 focus:border-[#1E5FA8] focus:ring-[#1E5FA8]/20"
             />
             <p className="text-xs text-gray-400">Affiché en bas des certificats et sur le portail.</p>
           </div>
@@ -300,7 +300,7 @@ export function AdminSettingsForm({ initialSettings }: Props) {
                 value={settings.contact_email ?? ''}
                 onChange={(e) => setSettings((p) => ({ ...p, contact_email: e.target.value || null }))}
                 placeholder="admin@flehub.com"
-                className="border-gray-200 focus:border-[#00A550] focus:ring-[#00A550]/20"
+                className="border-gray-200 focus:border-[#1E5FA8] focus:ring-[#1E5FA8]/20"
               />
             </div>
 
@@ -315,7 +315,7 @@ export function AdminSettingsForm({ initialSettings }: Props) {
                 value={settings.contact_phone ?? ''}
                 onChange={(e) => setSettings((p) => ({ ...p, contact_phone: e.target.value || null }))}
                 placeholder="+250 7XX XXX XXX"
-                className="border-gray-200 focus:border-[#00A550] focus:ring-[#00A550]/20"
+                className="border-gray-200 focus:border-[#1E5FA8] focus:ring-[#1E5FA8]/20"
               />
             </div>
           </div>
@@ -331,7 +331,7 @@ export function AdminSettingsForm({ initialSettings }: Props) {
                 value={settings.admin_signatory_name ?? ''}
                 onChange={(e) => setSettings((p) => ({ ...p, admin_signatory_name: e.target.value || null }))}
                 placeholder="Nom de la personne qui signe les certificats"
-                className="border-gray-200 focus:border-[#00A550] focus:ring-[#00A550]/20"
+                className="border-gray-200 focus:border-[#1E5FA8] focus:ring-[#1E5FA8]/20"
               />
             </div>
 
@@ -347,7 +347,7 @@ export function AdminSettingsForm({ initialSettings }: Props) {
               >
                 <SelectTrigger
                   id="admin_gender"
-                  className="border-gray-200 focus:border-[#00A550] focus:ring-[#00A550]/20"
+                  className="border-gray-200 focus:border-[#1E5FA8] focus:ring-[#1E5FA8]/20"
                 >
                   <SelectValue placeholder="Sélectionner" />
                 </SelectTrigger>
@@ -366,7 +366,7 @@ export function AdminSettingsForm({ initialSettings }: Props) {
             <Button
               onClick={handleSave}
               disabled={isPending}
-              className="bg-[#00A550] hover:bg-[#008040] text-white px-6 font-medium transition-colors"
+              className="bg-[#1E5FA8] hover:bg-[#164A82] text-white px-6 font-medium transition-colors"
             >
               {isPending ? 'Saving…' : 'Save Changes'}
             </Button>
@@ -378,8 +378,8 @@ export function AdminSettingsForm({ initialSettings }: Props) {
       <Card className="border-0 shadow-sm">
         <CardHeader className="pb-4">
           <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-lg bg-[#E6F5EE] flex items-center justify-center">
-              <ImageIcon className="w-4 h-4 text-[#00A550]" />
+            <div className="w-8 h-8 rounded-lg bg-[#E8F1FA] flex items-center justify-center">
+              <ImageIcon className="w-4 h-4 text-[#1E5FA8]" />
             </div>
             <div>
               <CardTitle className="text-base font-semibold">Certificate Assets</CardTitle>

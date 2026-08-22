@@ -201,7 +201,7 @@ export default function LearnerExercisesPage() {
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
-        <Loader2 className="h-8 w-8 animate-spin" style={{ color: '#00A550' }} />
+        <Loader2 className="h-8 w-8 animate-spin" style={{ color: '#1E5FA8' }} />
       </div>
     );
   }
@@ -232,7 +232,7 @@ export default function LearnerExercisesPage() {
             <div className="flex items-center gap-2 mb-3">
               <div
                 className="text-white text-xs font-bold px-2.5 py-1 rounded-full"
-                style={{ backgroundColor: '#00A550' }}
+                style={{ backgroundColor: '#1E5FA8' }}
               >
                 {level}
               </div>
@@ -267,7 +267,7 @@ export default function LearnerExercisesPage() {
                     <Button
                       size="sm"
                       className="w-full text-white text-xs"
-                      style={{ backgroundColor: '#00A550' }}
+                      style={{ backgroundColor: '#1E5FA8' }}
                       onClick={() => openExercise(ex)}
                     >
                       Start Exercise
@@ -287,7 +287,7 @@ export default function LearnerExercisesPage() {
             <DialogTitle className="pr-6">{activeExercise?.title}</DialogTitle>
             {activeExercise && (
               <div className="flex items-center gap-2 mt-1">
-                <Badge variant="outline" style={{ color: '#00A550', borderColor: '#00A550' }}>
+                <Badge variant="outline" style={{ color: '#1E5FA8', borderColor: '#1E5FA8' }}>
                   {activeExercise.cefr_level}
                 </Badge>
                 <span
@@ -308,7 +308,7 @@ export default function LearnerExercisesPage() {
           <ScrollArea className="flex-1 px-6 py-4">
             {loadingQuestions ? (
               <div className="flex items-center justify-center py-12">
-                <Loader2 className="h-6 w-6 animate-spin" style={{ color: '#00A550' }} />
+                <Loader2 className="h-6 w-6 animate-spin" style={{ color: '#1E5FA8' }} />
               </div>
             ) : submitted && score ? (
               /* Result Screen */
@@ -395,7 +395,7 @@ export default function LearnerExercisesPage() {
                         <p className="text-sm font-medium leading-relaxed">
                           <span
                             className="font-bold mr-2"
-                            style={{ color: '#00A550' }}
+                            style={{ color: '#1E5FA8' }}
                           >
                             {i + 1}.
                           </span>
@@ -417,7 +417,7 @@ export default function LearnerExercisesPage() {
                               <RadioGroupItem
                                 value={opt}
                                 id={`${q.id}-opt-${oi}`}
-                                style={{ accentColor: '#00A550' }}
+                                style={{ accentColor: '#1E5FA8' }}
                               />
                               <Label
                                 htmlFor={`${q.id}-opt-${oi}`}
@@ -466,7 +466,7 @@ export default function LearnerExercisesPage() {
                 <Button
                   onClick={closeExercise}
                   className="text-white"
-                  style={{ backgroundColor: '#00A550' }}
+                  style={{ backgroundColor: '#1E5FA8' }}
                 >
                   Close
                 </Button>
@@ -489,7 +489,7 @@ export default function LearnerExercisesPage() {
                     }
                     size="sm"
                     className="text-white"
-                    style={{ backgroundColor: '#00A550' }}
+                    style={{ backgroundColor: '#1E5FA8' }}
                   >
                     {submitting && <Loader2 className="h-4 w-4 animate-spin mr-2" />}
                     Submit

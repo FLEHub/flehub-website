@@ -179,7 +179,7 @@ export default function LearnerCoursesPage() {
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
-        <Loader2 className="h-8 w-8 animate-spin" style={{ color: '#00A550' }} />
+        <Loader2 className="h-8 w-8 animate-spin" style={{ color: '#1E5FA8' }} />
       </div>
     );
   }
@@ -292,7 +292,7 @@ export default function LearnerCoursesPage() {
                 <CardContent className="p-4 flex flex-col flex-1 gap-3">
                   <div className="flex-1">
                     <div className="flex items-center gap-1.5 mb-1.5">
-                      <Badge variant="outline" className="text-[10px] px-1.5 py-0" style={{ color: '#00A550', borderColor: '#00A550' }}>
+                      <Badge variant="outline" className="text-[10px] px-1.5 py-0" style={{ color: '#1E5FA8', borderColor: '#1E5FA8' }}>
                         {course.cefr_level}
                       </Badge>
                       <Badge variant="outline" className="text-[10px] px-1.5 py-0">
@@ -317,7 +317,7 @@ export default function LearnerCoursesPage() {
                   <Button
                     size="sm"
                     className="w-full text-white text-xs"
-                    style={{ backgroundColor: '#00A550' }}
+                    style={{ backgroundColor: '#1E5FA8' }}
                     onClick={() => startCourse(course)}
                     disabled={starting}
                   >
@@ -343,7 +343,7 @@ export default function LearnerCoursesPage() {
           {activeCourse && (
             <div className="space-y-4">
               <div className="flex flex-wrap gap-2">
-                <Badge variant="outline" style={{ color: '#00A550', borderColor: '#00A550' }}>
+                <Badge variant="outline" style={{ color: '#1E5FA8', borderColor: '#1E5FA8' }}>
                   {activeCourse.cefr_level}
                 </Badge>
                 <Badge variant="outline">
@@ -382,7 +382,7 @@ export default function LearnerCoursesPage() {
                   )}
                   {activeCourse.content_type === 'audio' && (
                     <div className="bg-muted rounded-lg p-6 flex flex-col items-center gap-4">
-                      <Headphones className="h-12 w-12" style={{ color: '#00A550' }} />
+                      <Headphones className="h-12 w-12" style={{ color: '#1E5FA8' }} />
                       <audio controls className="w-full max-w-sm">
                         <source src={activeCourse.content_url} />
                         Your browser does not support the audio element.
@@ -391,14 +391,14 @@ export default function LearnerCoursesPage() {
                   )}
                   {(activeCourse.content_type === 'link' || activeCourse.content_type === 'text') && (
                     <div className="bg-muted/50 border rounded-lg p-6 text-center space-y-3">
-                      <LinkIcon className="h-10 w-10 mx-auto" style={{ color: '#00A550' }} />
+                      <LinkIcon className="h-10 w-10 mx-auto" style={{ color: '#1E5FA8' }} />
                       <p className="text-sm text-muted-foreground">
                         This course content is available at an external link.
                       </p>
                       <Button
                         asChild
                         className="text-white"
-                        style={{ backgroundColor: '#00A550' }}
+                        style={{ backgroundColor: '#1E5FA8' }}
                       >
                         <a href={activeCourse.content_url} target="_blank" rel="noopener noreferrer">
                           <ExternalLink className="h-4 w-4 mr-2" />
@@ -421,7 +421,7 @@ export default function LearnerCoursesPage() {
                   <Button
                     variant="outline"
                     size="sm"
-                    style={{ borderColor: '#00A550', color: '#00A550' }}
+                    style={{ borderColor: '#1E5FA8', color: '#1E5FA8' }}
                     onClick={async () => {
                       if (!currentUser) return;
                       await supabase

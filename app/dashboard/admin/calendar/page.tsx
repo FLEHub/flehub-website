@@ -176,7 +176,7 @@ export default function AdminCalendarPage() {
             setAddOpen(true);
           }}
           className="text-white"
-          style={{ backgroundColor: '#00A550' }}
+          style={{ backgroundColor: '#1E5FA8' }}
         >
           <Plus className="h-4 w-4 mr-2" />
           Add Event
@@ -210,7 +210,7 @@ export default function AdminCalendarPage() {
           <CardContent>
             {loading ? (
               <div className="flex items-center justify-center h-64">
-                <Loader2 className="h-6 w-6 animate-spin" style={{ color: '#00A550' }} />
+                <Loader2 className="h-6 w-6 animate-spin" style={{ color: '#1E5FA8' }} />
               </div>
             ) : (
               <>
@@ -249,7 +249,7 @@ export default function AdminCalendarPage() {
                                   ? 'text-white'
                                   : 'text-foreground'
                               }`}
-                              style={isToday ? { backgroundColor: '#00A550' } : {}}
+                              style={isToday ? { backgroundColor: '#1E5FA8' } : {}}
                             >
                               {dayNum}
                             </div>
@@ -298,7 +298,7 @@ export default function AdminCalendarPage() {
         <Card>
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-semibold flex items-center gap-2">
-              <CalendarDays className="h-4 w-4" style={{ color: '#00A550' }} />
+              <CalendarDays className="h-4 w-4" style={{ color: '#1E5FA8' }} />
               Upcoming Events
             </CardTitle>
           </CardHeader>
@@ -323,7 +323,7 @@ export default function AdminCalendarPage() {
                             year: 'numeric',
                           })}
                           {ev.cefr_level && (
-                            <span className="ml-1.5 font-medium" style={{ color: '#00A550' }}>
+                            <span className="ml-1.5 font-medium" style={{ color: '#1E5FA8' }}>
                               {ev.cefr_level}
                             </span>
                           )}
@@ -425,7 +425,7 @@ export default function AdminCalendarPage() {
                 checked={newEvent.is_public}
                 onChange={(e) => setNewEvent((p) => ({ ...p, is_public: e.target.checked }))}
                 className="rounded"
-                style={{ accentColor: '#00A550' }}
+                style={{ accentColor: '#1E5FA8' }}
               />
               <Label htmlFor="is_public" className="cursor-pointer">
                 Visible to all users
@@ -440,7 +440,7 @@ export default function AdminCalendarPage() {
               onClick={saveEvent}
               disabled={saving || !newEvent.title || !newEvent.start_date}
               className="text-white"
-              style={{ backgroundColor: '#00A550' }}
+              style={{ backgroundColor: '#1E5FA8' }}
             >
               {saving && <Loader2 className="h-4 w-4 animate-spin mr-2" />}
               Save Event
