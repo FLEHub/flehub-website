@@ -169,7 +169,11 @@ export function Sidebar({
     <div className="flex h-full flex-col bg-white border-r border-gray-200 shadow-sm">
       {/* Logo */}
       <div className="flex min-h-16 items-center justify-between gap-1 px-3 py-2.5 border-b border-gray-100">
-        <Link href={`/dashboard/${role}`} className="flex items-center gap-2 min-w-0 flex-1">
+        <Link
+          href="/"
+          className="flex items-center gap-2 min-w-0 flex-1 bg-transparent shadow-none"
+          style={{ backgroundColor: 'transparent' }}
+        >
           <BrandLogo size={32} />
           {!collapsed && (
             <BrandMark

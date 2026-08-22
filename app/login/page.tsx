@@ -66,10 +66,14 @@ export default function LoginPage() {
         <div className="absolute bottom-0 left-0 w-64 h-64 rounded-full bg-white/5 translate-y-16 -translate-x-16" />
 
         <div className="relative z-10 max-w-md text-center">
-          <div className="flex items-center justify-center gap-3 mb-10">
-            <BrandLogo size={64} className="drop-shadow-md" />
+          <Link
+            href="/"
+            className="flex items-center justify-center gap-3 mb-10 bg-transparent shadow-none"
+            style={{ backgroundColor: 'transparent' }}
+          >
+            <BrandLogo size={64} />
             <BrandMark size="lg" variant="onDark" align="left" />
-          </div>
+          </Link>
           <h2 className="text-3xl font-bold mb-4 leading-snug">
             Bienvenue sur votre espace d&apos;apprentissage
           </h2>
@@ -94,10 +98,14 @@ export default function LoginPage() {
 
       {/* Right Panel — Form */}
       <div className="flex-1 flex flex-col items-center justify-center px-6 py-12 bg-white">
-        <div className="lg:hidden flex items-center gap-2.5 mb-8">
+        <Link
+          href="/"
+          className="lg:hidden flex items-center gap-2.5 mb-8 bg-transparent shadow-none"
+          style={{ backgroundColor: 'transparent' }}
+        >
           <BrandLogo size={40} />
           <BrandMark size="md" className="[&>p:first-child]:text-flehub-green" />
-        </div>
+        </Link>
 
         <div className="w-full max-w-md">
           <div className="mb-8">
