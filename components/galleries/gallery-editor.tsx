@@ -522,13 +522,13 @@ export function GalleryEditor({ initial = null, categories }: Props) {
         </div>
 
         {uploadProgress && (
-          <div className="rounded-lg border border-[#00A550]/20 bg-[#E6F5EE]/60 px-4 py-3 space-y-2">
+          <div className="rounded-lg border border-[#1E5FA8]/20 bg-[#E8F1FA]/60 px-4 py-3 space-y-2">
             <div className="flex items-center justify-between gap-3 text-sm text-gray-700">
               <span className="inline-flex items-center gap-2">
-                <Loader2 className="w-4 h-4 animate-spin text-[#00A550]" />
+                <Loader2 className="w-4 h-4 animate-spin text-[#1E5FA8]" />
                 Envoi en cours…
               </span>
-              <span className="font-medium tabular-nums text-[#00A550]">
+              <span className="font-medium tabular-nums text-[#1E5FA8]">
                 {uploadProgress.done}/{uploadProgress.total} photos envoyées
               </span>
             </div>
@@ -540,7 +540,7 @@ export function GalleryEditor({ initial = null, categories }: Props) {
                     )
                   : 0
               }
-              className="h-2 bg-white/80 [&>div]:bg-[#00A550]"
+              className="h-2 bg-white/80 [&>div]:bg-[#1E5FA8]"
             />
           </div>
         )}
@@ -550,14 +550,14 @@ export function GalleryEditor({ initial = null, categories }: Props) {
             type="button"
             disabled={busy}
             onClick={() => fileRef.current?.click()}
-            className="w-full rounded-lg border border-dashed border-gray-200 bg-gray-50 px-4 py-10 text-center text-sm text-gray-500 hover:border-[#00A550] hover:text-[#00A550] transition-colors disabled:opacity-50"
+            className="w-full rounded-lg border border-dashed border-gray-200 bg-gray-50 px-4 py-10 text-center text-sm text-gray-500 hover:border-[#1E5FA8] hover:text-[#1E5FA8] transition-colors disabled:opacity-50"
           >
             <ImagePlus className="w-6 h-6 mx-auto mb-2 opacity-60" />
             Choisir plusieurs photos (jpg, png, webp)
           </button>
         ) : photos.length === 0 && uploading ? (
           <div className="w-full rounded-lg border border-dashed border-gray-200 bg-gray-50 px-4 py-10 text-center text-sm text-gray-500">
-            <Loader2 className="w-6 h-6 mx-auto mb-2 animate-spin text-[#00A550]" />
+            <Loader2 className="w-6 h-6 mx-auto mb-2 animate-spin text-[#1E5FA8]" />
             Préparation de l’envoi…
           </div>
         ) : (
@@ -577,7 +577,7 @@ export function GalleryEditor({ initial = null, categories }: Props) {
                       className="w-full sm:w-28 h-28 object-cover rounded-md border border-gray-100"
                     />
                     {isCover && (
-                      <span className="absolute top-1.5 left-1.5 inline-flex items-center gap-1 rounded bg-[#00A550] text-white text-[10px] font-medium px-1.5 py-0.5">
+                      <span className="absolute top-1.5 left-1.5 inline-flex items-center gap-1 rounded bg-[#1E5FA8] text-white text-[10px] font-medium px-1.5 py-0.5">
                         <Star className="w-3 h-3" />
                         Couverture
                       </span>
@@ -646,7 +646,7 @@ export function GalleryEditor({ initial = null, categories }: Props) {
         <Button
           type="button"
           disabled={busy}
-          className="bg-[#00A550] hover:bg-[#008040]"
+          className="bg-[#1E5FA8] hover:bg-[#164A82]"
           onClick={() => void save('published')}
         >
           {saving === 'publish' ? (

@@ -39,8 +39,8 @@ export default async function JournalistDashboardPage() {
       <Card className="border-0 shadow-sm">
         <CardHeader className="pb-3">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-[#E6F5EE] flex items-center justify-center">
-              <Newspaper className="w-5 h-5 text-[#00A550]" />
+            <div className="w-10 h-10 rounded-xl bg-[#E8F1FA] flex items-center justify-center">
+              <Newspaper className="w-5 h-5 text-[#1E5FA8]" />
             </div>
             <CardTitle className="text-lg">Bienvenue, {firstName}</CardTitle>
           </div>
@@ -51,7 +51,7 @@ export default async function JournalistDashboardPage() {
             YouTube, reportages audio et galeries photos sur le portail MFK.
           </p>
           <div className="flex flex-wrap gap-3">
-            <Button asChild className="bg-[#00A550] hover:bg-[#008040]">
+            <Button asChild className="bg-[#1E5FA8] hover:bg-[#164A82]">
               <Link href="/dashboard/journalist/articles">
                 Gérer mes articles
                 <ArrowRight className="w-4 h-4 ml-2" />

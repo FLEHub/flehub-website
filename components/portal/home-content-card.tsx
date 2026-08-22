@@ -32,7 +32,7 @@ export function HomeContentCard({ item, variant = 'grid' }: CardProps) {
               className="w-28 sm:w-36 h-20 sm:h-24 object-cover transition-transform duration-500 group-hover:scale-[1.04]"
             />
           ) : (
-            <div className="w-28 sm:w-36 h-20 sm:h-24 bg-gradient-to-br from-[#00A550]/30 to-[#F59E0B]/30" />
+            <div className="w-28 sm:w-36 h-20 sm:h-24 bg-gradient-to-br from-[#1E5FA8]/30 to-[#F2B705]/30" />
           )}
         </div>
         <div className="min-w-0 flex-1 space-y-1.5">
@@ -43,7 +43,7 @@ export function HomeContentCard({ item, variant = 'grid' }: CardProps) {
               {KIND_LABEL[item.kind]}
             </span>
             {item.category_name && (
-              <span className="inline-flex px-2 py-0.5 rounded-md text-[10px] font-semibold bg-white/70 text-[#007A3D] border border-[#00A550]/25">
+              <span className="inline-flex px-2 py-0.5 rounded-md text-[10px] font-semibold bg-white/70 text-[#0B1F3A] border border-[#1E5FA8]/25">
                 {item.category_name}
               </span>
             )}
@@ -53,7 +53,7 @@ export function HomeContentCard({ item, variant = 'grid' }: CardProps) {
               </span>
             )}
           </div>
-          <h3 className="text-base sm:text-lg font-semibold text-gray-900 group-hover:text-[#007A3D] transition-colors leading-snug line-clamp-2">
+          <h3 className="text-base sm:text-lg font-semibold text-gray-900 group-hover:text-[#0B1F3A] transition-colors leading-snug line-clamp-2">
             {item.title}
           </h3>
           {item.excerpt && (
@@ -72,7 +72,7 @@ export function HomeContentCard({ item, variant = 'grid' }: CardProps) {
         href={item.href}
         className={`group block rounded-xl overflow-hidden shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 ${surface}`}
       >
-        <div className="relative aspect-[4/3] overflow-hidden bg-gradient-to-br from-[#00A550]/20 to-[#F97316]/25">
+        <div className="relative aspect-[4/3] overflow-hidden bg-gradient-to-br from-[#1E5FA8]/20 to-[#2E7D32]/25">
           {item.image_url ? (
             // eslint-disable-next-line @next/next/no-img-element
             <img
@@ -88,7 +88,7 @@ export function HomeContentCard({ item, variant = 'grid' }: CardProps) {
           </span>
         </div>
         <div className="p-2.5 sm:p-3">
-          <h3 className="text-sm font-semibold text-gray-900 group-hover:text-[#007A3D] transition-colors leading-snug line-clamp-2">
+          <h3 className="text-sm font-semibold text-gray-900 group-hover:text-[#0B1F3A] transition-colors leading-snug line-clamp-2">
             {item.title}
           </h3>
         </div>
@@ -104,7 +104,7 @@ export function HomeContentCard({ item, variant = 'grid' }: CardProps) {
       href={item.href}
       className={`group block rounded-xl overflow-hidden shadow-sm hover:shadow-lg hover:-translate-y-0.5 transition-all duration-200 ${surface}`}
     >
-      <div className="relative aspect-[16/10] overflow-hidden bg-gradient-to-br from-[#00A550]/20 to-[#1D7AFC]/20">
+      <div className="relative aspect-[16/10] overflow-hidden bg-gradient-to-br from-[#1E5FA8]/20 to-[#3A92D1]/20">
         {item.image_url ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img
@@ -119,7 +119,7 @@ export function HomeContentCard({ item, variant = 'grid' }: CardProps) {
           {KIND_LABEL[item.kind]}
         </span>
         {(showPlay || showMic) && (
-          <span className="absolute bottom-2.5 right-2.5 inline-flex items-center justify-center w-9 h-9 rounded-full bg-[#00A550] text-white shadow-md group-hover:bg-[#F59E0B] group-hover:text-gray-900 transition-colors">
+          <span className="absolute bottom-2.5 right-2.5 inline-flex items-center justify-center w-9 h-9 rounded-full bg-[#1E5FA8] text-white shadow-md group-hover:bg-[#F2B705] group-hover:text-[#0B1F3A] transition-colors">
             {showPlay ? (
               <Play className="w-3.5 h-3.5 fill-current" />
             ) : (
@@ -131,7 +131,7 @@ export function HomeContentCard({ item, variant = 'grid' }: CardProps) {
       <div className="p-3.5 sm:p-4 space-y-1.5">
         <div className="flex flex-wrap items-center gap-2 text-[11px] sm:text-xs">
           {item.category_name && (
-            <span className="inline-flex px-2 py-0.5 rounded-md font-semibold bg-white/70 text-[#007A3D] border border-[#00A550]/25">
+            <span className="inline-flex px-2 py-0.5 rounded-md font-semibold bg-white/70 text-[#0B1F3A] border border-[#1E5FA8]/25">
               {item.category_name}
             </span>
           )}
@@ -141,7 +141,7 @@ export function HomeContentCard({ item, variant = 'grid' }: CardProps) {
             </span>
           )}
         </div>
-        <h3 className="text-sm sm:text-base font-semibold text-gray-900 group-hover:text-[#007A3D] transition-colors leading-snug line-clamp-2">
+        <h3 className="text-sm sm:text-base font-semibold text-gray-900 group-hover:text-[#0B1F3A] transition-colors leading-snug line-clamp-2">
           {item.title}
         </h3>
       </div>

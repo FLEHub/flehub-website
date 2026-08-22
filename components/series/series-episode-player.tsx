@@ -81,11 +81,11 @@ export function SeriesEpisodePlayer({ seriesType, episodes }: Props) {
                   onClick={() => setActiveId(ep.id)}
                   className={
                     isActive
-                      ? 'w-full text-left flex items-start gap-3 rounded-lg border border-[#00A550]/30 bg-[#E6F5EE]/50 px-4 py-3'
-                      : 'w-full text-left flex items-start gap-3 rounded-lg border border-gray-100 bg-white px-4 py-3 hover:border-[#00A550]/30 transition-colors'
+                      ? 'w-full text-left flex items-start gap-3 rounded-lg border border-[#1E5FA8]/30 bg-[#E8F1FA]/50 px-4 py-3'
+                      : 'w-full text-left flex items-start gap-3 rounded-lg border border-gray-100 bg-white px-4 py-3 hover:border-[#1E5FA8]/30 transition-colors'
                   }
                 >
-                  <span className="flex-shrink-0 w-9 h-9 rounded-md bg-[#E6F5EE] text-[#00A550] flex items-center justify-center">
+                  <span className="flex-shrink-0 w-9 h-9 rounded-md bg-[#E8F1FA] text-[#1E5FA8] flex items-center justify-center">
                     {isActive ? (
                       <Play className="w-4 h-4 fill-current" />
                     ) : (

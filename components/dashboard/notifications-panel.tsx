@@ -58,12 +58,12 @@ export function NotificationsPanel({
       {/* Header */}
       <div className="flex items-center justify-between px-4 py-3 border-b bg-muted/30">
         <div className="flex items-center gap-2">
-          <Bell className="h-4 w-4" style={{ color: '#00A550' }} />
+          <Bell className="h-4 w-4" style={{ color: '#1E5FA8' }} />
           <span className="font-semibold text-sm">Notifications</span>
           {unreadCount > 0 && (
             <span
               className="text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full min-w-[18px] text-center"
-              style={{ backgroundColor: '#00A550' }}
+              style={{ backgroundColor: '#1E5FA8' }}
             >
               {unreadCount}
             </span>
@@ -73,7 +73,7 @@ export function NotificationsPanel({
           <button
             onClick={onMarkAllRead}
             className="text-xs hover:underline transition-colors"
-            style={{ color: '#00A550' }}
+            style={{ color: '#1E5FA8' }}
           >
             Mark all as read
           </button>
@@ -123,7 +123,7 @@ export function NotificationsPanel({
                       {!notification.is_read && (
                         <span
                           className="h-2 w-2 rounded-full shrink-0 mt-1.5"
-                          style={{ backgroundColor: '#00A550' }}
+                          style={{ backgroundColor: '#1E5FA8' }}
                         />
                       )}
                     </div>

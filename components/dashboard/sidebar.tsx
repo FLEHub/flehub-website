@@ -36,6 +36,7 @@ import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { BrandMark } from '@/components/brand-mark'
+import { BrandLogo } from '@/components/brand-logo'
 import { DEFAULT_ORG_SHORT_NAME, DEFAULT_ORG_TAGLINE } from '@/lib/org-branding'
 
 type Role = 'admin' | 'school' | 'teacher' | 'learner' | 'journalist' | 'creator'
@@ -169,9 +170,7 @@ export function Sidebar({
       {/* Logo */}
       <div className="flex min-h-16 items-center justify-between gap-1 px-3 py-2.5 border-b border-gray-100">
         <Link href={`/dashboard/${role}`} className="flex items-center gap-2 min-w-0 flex-1">
-          <div className="flex-shrink-0 flex items-center justify-center w-8 h-8 rounded-lg bg-[#00A550]">
-            <GraduationCap className="w-5 h-5 text-white" />
-          </div>
+          <BrandLogo size={32} />
           {!collapsed && (
             <BrandMark
               shortName={orgShortName}
@@ -212,7 +211,7 @@ export function Sidebar({
               className={cn(
                 'sidebar-link flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all duration-150',
                 isActive
-                  ? 'sidebar-link active bg-[#E6F5EE] text-[#00A550]'
+                  ? 'sidebar-link active bg-[#E8F1FA] text-[#1E5FA8]'
                   : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900',
                 collapsed && 'justify-center px-2'
               )}
@@ -222,7 +221,7 @@ export function Sidebar({
                 className={cn(
                   'flex-shrink-0',
                   collapsed ? 'w-5 h-5' : 'w-4 h-4',
-                  isActive ? 'text-[#00A550]' : 'text-gray-500'
+                  isActive ? 'text-[#1E5FA8]' : 'text-gray-500'
                 )}
               />
               {!collapsed && <span className="truncate">{item.label}</span>}
@@ -240,7 +239,7 @@ export function Sidebar({
           )}
         >
           <Avatar className="flex-shrink-0 w-8 h-8">
-            <AvatarFallback className="bg-[#00A550] text-white text-xs font-semibold">
+            <AvatarFallback className="bg-[#1E5FA8] text-white text-xs font-semibold">
               {initials}
             </AvatarFallback>
           </Avatar>

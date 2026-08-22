@@ -30,7 +30,7 @@ import {
 
 const STATUS_CLASS: Record<ArticleStatus, string> = {
   draft: 'bg-yellow-50 text-yellow-700 border-yellow-200',
-  published: 'bg-[#E6F5EE] text-[#00A550] border-green-200',
+  published: 'bg-[#E8F1FA] text-[#1E5FA8] border-green-200',
 }
 
 const STATUS_LABEL: Record<ArticleStatus, string> = {
@@ -135,7 +135,7 @@ export default function JournalistArticlesPage() {
             <RefreshCw className={`w-4 h-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
             Actualiser
           </Button>
-          <Button asChild size="sm" className="bg-[#00A550] hover:bg-[#008040]">
+          <Button asChild size="sm" className="bg-[#1E5FA8] hover:bg-[#164A82]">
             <Link href="/dashboard/journalist/articles/new">
               <Plus className="w-4 h-4 mr-2" />
               Nouvel article
@@ -163,7 +163,7 @@ export default function JournalistArticlesPage() {
         ) : rows.length === 0 ? (
           <div className="py-16 text-center space-y-3">
             <p className="text-sm text-gray-500">Aucun article pour le moment.</p>
-            <Button asChild className="bg-[#00A550] hover:bg-[#008040]">
+            <Button asChild className="bg-[#1E5FA8] hover:bg-[#164A82]">
               <Link href="/dashboard/journalist/articles/new">
                 <Plus className="w-4 h-4 mr-2" />
                 Écrire un article

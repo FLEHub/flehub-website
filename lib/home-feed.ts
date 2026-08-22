@@ -30,33 +30,33 @@ export const KIND_LABEL: Record<HomeContentKind, string> = {
   podcast: 'Podcast',
 }
 
-/** Badges vifs et distincts par type de contenu (vert MFK + accents). */
+/** Badges vifs et distincts par type de contenu (palette MFK). */
 export const KIND_BADGE_CLASS: Record<HomeContentKind, string> = {
-  article: 'bg-[#00A550] text-white',
-  video: 'bg-[#1D7AFC] text-white',
-  reportage: 'bg-[#F59E0B] text-gray-900',
-  gallery: 'bg-[#F97316] text-white',
-  webseries: 'bg-[#0EA5E9] text-white',
-  podcast: 'bg-[#0D9488] text-white',
+  article: 'bg-[#1E5FA8] text-white',
+  video: 'bg-[#3A92D1] text-white',
+  reportage: 'bg-[#F2B705] text-[#0B1F3A]',
+  gallery: 'bg-[#2E7D32] text-white',
+  webseries: 'bg-[#0B1F3A] text-white',
+  podcast: 'bg-[#1E5FA8] text-white',
 }
 
 export const KIND_ACCENT_BORDER: Record<HomeContentKind, string> = {
-  article: 'border-[#00A550]',
-  video: 'border-[#1D7AFC]',
-  reportage: 'border-[#F59E0B]',
-  gallery: 'border-[#F97316]',
-  webseries: 'border-[#0EA5E9]',
-  podcast: 'border-[#0D9488]',
+  article: 'border-[#1E5FA8]',
+  video: 'border-[#3A92D1]',
+  reportage: 'border-[#F2B705]',
+  gallery: 'border-[#2E7D32]',
+  webseries: 'border-[#0B1F3A]',
+  podcast: 'border-[#1E5FA8]',
 }
 
 /** Fonds de cartes teintés (jamais blanc uni). */
 export const KIND_CARD_BG: Record<HomeContentKind, string> = {
-  article: 'bg-[#E2F6EA]',
-  video: 'bg-[#DCEBFF]',
-  reportage: 'bg-[#FEF3C7]',
-  gallery: 'bg-[#FFEDD5]',
-  webseries: 'bg-[#E0F2FE]',
-  podcast: 'bg-[#CCFBF1]',
+  article: 'bg-[#E3EEF7]',
+  video: 'bg-[#D6E8F6]',
+  reportage: 'bg-[#FFF6D6]',
+  gallery: 'bg-[#E6F2E7]',
+  webseries: 'bg-[#E8EEF4]',
+  podcast: 'bg-[#E8F1FA]',
 }
 
 function categoryName(

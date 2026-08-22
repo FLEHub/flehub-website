@@ -84,7 +84,7 @@ function StatCard({
             <p className="text-2xl font-bold text-gray-900 mt-1">{value}</p>
             {trend && (
               <p className="text-xs text-gray-400 mt-1 flex items-center gap-1">
-                <TrendingUp className="w-3 h-3 text-[#00A550]" />
+                <TrendingUp className="w-3 h-3 text-[#1E5FA8]" />
                 {trend}
               </p>
             )}
@@ -105,7 +105,7 @@ function statusBadge(status: string) {
     rejected: 'bg-red-50 text-red-700 border-red-200',
     suspended: 'bg-orange-50 text-orange-700 border-orange-200',
     upcoming: 'bg-blue-50 text-blue-700 border-blue-200',
-    ongoing: 'bg-[#E6F5EE] text-[#00A550] border-green-200',
+    ongoing: 'bg-[#E8F1FA] text-[#1E5FA8] border-green-200',
     completed: 'bg-gray-100 text-gray-600 border-gray-200',
     cancelled: 'bg-red-50 text-red-600 border-red-200',
   }
@@ -218,8 +218,8 @@ export default async function AdminDashboardPage() {
           title="Total Users"
           value={totalUsers ?? 0}
           icon={Users}
-          iconColor="text-[#00A550]"
-          iconBg="bg-[#E6F5EE]"
+          iconColor="text-[#1E5FA8]"
+          iconBg="bg-[#E8F1FA]"
         />
         <StatCard
           title="Pending Approvals"
@@ -261,7 +261,7 @@ export default async function AdminDashboardPage() {
             </div>
             <Link
               href="/dashboard/admin/users?status=pending"
-              className="text-sm text-[#00A550] hover:underline flex items-center gap-1"
+              className="text-sm text-[#1E5FA8] hover:underline flex items-center gap-1"
             >
               View all <ArrowRight className="w-3.5 h-3.5" />
             </Link>
@@ -274,8 +274,8 @@ export default async function AdminDashboardPage() {
                   className="flex items-center justify-between py-2.5 px-3 rounded-lg bg-gray-50 hover:bg-gray-100 transition-colors"
                 >
                   <div className="flex items-center gap-3 min-w-0">
-                    <div className="w-8 h-8 rounded-full bg-[#E6F5EE] flex items-center justify-center flex-shrink-0">
-                      <span className="text-sm font-semibold text-[#00A550]">
+                    <div className="w-8 h-8 rounded-full bg-[#E8F1FA] flex items-center justify-center flex-shrink-0">
+                      <span className="text-sm font-semibold text-[#1E5FA8]">
                         {(u.full_name ?? u.email ?? 'U')[0].toUpperCase()}
                       </span>
                     </div>
@@ -297,7 +297,7 @@ export default async function AdminDashboardPage() {
                       <input type="hidden" name="userId" value={u.id} />
                       <button
                         type="submit"
-                        className="flex items-center gap-1 text-xs bg-[#00A550] hover:bg-[#008040] text-white px-3 py-1.5 rounded-lg font-medium transition-colors"
+                        className="flex items-center gap-1 text-xs bg-[#1E5FA8] hover:bg-[#164A82] text-white px-3 py-1.5 rounded-lg font-medium transition-colors"
                       >
                         <CheckCircle2 className="w-3.5 h-3.5" />
                         Approve
@@ -327,14 +327,14 @@ export default async function AdminDashboardPage() {
         <Card className="border-0 shadow-sm">
           <CardHeader className="pb-3 flex flex-row items-center justify-between">
             <div className="flex items-center gap-2">
-              <div className="w-8 h-8 rounded-lg bg-[#E6F5EE] flex items-center justify-center">
-                <FileText className="w-4 h-4 text-[#00A550]" />
+              <div className="w-8 h-8 rounded-lg bg-[#E8F1FA] flex items-center justify-center">
+                <FileText className="w-4 h-4 text-[#1E5FA8]" />
               </div>
               <CardTitle className="text-base font-semibold">Recent Exam Sessions</CardTitle>
             </div>
             <Link
               href="/dashboard/admin/exams"
-              className="text-sm text-[#00A550] hover:underline flex items-center gap-1"
+              className="text-sm text-[#1E5FA8] hover:underline flex items-center gap-1"
             >
               View all <ArrowRight className="w-3.5 h-3.5" />
             </Link>
@@ -363,7 +363,7 @@ export default async function AdminDashboardPage() {
                         {s.title}
                       </TableCell>
                       <TableCell className="py-3">
-                        <span className="text-xs font-semibold bg-[#E6F5EE] text-[#00A550] px-2 py-0.5 rounded">
+                        <span className="text-xs font-semibold bg-[#E8F1FA] text-[#1E5FA8] px-2 py-0.5 rounded">
                           {s.cefr_level}
                         </span>
                       </TableCell>
@@ -402,7 +402,7 @@ export default async function AdminDashboardPage() {
             </div>
             <div className="text-right">
               <p className="text-xs text-gray-500">Total Revenue</p>
-              <p className="text-sm font-bold text-[#00A550]">
+              <p className="text-sm font-bold text-[#1E5FA8]">
                 {totalRevenue.toLocaleString('en-RW')} RWF
               </p>
             </div>
@@ -472,8 +472,8 @@ export default async function AdminDashboardPage() {
                 label: 'Create Exam Session',
                 href: '/dashboard/admin/exams?action=new',
                 icon: FileText,
-                color: 'text-[#00A550]',
-                bg: 'bg-[#E6F5EE]',
+                color: 'text-[#1E5FA8]',
+                bg: 'bg-[#E8F1FA]',
               },
               {
                 label: 'Manage Users',

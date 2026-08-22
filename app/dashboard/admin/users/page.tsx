@@ -53,7 +53,7 @@ const STATUS_CONFIG: Record<
   },
   approved: {
     label: 'Approved',
-    className: 'bg-[#E6F5EE] text-[#00A550] border border-green-200',
+    className: 'bg-[#E8F1FA] text-[#1E5FA8] border border-green-200',
   },
   rejected: {
     label: 'Rejected',
@@ -195,7 +195,7 @@ export default function AdminUsersPage() {
                 placeholder="Search by name or email…"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-9 border-gray-200 focus:border-[#00A550] focus:ring-[#00A550]/20"
+                className="pl-9 border-gray-200 focus:border-[#1E5FA8] focus:ring-[#1E5FA8]/20"
               />
             </div>
             <div className="text-sm text-gray-500">
@@ -213,7 +213,7 @@ export default function AdminUsersPage() {
                   <TabsTrigger
                     key={tab.value}
                     value={tab.value}
-                    className="rounded-none border-b-2 border-transparent data-[state=active]:border-[#00A550] data-[state=active]:text-[#00A550] data-[state=active]:bg-transparent text-gray-600 hover:text-gray-900 pb-3 pt-2 px-4 text-sm font-medium transition-colors"
+                    className="rounded-none border-b-2 border-transparent data-[state=active]:border-[#1E5FA8] data-[state=active]:text-[#1E5FA8] data-[state=active]:bg-transparent text-gray-600 hover:text-gray-900 pb-3 pt-2 px-4 text-sm font-medium transition-colors"
                   >
                     {tab.label}
                     <span className="ml-1.5 text-xs text-gray-400">
@@ -272,7 +272,7 @@ export default function AdminUsersPage() {
                             {searchQuery && (
                               <button
                                 onClick={() => setSearchQuery('')}
-                                className="text-xs text-[#00A550] hover:underline"
+                                className="text-xs text-[#1E5FA8] hover:underline"
                               >
                                 Clear search
                               </button>
@@ -294,8 +294,8 @@ export default function AdminUsersPage() {
                             {/* Name */}
                             <TableCell className="pl-6 py-3">
                               <div className="flex items-center gap-2.5">
-                                <div className="w-8 h-8 rounded-full bg-[#E6F5EE] flex items-center justify-center flex-shrink-0">
-                                  <span className="text-xs font-semibold text-[#00A550]">
+                                <div className="w-8 h-8 rounded-full bg-[#E8F1FA] flex items-center justify-center flex-shrink-0">
+                                  <span className="text-xs font-semibold text-[#1E5FA8]">
                                     {(
                                       profile.full_name ??
                                       profile.email ??
@@ -355,7 +355,7 @@ export default function AdminUsersPage() {
                                       onClick={() =>
                                         updateStatus(profile.id, 'approved')
                                       }
-                                      className="h-7 px-2.5 text-xs bg-[#00A550] hover:bg-[#008040] text-white"
+                                      className="h-7 px-2.5 text-xs bg-[#1E5FA8] hover:bg-[#164A82] text-white"
                                     >
                                       <CheckCircle2 className="w-3.5 h-3.5 mr-1" />
                                       Approve
@@ -420,7 +420,7 @@ export default function AdminUsersPage() {
                                     onClick={() =>
                                       updateStatus(profile.id, 'approved')
                                     }
-                                    className="h-7 px-2.5 text-xs text-[#00A550] border-green-200 hover:bg-[#E6F5EE]"
+                                    className="h-7 px-2.5 text-xs text-[#1E5FA8] border-green-200 hover:bg-[#E8F1FA]"
                                   >
                                     <CheckCircle2 className="w-3.5 h-3.5 mr-1" />
                                     Reactivate

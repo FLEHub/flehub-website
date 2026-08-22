@@ -912,7 +912,7 @@ export default function TcfCoQuestionsEditor() {
                       <RadioGroupItem
                         value={letter}
                         id={`bonne-${letter}`}
-                        style={{ accentColor: '#00A550' }}
+                        style={{ accentColor: '#1E5FA8' }}
                       />
                       <span className="text-sm font-medium uppercase">
                         {letter}

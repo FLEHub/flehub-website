@@ -60,6 +60,14 @@ const config: Config = {
           '4': 'hsl(var(--chart-4))',
           '5': 'hsl(var(--chart-5))',
         },
+        mfk: {
+          navy: '#0B1F3A',
+          azure: '#1E5FA8',
+          sky: '#3A92D1',
+          gold: '#F2B705',
+          green: '#2E7D32',
+          silver: '#C8CCD1',
+        },
       },
       keyframes: {
         'accordion-down': {

@@ -29,7 +29,7 @@ export function GalleryPhotoGrid({ photos }: Props) {
             key={photo.id}
             type="button"
             onClick={() => setOpenIndex(index)}
-            className="group relative aspect-square overflow-hidden rounded-lg bg-[#E6F5EE] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#00A550] focus-visible:ring-offset-2"
+            className="group relative aspect-square overflow-hidden rounded-lg bg-[#E8F1FA] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#1E5FA8] focus-visible:ring-offset-2"
           >
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img

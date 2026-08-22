@@ -32,7 +32,7 @@ import {
 
 const STATUS_CLASS: Record<SeriesStatus, string> = {
   draft: 'bg-yellow-50 text-yellow-700 border-yellow-200',
-  published: 'bg-[#E6F5EE] text-[#00A550] border-green-200',
+  published: 'bg-[#E8F1FA] text-[#1E5FA8] border-green-200',
 }
 
 const STATUS_LABEL: Record<SeriesStatus, string> = {
@@ -148,7 +148,7 @@ export default function CreatorSeriesListPage() {
             <RefreshCw className={`w-4 h-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
             Actualiser
           </Button>
-          <Button asChild size="sm" className="bg-[#00A550] hover:bg-[#008040]">
+          <Button asChild size="sm" className="bg-[#1E5FA8] hover:bg-[#164A82]">
             <Link href="/dashboard/creator/series/new">
               <Plus className="w-4 h-4 mr-2" />
               Nouvelle série
@@ -176,7 +176,7 @@ export default function CreatorSeriesListPage() {
         ) : rows.length === 0 ? (
           <div className="py-16 text-center space-y-3">
             <p className="text-sm text-gray-500">Aucune série pour le moment.</p>
-            <Button asChild className="bg-[#00A550] hover:bg-[#008040]">
+            <Button asChild className="bg-[#1E5FA8] hover:bg-[#164A82]">
               <Link href="/dashboard/creator/series/new">
                 <Plus className="w-4 h-4 mr-2" />
                 Créer une série
@@ -209,7 +209,7 @@ export default function CreatorSeriesListPage() {
                           className="w-12 h-12 object-cover rounded border border-gray-100 flex-shrink-0"
                         />
                       ) : (
-                        <div className="w-12 h-12 rounded bg-[#E6F5EE] flex-shrink-0" />
+                        <div className="w-12 h-12 rounded bg-[#E8F1FA] flex-shrink-0" />
                       )}
                       <span className="line-clamp-2">{row.title}</span>
                     </div>

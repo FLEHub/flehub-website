@@ -69,7 +69,7 @@ export default async function EditReportagePage({ params }: Props) {
       <div>
         <Link
           href="/dashboard/journalist/reportages"
-          className="inline-flex items-center gap-1.5 text-sm text-gray-500 hover:text-[#00A550] mb-3"
+          className="inline-flex items-center gap-1.5 text-sm text-gray-500 hover:text-[#1E5FA8] mb-3"
         >
           <ArrowLeft className="w-4 h-4" />
           Retour aux reportages

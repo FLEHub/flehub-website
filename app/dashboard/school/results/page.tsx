@@ -103,13 +103,13 @@ const COMPS: { key: keyof ScoreForm; label: string; col: string }[] = [
 const STATUS_CONFIG: Record<DraftStatus, { label: string; className: string; icon: React.ElementType }> = {
   draft: { label: 'Draft', className: 'bg-gray-100 text-gray-600', icon: Save },
   submitted: { label: 'Submitted', className: 'bg-blue-50 text-blue-700', icon: Clock },
-  validated: { label: 'Validated', className: 'bg-[#E6F5EE] text-[#00A550]', icon: CheckCircle2 },
+  validated: { label: 'Validated', className: 'bg-[#E8F1FA] text-[#1E5FA8]', icon: CheckCircle2 },
   rejected: { label: 'Rejected', className: 'bg-red-50 text-red-600', icon: XCircle },
 }
 
 const CEFR_COLORS: Record<CEFR, string> = {
   A1: 'bg-slate-100 text-slate-600', A2: 'bg-blue-50 text-blue-600',
-  B1: 'bg-teal-50 text-teal-600', B2: 'bg-[#E6F5EE] text-[#00A550]',
+  B1: 'bg-teal-50 text-teal-600', B2: 'bg-[#E8F1FA] text-[#1E5FA8]',
   C1: 'bg-orange-50 text-orange-600', C2: 'bg-purple-50 text-purple-700',
 }
 
@@ -239,7 +239,7 @@ export default function SchoolResultsPage() {
             <RefreshCw className={`w-4 h-4 mr-1.5 ${loading ? 'animate-spin' : ''}`} />
             Refresh
           </Button>
-          <Button size="sm" className="bg-[#00A550] hover:bg-[#008040] text-white" onClick={openCreate}>
+          <Button size="sm" className="bg-[#1E5FA8] hover:bg-[#164A82] text-white" onClick={openCreate}>
             <Plus className="w-4 h-4 mr-1.5" />
             Enter Results
           </Button>
@@ -257,8 +257,8 @@ export default function SchoolResultsPage() {
       <Card className="border-0 shadow-sm">
         <CardHeader className="pb-3">
           <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-lg bg-[#E6F5EE] flex items-center justify-center">
-              <ClipboardList className="w-4 h-4 text-[#00A550]" />
+            <div className="w-8 h-8 rounded-lg bg-[#E8F1FA] flex items-center justify-center">
+              <ClipboardList className="w-4 h-4 text-[#1E5FA8]" />
             </div>
             <CardTitle className="text-base font-semibold">
               All Results
@@ -288,8 +288,8 @@ export default function SchoolResultsPage() {
                 <TableRow>
                   <TableCell colSpan={10} className="text-center py-16">
                     <div className="flex flex-col items-center gap-3">
-                      <div className="w-12 h-12 rounded-xl bg-[#E6F5EE] flex items-center justify-center">
-                        <ClipboardList className="w-6 h-6 text-[#00A550]" />
+                      <div className="w-12 h-12 rounded-xl bg-[#E8F1FA] flex items-center justify-center">
+                        <ClipboardList className="w-6 h-6 text-[#1E5FA8]" />
                       </div>
                       <p className="text-sm font-medium text-gray-700">No results entered yet</p>
                       <p className="text-xs text-gray-400">Click "Enter Results" to add scores for a student.</p>
@@ -321,7 +321,7 @@ export default function SchoolResultsPage() {
                         </TableCell>
                       ))}
                       <TableCell className="py-3">
-                        <span className={`text-sm font-bold ${total >= 50 ? 'text-[#00A550]' : 'text-red-600'}`}>
+                        <span className={`text-sm font-bold ${total >= 50 ? 'text-[#1E5FA8]' : 'text-red-600'}`}>
                           {total.toFixed(1)}
                         </span>
                         <span className="text-xs text-gray-400">/100</span>
@@ -340,7 +340,7 @@ export default function SchoolResultsPage() {
                       <TableCell className="py-3 pr-6 text-right">
                         {editable && (
                           <Button size="sm" variant="outline" onClick={() => openEdit(d)}
-                            className="h-7 w-7 p-0 border-gray-200 hover:border-[#00A550] hover:text-[#00A550]">
+                            className="h-7 w-7 p-0 border-gray-200 hover:border-[#1E5FA8] hover:text-[#1E5FA8]">
                             <Pencil className="w-3.5 h-3.5" />
                           </Button>
                         )}
@@ -401,7 +401,7 @@ export default function SchoolResultsPage() {
                       type="number" min={0} max={20} step={0.5} placeholder="0"
                       value={(form as any)[c.key]}
                       onChange={(e) => setForm((p) => ({ ...p, [c.key]: e.target.value }))}
-                      className="text-center px-1 border-gray-200 focus:border-[#00A550]"
+                      className="text-center px-1 border-gray-200 focus:border-[#1E5FA8]"
                     />
                   </div>
                 ))}
@@ -410,7 +410,7 @@ export default function SchoolResultsPage() {
                 <span className="text-sm text-gray-600">Total</span>
                 <div className="flex items-center gap-2">
                   <span className="text-xl font-bold text-gray-900">{calcTotal(form).toFixed(1)}/100</span>
-                  <span className={`text-xs px-2.5 py-0.5 rounded-full font-medium ${calcTotal(form) >= 50 ? 'bg-[#E6F5EE] text-[#00A550]' : 'bg-red-50 text-red-600'}`}>
+                  <span className={`text-xs px-2.5 py-0.5 rounded-full font-medium ${calcTotal(form) >= 50 ? 'bg-[#E8F1FA] text-[#1E5FA8]' : 'bg-red-50 text-red-600'}`}>
                     {calcTotal(form) >= 50 ? 'Pass' : 'Fail'}
                   </span>
                 </div>
@@ -429,7 +429,7 @@ export default function SchoolResultsPage() {
             </Button>
             <Button onClick={() => handleSave('submit')}
               disabled={saving || !form.student_id || !form.session_id}
-              className="bg-[#00A550] hover:bg-[#008040] text-white">
+              className="bg-[#1E5FA8] hover:bg-[#164A82] text-white">
               <Send className="w-3.5 h-3.5 mr-1.5" />
               {saving && submitAction === 'submit' ? 'Saving…' : 'Save Results'}
             </Button>

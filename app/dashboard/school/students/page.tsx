@@ -60,7 +60,7 @@ const CEFR_COLORS: Record<CEFR, string> = {
   A1: 'bg-slate-100 text-slate-600',
   A2: 'bg-blue-50 text-blue-600',
   B1: 'bg-teal-50 text-teal-600',
-  B2: 'bg-[#E6F5EE] text-[#00A550]',
+  B2: 'bg-[#E8F1FA] text-[#1E5FA8]',
   C1: 'bg-orange-50 text-orange-600',
   C2: 'bg-purple-50 text-purple-700',
 }
@@ -315,7 +315,7 @@ export default function SchoolStudentsPage() {
             <RefreshCw className={`w-4 h-4 mr-1.5 ${loading ? 'animate-spin' : ''}`} />
             Refresh
           </Button>
-          <Button size="sm" className="bg-[#00A550] hover:bg-[#008040] text-white" onClick={openCreate}>
+          <Button size="sm" className="bg-[#1E5FA8] hover:bg-[#164A82] text-white" onClick={openCreate}>
             <UserPlus className="w-4 h-4 mr-1.5" />
             Add Student
           </Button>
@@ -333,8 +333,8 @@ export default function SchoolStudentsPage() {
       <Card className="border-0 shadow-sm">
         <CardHeader className="pb-3">
           <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-lg bg-[#E6F5EE] flex items-center justify-center">
-              <Users className="w-4 h-4 text-[#00A550]" />
+            <div className="w-8 h-8 rounded-lg bg-[#E8F1FA] flex items-center justify-center">
+              <Users className="w-4 h-4 text-[#1E5FA8]" />
             </div>
             <CardTitle className="text-base font-semibold">
               Enrolled Students
@@ -364,8 +364,8 @@ export default function SchoolStudentsPage() {
                 <TableRow>
                   <TableCell colSpan={6} className="text-center py-16">
                     <div className="flex flex-col items-center gap-3">
-                      <div className="w-12 h-12 rounded-xl bg-[#E6F5EE] flex items-center justify-center">
-                        <GraduationCap className="w-6 h-6 text-[#00A550]" />
+                      <div className="w-12 h-12 rounded-xl bg-[#E8F1FA] flex items-center justify-center">
+                        <GraduationCap className="w-6 h-6 text-[#1E5FA8]" />
                       </div>
                       <p className="text-sm font-medium text-gray-700">No students yet</p>
                       <p className="text-xs text-gray-400">Click "Add Student" to register your first student.</p>
@@ -391,7 +391,7 @@ export default function SchoolStudentsPage() {
                     <TableCell className="py-3 pr-6 text-right">
                       <div className="flex items-center justify-end gap-1.5">
                         <Button size="sm" variant="outline" onClick={() => openEdit(s)}
-                          className="h-7 w-7 p-0 border-gray-200 hover:border-[#00A550] hover:text-[#00A550]">
+                          className="h-7 w-7 p-0 border-gray-200 hover:border-[#1E5FA8] hover:text-[#1E5FA8]">
                           <Pencil className="w-3.5 h-3.5" />
                         </Button>
                         <Button size="sm" variant="outline"
@@ -424,13 +424,13 @@ export default function SchoolStudentsPage() {
                 <Label>Last Name <span className="text-red-500">*</span></Label>
                 <Input placeholder="UWIMANA" value={form.last_name}
                   onChange={(e) => setForm((p) => ({ ...p, last_name: e.target.value }))}
-                  className="border-gray-200 focus:border-[#00A550] uppercase" />
+                  className="border-gray-200 focus:border-[#1E5FA8] uppercase" />
               </div>
               <div className="space-y-1.5">
                 <Label>First Name <span className="text-red-500">*</span></Label>
                 <Input placeholder="Marie" value={form.first_name}
                   onChange={(e) => setForm((p) => ({ ...p, first_name: e.target.value }))}
-                  className="border-gray-200 focus:border-[#00A550]" />
+                  className="border-gray-200 focus:border-[#1E5FA8]" />
               </div>
             </div>
             <div className="grid grid-cols-2 gap-3">
@@ -438,7 +438,7 @@ export default function SchoolStudentsPage() {
                 <Label>Date of Birth</Label>
                 <Input type="date" value={form.date_of_birth}
                   onChange={(e) => setForm((p) => ({ ...p, date_of_birth: e.target.value }))}
-                  className="border-gray-200 focus:border-[#00A550]" />
+                  className="border-gray-200 focus:border-[#1E5FA8]" />
               </div>
               <div className="space-y-1.5">
                 <Label>CEFR Level</Label>
@@ -455,8 +455,8 @@ export default function SchoolStudentsPage() {
             {editing && (
               <div className="border-t border-gray-100 pt-4 space-y-3">
                 <div className="flex items-center gap-2">
-                  <div className="w-6 h-6 rounded bg-[#E6F5EE] flex items-center justify-center flex-shrink-0">
-                    <CalendarDays className="w-3.5 h-3.5 text-[#00A550]" />
+                  <div className="w-6 h-6 rounded bg-[#E8F1FA] flex items-center justify-center flex-shrink-0">
+                    <CalendarDays className="w-3.5 h-3.5 text-[#1E5FA8]" />
                   </div>
                   <p className="text-sm font-semibold text-gray-800">Exam Session Enrollment</p>
                 </div>
@@ -480,7 +480,7 @@ export default function SchoolStudentsPage() {
                                 {s.title} —{' '}
                                 {new Date(s.exam_date).toLocaleDateString('en-RW', { day: 'numeric', month: 'short', year: 'numeric' })}
                                 {isActive && (
-                                  <span className="text-[10px] text-[#00A550] font-medium bg-[#E6F5EE] px-1.5 py-0.5 rounded">enrolled</span>
+                                  <span className="text-[10px] text-[#1E5FA8] font-medium bg-[#E8F1FA] px-1.5 py-0.5 rounded">enrolled</span>
                                 )}
                               </span>
                             </SelectItem>
@@ -497,7 +497,7 @@ export default function SchoolStudentsPage() {
                       enrollments.some((e) => e.exam_session_id === selectedSessionId && e.active)
                     }
                     onClick={handleEnrollInSession}
-                    className="bg-[#00A550] hover:bg-[#008040] text-white h-9 px-3 text-xs flex-shrink-0"
+                    className="bg-[#1E5FA8] hover:bg-[#164A82] text-white h-9 px-3 text-xs flex-shrink-0"
                   >
                     {enrolling ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : 'Enroll in this session'}
                   </Button>
@@ -512,9 +512,9 @@ export default function SchoolStudentsPage() {
                         .filter((e) => e.active)
                         .map((e) => (
                           <div key={e.id}
-                            className="flex items-center justify-between px-3 py-2 rounded-lg bg-[#E6F5EE]/60 border border-green-100">
+                            className="flex items-center justify-between px-3 py-2 rounded-lg bg-[#E8F1FA]/60 border border-green-100">
                             <div className="flex items-center gap-2 min-w-0">
-                              <CheckCircle2 className="w-3.5 h-3.5 text-[#00A550] flex-shrink-0" />
+                              <CheckCircle2 className="w-3.5 h-3.5 text-[#1E5FA8] flex-shrink-0" />
                               <span className="text-xs text-gray-700 truncate">
                                 {e.session
                                   ? `${e.session.title} — ${new Date(e.session.exam_date).toLocaleDateString('en-RW', { day: 'numeric', month: 'short', year: 'numeric' })}`
@@ -545,7 +545,7 @@ export default function SchoolStudentsPage() {
           <DialogFooter className="gap-2">
             <Button variant="outline" onClick={() => setFormOpen(false)} disabled={saving} className="border-gray-200">Cancel</Button>
             <Button onClick={handleSave} disabled={saving || !form.first_name.trim() || !form.last_name.trim()}
-              className="bg-[#00A550] hover:bg-[#008040] text-white min-w-[90px]">
+              className="bg-[#1E5FA8] hover:bg-[#164A82] text-white min-w-[90px]">
               {saving ? 'Saving…' : editing ? 'Save Changes' : 'Add Student'}
             </Button>
           </DialogFooter>

@@ -29,12 +29,12 @@ export function ArticleCardLink({ article }: Props) {
             className="w-full sm:w-44 h-40 sm:h-28 object-cover rounded-lg flex-shrink-0"
           />
         ) : (
-          <div className="w-full sm:w-44 h-40 sm:h-28 rounded-lg bg-[#E6F5EE] flex-shrink-0" />
+          <div className="w-full sm:w-44 h-40 sm:h-28 rounded-lg bg-[#E8F1FA] flex-shrink-0" />
         )}
         <div className="min-w-0 flex-1 space-y-1.5">
           <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-gray-500">
             {article.category_name && (
-              <span className="text-[#00A550] font-medium">
+              <span className="text-[#1E5FA8] font-medium">
                 {article.category_name}
               </span>
             )}
@@ -42,7 +42,7 @@ export function ArticleCardLink({ article }: Props) {
               <span>{formatArticleDate(article.published_at)}</span>
             )}
           </div>
-          <h2 className="text-lg font-semibold text-gray-900 group-hover:text-[#00A550] transition-colors leading-snug">
+          <h2 className="text-lg font-semibold text-gray-900 group-hover:text-[#1E5FA8] transition-colors leading-snug">
             {article.title}
           </h2>
           {article.excerpt && (

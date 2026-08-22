@@ -1,6 +1,8 @@
 export const DEFAULT_ORG_SHORT_NAME = 'MFK'
 export const DEFAULT_ORG_TAGLINE = 'Maison de la Francophonie Kigali'
 export const DEFAULT_ORG_NAME = 'MFK'
+/** Official circular emblem served from /public */
+export const MFK_LOGO_SRC = '/logo-mfk.png'
 
 export interface OrgBranding {
   orgName: string

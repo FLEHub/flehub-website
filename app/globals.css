@@ -5,30 +5,36 @@
 @layer base {
   :root {
     --background: 0 0% 100%;
-    --foreground: 220 15% 12%;
+    --foreground: 214 40% 12%;
     --card: 0 0% 100%;
-    --card-foreground: 220 15% 12%;
+    --card-foreground: 214 40% 12%;
     --popover: 0 0% 100%;
-    --popover-foreground: 220 15% 12%;
-    --primary: 152 100% 32%;
+    --popover-foreground: 214 40% 12%;
+    --primary: 214 68% 14%;
     --primary-foreground: 0 0% 100%;
-    --secondary: 152 25% 95%;
-    --secondary-foreground: 152 60% 18%;
-    --muted: 220 10% 96%;
-    --muted-foreground: 220 10% 48%;
-    --accent: 152 35% 92%;
-    --accent-foreground: 152 70% 18%;
+    --secondary: 210 70% 39%;
+    --secondary-foreground: 0 0% 100%;
+    --muted: 214 25% 96%;
+    --muted-foreground: 214 16% 40%;
+    --accent: 45 96% 48%;
+    --accent-foreground: 214 68% 14%;
     --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 98%;
-    --border: 220 10% 88%;
-    --input: 220 10% 88%;
-    --ring: 152 100% 32%;
-    --chart-1: 152 80% 35%;
-    --chart-2: 196 70% 45%;
-    --chart-3: 40 80% 55%;
-    --chart-4: 280 55% 55%;
-    --chart-5: 0 75% 55%;
+    --border: 214 16% 88%;
+    --input: 214 16% 88%;
+    --ring: 210 70% 39%;
+    --chart-1: 214 68% 14%;
+    --chart-2: 210 70% 39%;
+    --chart-3: 45 96% 48%;
+    --chart-4: 123 46% 34%;
+    --chart-5: 210 55% 55%;
     --radius: 0.5rem;
+    --mfk-navy: #0B1F3A;
+    --mfk-azure: #1E5FA8;
+    --mfk-sky: #3A92D1;
+    --mfk-gold: #F2B705;
+    --mfk-green: #2E7D32;
+    --mfk-silver: #C8CCD1;
   }
 }
 
@@ -39,17 +45,17 @@
 }
 
 @layer utilities {
-  .text-flehub-green { color: #00A550; }
-  .bg-flehub-green { background-color: #00A550; }
-  .bg-flehub-green-dark { background-color: #007A3D; }
-  .bg-flehub-green-light { background-color: #E8F8F0; }
-  .border-flehub-green { border-color: #00A550; }
-  .hover\:bg-flehub-green-dark:hover { background-color: #007A3D; }
-  .focus\:ring-flehub-green:focus { --tw-ring-color: #00A550; }
+  .text-flehub-green { color: #1E5FA8; }
+  .bg-flehub-green { background-color: #1E5FA8; }
+  .bg-flehub-green-dark { background-color: #0B1F3A; }
+  .bg-flehub-green-light { background-color: #E8F1FA; }
+  .border-flehub-green { border-color: #1E5FA8; }
+  .hover\:bg-flehub-green-dark:hover { background-color: #0B1F3A; }
+  .focus\:ring-flehub-green:focus { --tw-ring-color: #1E5FA8; }
 }
 
 .gradient-hero {
-  background: linear-gradient(135deg, #00A550 0%, #007A3D 40%, #004D26 100%);
+  background: linear-gradient(135deg, #0B1F3A 0%, #1E5FA8 55%, #0B1F3A 100%);
 }
 
 .card-hover {
@@ -57,36 +63,36 @@
 }
 .card-hover:hover {
   transform: translateY(-2px);
-  box-shadow: 0 8px 30px rgba(0, 165, 80, 0.15);
+  box-shadow: 0 8px 30px rgba(30, 95, 168, 0.15);
 }
 
 .nav-link {
-  @apply text-sm font-medium text-gray-600 hover:text-[#00A550] transition-colors duration-200;
+  @apply text-sm font-medium text-gray-600 hover:text-[#1E5FA8] transition-colors duration-200;
 }
 
 .sidebar-link {
-  @apply flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 text-gray-600 hover:bg-[#E8F8F0] hover:text-[#00A550];
+  @apply flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 text-gray-600 hover:bg-[#E8F1FA] hover:text-[#1E5FA8];
 }
 .sidebar-link.active {
-  @apply bg-[#E8F8F0] text-[#00A550] font-semibold;
+  @apply bg-[#E8F1FA] text-[#1E5FA8] font-semibold;
 }
 
 /* Modal primitives: opaque panel + dimmed backdrop (do not rely on theme tokens) */
 .flehub-modal-overlay {
-  background-color: rgba(0, 0, 0, 0.6);
+  background-color: rgba(11, 31, 58, 0.6);
 }
 .flehub-modal-panel {
   background-color: #ffffff;
-  color: #111827;
+  color: #0B1F3A;
 }
 
 /* Accueil MFK : canvas coloré + motif géométrique subtil */
 .mfk-home-canvas {
-  background-color: #c5ebd6;
+  background-color: #D6E4F0;
   background-image:
-    radial-gradient(ellipse 80% 50% at 10% 15%, rgba(245, 158, 11, 0.28), transparent 55%),
-    radial-gradient(ellipse 70% 45% at 90% 35%, rgba(29, 122, 252, 0.2), transparent 50%),
-    radial-gradient(ellipse 60% 40% at 50% 85%, rgba(0, 165, 80, 0.35), transparent 55%),
+    radial-gradient(ellipse 80% 50% at 10% 15%, rgba(242, 183, 5, 0.28), transparent 55%),
+    radial-gradient(ellipse 70% 45% at 90% 35%, rgba(30, 95, 168, 0.22), transparent 50%),
+    radial-gradient(ellipse 60% 40% at 50% 85%, rgba(46, 125, 50, 0.28), transparent 55%),
     linear-gradient(
       135deg,
       rgba(255, 255, 255, 0.12) 25%,
