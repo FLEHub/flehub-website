@@ -32,10 +32,15 @@ export function BrandLogo({
       width={size}
       height={size}
       className={cn(
-        'aspect-square flex-shrink-0 bg-transparent object-contain',
+        'block aspect-square flex-shrink-0 rounded-full bg-transparent object-contain',
         className
       )}
-      style={{ width: size, height: size, backgroundColor: 'transparent' }}
+      style={{
+        width: size,
+        height: size,
+        backgroundColor: 'transparent',
+        backgroundImage: 'none',
+      }}
     />
   )
 
@@ -47,7 +52,8 @@ export function BrandLogo({
     <Link
       href={href}
       aria-label={alt}
-      className="inline-flex flex-shrink-0 bg-transparent"
+      className="inline-flex flex-shrink-0 overflow-hidden rounded-full bg-transparent"
+      style={{ backgroundColor: 'transparent' }}
     >
       {img}
     </Link>

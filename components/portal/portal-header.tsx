@@ -34,7 +34,11 @@ export function PortalHeader({
   return (
     <header className="border-b-2 border-[#1E5FA8]/20 bg-white/95 backdrop-blur-sm sticky top-0 z-20 shadow-sm">
       <div className="max-w-5xl mx-auto px-6 h-16 flex items-center justify-between gap-3">
-        <Link href="/" className="flex items-center gap-2.5 min-w-0 bg-transparent">
+        <Link
+          href="/"
+          className="flex items-center gap-2.5 min-w-0 bg-transparent shadow-none"
+          style={{ backgroundColor: 'transparent' }}
+        >
           <BrandLogo size={40} />
           <BrandMark shortName={shortName} tagline={tagline} size="md" />
         </Link>

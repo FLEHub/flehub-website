@@ -351,8 +351,12 @@ export default function RegisterPage() {
 
         <div className="relative z-10 max-w-sm text-center">
           {/* Logo */}
-          <Link href="/" className="flex items-center justify-center gap-3 mb-10 bg-transparent">
-            <BrandLogo size={64} className="drop-shadow-md" />
+          <Link
+            href="/"
+            className="flex items-center justify-center gap-3 mb-10 bg-transparent shadow-none"
+            style={{ backgroundColor: 'transparent' }}
+          >
+            <BrandLogo size={64} />
             <BrandMark size="lg" variant="onDark" align="left" />
           </Link>
 
@@ -387,7 +391,11 @@ export default function RegisterPage() {
       {/* Right Panel — Form */}
       <div className="flex-1 flex flex-col items-center justify-center px-6 py-10 bg-white overflow-y-auto">
         {/* Mobile logo */}
-        <Link href="/" className="lg:hidden flex items-center gap-2.5 mb-6 bg-transparent">
+        <Link
+          href="/"
+          className="lg:hidden flex items-center gap-2.5 mb-6 bg-transparent shadow-none"
+          style={{ backgroundColor: 'transparent' }}
+        >
           <BrandLogo size={40} />
           <BrandMark size="md" className="[&>p:first-child]:text-flehub-green" />
         </Link>
