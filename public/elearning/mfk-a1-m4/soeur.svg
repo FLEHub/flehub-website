@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" role="img" aria-label="la sœur">
+  <rect width="200" height="200" rx="24" fill="#F6E6DC"/>
+  <rect x="9" y="9" width="182" height="182" rx="18" fill="none" stroke="#C46B6B" stroke-width="1.8" opacity="0.45"/>
+  <ellipse cx="100" cy="86" rx="70" ry="52" fill="#E8D5C8" opacity="0.55"/>
+  <path d="M168 18c3 7-1 12-6 14 6 2 9 8 6 13 6-2 13 3 13 9 4-9 1-20-5-26-3-4-7-7-8-10z" fill="#1E6B66" opacity="0.16"/>
+  <ellipse cx="100" cy="166" rx="74" ry="13" fill="#E8C99A"/>
+  <circle cx="100" cy="70" r="16" fill="#E8B888"/>
+  <path d="M78 74c6-24 14-30 22-30s16 6 22 30" fill="#8E3B2A"/>
+  <path d="M76 150c4-38 12-50 24-50s20 12 24 50" fill="#C46B6B"/>
+  <circle cx="78" cy="92" r="5" fill="#D9A441"/>
+  <circle cx="122" cy="92" r="5" fill="#D9A441"/>
+  <path d="M94 78c4 3 8 3 12 0" fill="none" stroke="#C4563A" stroke-width="2"/>
+
+  <text x="100" y="188" text-anchor="middle" font-family="Georgia,serif" font-size="13" font-weight="700" fill="#3A2718">la sœur</text>
+</svg>

@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" role="img" aria-label="l'oncle">
+  <rect width="200" height="200" rx="24" fill="#F6E6DC"/>
+  <rect x="9" y="9" width="182" height="182" rx="18" fill="none" stroke="#C46B6B" stroke-width="1.8" opacity="0.45"/>
+  <ellipse cx="100" cy="86" rx="70" ry="52" fill="#E8D5C8" opacity="0.55"/>
+  <path d="M168 18c3 7-1 12-6 14 6 2 9 8 6 13 6-2 13 3 13 9 4-9 1-20-5-26-3-4-7-7-8-10z" fill="#1E6B66" opacity="0.16"/>
+  <ellipse cx="100" cy="166" rx="74" ry="13" fill="#E8C99A"/>
+  <circle cx="100" cy="70" r="16" fill="#C48A5A"/>
+  <path d="M84 62c6-14 10-16 16-16s10 2 16 16" fill="#3A2718"/>
+  <path d="M74 150c4-40 12-50 26-50s22 10 26 50" fill="#C4563A"/>
+  <rect x="70" y="108" width="60" height="8" fill="#D9A441"/>
+  <circle cx="93" cy="68" r="1.8" fill="#3A2718"/>
+  <circle cx="107" cy="68" r="1.8" fill="#3A2718"/>
+
+  <text x="100" y="188" text-anchor="middle" font-family="Georgia,serif" font-size="13" font-weight="700" fill="#3A2718">l'oncle</text>
+</svg>

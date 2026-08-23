@@ -123,12 +123,35 @@ Relecture : `docs/Relecture_MFK_A1_Module3.md`
 
 ---
 
-## Modules 2 et 4 à 9 *(non seedés)*
+## Module 4 — A1 — Portraits croisés
+
+| Champ | Valeur |
+| --- | --- |
+| Titre | A1 — Portraits croisés |
+| `cefr_level` | A1 |
+| Micro-monde | Cour « Le Seuil des Sources », Rukiri-Nord — album de portraits sous le figuier |
+| Personnages | Aline Uwase, Patrick Habimana, Léa Niyonzima, Marc Nkurunziza, Hawa Diallo, Joël Mugisha, Rose Iradukunda ; familles : Claire Mukamana, Éric et Nina Uwase, Mireille Niyonzima, Fatou Diallo, Kévin Nkurunziza |
+
+| # | Séquence | Thème | Point de langue |
+| --- | --- | --- | --- |
+| 4.1 | En famille | Présenter les siens | Possessifs `ma` / `mon` / `mes` ; mère, père, frère, sœur, tante, oncle ; `j'ai` / `c'est` |
+| 4.2 | Se ressembler, se distinguer | Décrire et comparer | `il` / `elle est` + adjectif ; `il` / `elle a` ; `aussi` / `mais` |
+| 4.3 | Ce qu'on aime, ce qu'on n'aime pas | Goûts | `j'aime` / `j'adore` / `je n'aime pas` |
+| 4.4 | Se raconter en quelques mots | Mini-portrait | `je m'appelle`, `j'ai … ans`, `j'habite`, `je suis` |
+| 4.5 | Temps libre | Week-end | Samedi / dimanche ; `jouer au` ; écouter, lire, danser, jardiner, se reposer |
+| 4.6 | Quand le corps parle | Corps et sensations | Tête, main, pied, dos ; `j'ai mal à` / `au` ; fatigué(e), content(e) |
+
+Seed : `supabase/migrations/20260823210000_elearning_mfk_a1_module4_portraits_croises.sql`  
+Illustrations : `/elearning/mfk-a1-m4/` (style album, rose / terracotta / sarcelle).  
+Relecture : `docs/Relecture_MFK_A1_Module4.md`
+
+---
+
+## Modules 2 et 5 à 9 *(non seedés)*
 
 | # | Module | Séquences |
 | --- | --- | --- |
 | 2 | A1 — Faire connaissance | 4 à 6 séquences |
-| 4 | A1 — Portraits croisés | 4 à 6 séquences |
 | 5 | A1 — Le fil des journées | 4 à 6 séquences |
 | 6 | A1 — Histoires vécues | 4 à 6 séquences |
 | 7 | A1 — Cap sur ailleurs | 4 à 6 séquences |

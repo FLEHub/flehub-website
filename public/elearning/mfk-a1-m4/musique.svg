@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" role="img" aria-label="la musique">
+  <rect width="200" height="200" rx="24" fill="#F6E6DC"/>
+  <rect x="9" y="9" width="182" height="182" rx="18" fill="none" stroke="#C46B6B" stroke-width="1.8" opacity="0.45"/>
+  <ellipse cx="100" cy="86" rx="70" ry="52" fill="#E8D5C8" opacity="0.55"/>
+  <path d="M168 18c3 7-1 12-6 14 6 2 9 8 6 13 6-2 13 3 13 9 4-9 1-20-5-26-3-4-7-7-8-10z" fill="#1E6B66" opacity="0.16"/>
+  <ellipse cx="100" cy="166" rx="74" ry="13" fill="#E8C99A"/>
+  <ellipse cx="78" cy="128" rx="18" ry="12" fill="#3A2718"/>
+  <ellipse cx="128" cy="118" rx="16" ry="11" fill="#3A2718"/>
+  <path d="M96 128 V64 h50 V118" fill="none" stroke="#C46B6B" stroke-width="6"/>
+  <path d="M146 64c8 4 10 12 4 18" fill="none" stroke="#D9A441" stroke-width="4"/>
+  <circle cx="70" cy="70" r="5" fill="#1E6B66"/>
+  <circle cx="58" cy="84" r="3.5" fill="#1E6B66"/>
+
+  <text x="100" y="188" text-anchor="middle" font-family="Georgia,serif" font-size="13" font-weight="700" fill="#3A2718">la musique</text>
+</svg>

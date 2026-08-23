@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" role="img" aria-label="la main">
+  <rect width="200" height="200" rx="24" fill="#F6E6DC"/>
+  <rect x="9" y="9" width="182" height="182" rx="18" fill="none" stroke="#C46B6B" stroke-width="1.8" opacity="0.45"/>
+  <ellipse cx="100" cy="86" rx="70" ry="52" fill="#E8D5C8" opacity="0.55"/>
+  <path d="M168 18c3 7-1 12-6 14 6 2 9 8 6 13 6-2 13 3 13 9 4-9 1-20-5-26-3-4-7-7-8-10z" fill="#1E6B66" opacity="0.16"/>
+  <ellipse cx="100" cy="166" rx="74" ry="13" fill="#E8C99A"/>
+  <ellipse cx="100" cy="128" rx="28" ry="22" fill="#E8B888"/>
+  <rect x="72" y="62" width="12" height="56" rx="6" fill="#E8B888"/>
+  <rect x="88" y="50" width="12" height="70" rx="6" fill="#E8B888"/>
+  <rect x="104" y="54" width="12" height="66" rx="6" fill="#E8B888"/>
+  <rect x="120" y="66" width="12" height="52" rx="6" fill="#E8B888"/>
+  <rect x="58" y="100" width="22" height="14" rx="7" fill="#E8B888" transform="rotate(-25 69 107)"/>
+
+  <text x="100" y="188" text-anchor="middle" font-family="Georgia,serif" font-size="13" font-weight="700" fill="#3A2718">la main</text>
+</svg>
