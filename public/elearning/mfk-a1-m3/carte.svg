@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" role="img" aria-label="la carte">
+  <rect width="200" height="200" rx="24" fill="#F4E8D4"/>
+  <rect x="9" y="9" width="182" height="182" rx="18" fill="none" stroke="#C4563A" stroke-width="1.8" opacity="0.4"/>
+  <path d="M18 18h164v62H18z" fill="#D7E8E2" opacity="0.55"/>
+  <path d="M18 72c28-18 54-8 82-16 26-8 50 6 64 14v10H18z" fill="#7FA47A" opacity="0.35"/>
+  <path d="M168 20c2 6-2 10-7 12 6 1 8 7 5 12 6-2 12 2 12 8 4-8 2-18-4-24-3-4-6-6-6-8z" fill="#1E6B66" opacity="0.18"/>
+  <ellipse cx="100" cy="166" rx="74" ry="13" fill="#E8C99A"/>
+  <rect x="42" y="48" width="116" height="108" rx="8" fill="#FFF8EE" stroke="#3A2718" stroke-width="2"/>
+  <path d="M56 86c24-16 40 8 62-4 14-8 28 4 36 10" fill="none" stroke="#1E6B66" stroke-width="3" stroke-linecap="round"/>
+  <path d="M60 128c18-6 30 8 52 0 16-6 30 4 40 8" fill="none" stroke="#7FA47A" stroke-width="2.5"/>
+  <circle cx="78" cy="80" r="5" fill="#C4563A"/>
+  <circle cx="124" cy="96" r="5" fill="#D9A441"/>
+  <circle cx="98" cy="126" r="5" fill="#1E6B66"/>
+  <rect x="52" y="56" width="22" height="8" rx="2" fill="#C4563A" opacity="0.35"/>
+  <path d="M148 58l8 4-8 4-8-4z" fill="#134E4A"/>
+
+  <text x="100" y="188" text-anchor="middle" font-family="Georgia,serif" font-size="13" font-weight="700" fill="#3A2718">la carte</text>
+</svg>

@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" role="img" aria-label="la fontaine">
+  <rect width="200" height="200" rx="24" fill="#F4E8D4"/>
+  <rect x="9" y="9" width="182" height="182" rx="18" fill="none" stroke="#C4563A" stroke-width="1.8" opacity="0.4"/>
+  <path d="M18 18h164v62H18z" fill="#D7E8E2" opacity="0.55"/>
+  <path d="M18 72c28-18 54-8 82-16 26-8 50 6 64 14v10H18z" fill="#7FA47A" opacity="0.35"/>
+  <path d="M168 20c2 6-2 10-7 12 6 1 8 7 5 12 6-2 12 2 12 8 4-8 2-18-4-24-3-4-6-6-6-8z" fill="#1E6B66" opacity="0.18"/>
+  <ellipse cx="100" cy="166" rx="74" ry="13" fill="#E8C99A"/>
+  <ellipse cx="100" cy="148" rx="46" ry="12" fill="#1E6B66" opacity="0.3"/>
+  <rect x="70" y="118" width="60" height="18" rx="8" fill="#1E6B66"/>
+  <rect x="90" y="86" width="20" height="36" fill="#C9B8A0"/>
+  <circle cx="100" cy="80" r="12" fill="#7FA47A"/>
+  <path d="M100 80c-8 10-6 20 0 28M92 88c8 8 12 8 16 0" fill="none" stroke="#134E4A" stroke-width="2"/>
+  <path d="M88 70c4-10 12-12 16-2" fill="#7FA47A"/>
+
+  <text x="100" y="188" text-anchor="middle" font-family="Georgia,serif" font-size="13" font-weight="700" fill="#3A2718">la fontaine</text>
+</svg>
