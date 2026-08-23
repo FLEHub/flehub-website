@@ -99,12 +99,35 @@ Seed : `supabase/migrations/20260814120000_elearning_mfk_a1_module1_premiers_rep
 
 ---
 
-## Modules 2 à 9 *(non seedés — après validation du Module 1)*
+## Module 3 — A1 — S'orienter et s'installer
+
+| Champ | Valeur |
+| --- | --- |
+| Titre | A1 — S'orienter et s'installer |
+| `cefr_level` | A1 |
+| Micro-monde | Cour d'accueil « Le Seuil des Sources », Rukiri-Nord (quartier inventé) |
+| Personnages | Aline Uwase, Patrick Habimana, Léa Niyonzima, Marc Nkurunziza, Hawa Diallo, Joël Mugisha |
+
+| # | Séquence | Thème | Point de langue |
+| --- | --- | --- | --- |
+| 3.1 | Explorer une nouvelle ville | Lieux du quartier | `c'est` / `il y a` ; `où est… ?` ; `près de` / `loin de` / `à côté de` / `en face de` |
+| 3.2 | Suivre un guide | Itinéraire à pied | Impératif (`allez`, `tournez`, `prenez`, `continuez`) ; `à gauche` / `à droite` / `tout droit` |
+| 3.3 | Se déplacer en week-end | Transports et horaires | `je vais à` / `je viens de` ; `je prends` ; `à` + heure ; samedi / dimanche |
+| 3.4 | Aller vers l'autre | Demander son chemin | `Excusez-moi` ; `Pour aller à… ?` ; `Pouvez-vous m'aider ?` ; `merci` / `de rien` |
+| 3.5 | Trouver un toit | Chambre et loyer | `il y a` / `il n'y a pas` ; `libre` / `occupé` ; `Combien ça coûte ?` |
+| 3.6 | Sur la route | Trajet et prudence | `avant` / `après` ; `attention` ; `lentement` ; `on prend la route de` |
+
+Seed : `supabase/migrations/20260823190000_elearning_mfk_a1_module3_orienter_installer.sql`  
+Illustrations : `/elearning/mfk-a1-m3/` (style carte-cour, terracotta / sarcelle).  
+Relecture : `docs/Relecture_MFK_A1_Module3.md`
+
+---
+
+## Modules 2 et 4 à 9 *(non seedés)*
 
 | # | Module | Séquences |
 | --- | --- | --- |
 | 2 | A1 — Faire connaissance | 4 à 6 séquences |
-| 3 | A1 — S’orienter et s’installer | 4 à 6 séquences |
 | 4 | A1 — Portraits croisés | 4 à 6 séquences |
 | 5 | A1 — Le fil des journées | 4 à 6 séquences |
 | 6 | A1 — Histoires vécues | 4 à 6 séquences |

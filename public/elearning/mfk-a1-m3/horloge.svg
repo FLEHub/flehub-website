@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" role="img" aria-label="l'heure">
+  <rect width="200" height="200" rx="24" fill="#F4E8D4"/>
+  <rect x="9" y="9" width="182" height="182" rx="18" fill="none" stroke="#C4563A" stroke-width="1.8" opacity="0.4"/>
+  <path d="M18 18h164v62H18z" fill="#D7E8E2" opacity="0.55"/>
+  <path d="M18 72c28-18 54-8 82-16 26-8 50 6 64 14v10H18z" fill="#7FA47A" opacity="0.35"/>
+  <path d="M168 20c2 6-2 10-7 12 6 1 8 7 5 12 6-2 12 2 12 8 4-8 2-18-4-24-3-4-6-6-6-8z" fill="#1E6B66" opacity="0.18"/>
+  <ellipse cx="100" cy="166" rx="74" ry="13" fill="#E8C99A"/>
+  <circle cx="100" cy="104" r="46" fill="#FFF8EE" stroke="#3A2718" stroke-width="5"/>
+  <circle cx="100" cy="104" r="38" fill="#FFFDF8"/>
+  <path d="M100 104 L100 76" stroke="#134E4A" stroke-width="5" stroke-linecap="round"/>
+  <path d="M100 104 L124 112" stroke="#C4563A" stroke-width="4" stroke-linecap="round"/>
+  <circle cx="100" cy="104" r="4" fill="#3A2718"/>
+  <circle cx="100" cy="68" r="3" fill="#3A2718"/>
+  <circle cx="136" cy="104" r="3" fill="#3A2718"/>
+  <circle cx="100" cy="140" r="3" fill="#3A2718"/>
+  <circle cx="64" cy="104" r="3" fill="#3A2718"/>
+
+  <text x="100" y="188" text-anchor="middle" font-family="Georgia,serif" font-size="13" font-weight="700" fill="#3A2718">l'heure</text>
+</svg>

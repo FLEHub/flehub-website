@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" role="img" aria-label="la porte">
+  <rect width="200" height="200" rx="24" fill="#F4E8D4"/>
+  <rect x="9" y="9" width="182" height="182" rx="18" fill="none" stroke="#C4563A" stroke-width="1.8" opacity="0.4"/>
+  <path d="M18 18h164v62H18z" fill="#D7E8E2" opacity="0.55"/>
+  <path d="M18 72c28-18 54-8 82-16 26-8 50 6 64 14v10H18z" fill="#7FA47A" opacity="0.35"/>
+  <path d="M168 20c2 6-2 10-7 12 6 1 8 7 5 12 6-2 12 2 12 8 4-8 2-18-4-24-3-4-6-6-6-8z" fill="#1E6B66" opacity="0.18"/>
+  <ellipse cx="100" cy="166" rx="74" ry="13" fill="#E8C99A"/>
+  <rect x="62" y="48" width="76" height="112" rx="6" fill="#8B5A2B"/>
+  <rect x="70" y="56" width="60" height="96" rx="4" fill="#A56B36"/>
+  <circle cx="118" cy="108" r="5" fill="#D9A441"/>
+  <rect x="84" y="70" width="16" height="22" rx="2" fill="#E6D2B0" opacity="0.5"/>
+  <path d="M54 160h92" stroke="#3A2718" stroke-width="6" stroke-linecap="round"/>
+  <path d="M70 48h60" stroke="#C4563A" stroke-width="6"/>
+
+  <text x="100" y="188" text-anchor="middle" font-family="Georgia,serif" font-size="13" font-weight="700" fill="#3A2718">la porte</text>
+</svg>

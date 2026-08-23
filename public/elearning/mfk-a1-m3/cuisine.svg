@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" role="img" aria-label="une cuisine">
+  <rect width="200" height="200" rx="24" fill="#F4E8D4"/>
+  <rect x="9" y="9" width="182" height="182" rx="18" fill="none" stroke="#C4563A" stroke-width="1.8" opacity="0.4"/>
+  <path d="M18 18h164v62H18z" fill="#D7E8E2" opacity="0.55"/>
+  <path d="M18 72c28-18 54-8 82-16 26-8 50 6 64 14v10H18z" fill="#7FA47A" opacity="0.35"/>
+  <path d="M168 20c2 6-2 10-7 12 6 1 8 7 5 12 6-2 12 2 12 8 4-8 2-18-4-24-3-4-6-6-6-8z" fill="#1E6B66" opacity="0.18"/>
+  <ellipse cx="100" cy="166" rx="74" ry="13" fill="#E8C99A"/>
+  <rect x="40" y="88" width="120" height="56" rx="4" fill="#FFF8EE"/>
+  <rect x="40" y="88" width="120" height="12" fill="#8B5A2B"/>
+  <rect x="50" y="108" width="28" height="22" rx="3" fill="#B8D4C8"/>
+  <circle cx="92" cy="120" r="10" fill="#1E6B66"/>
+  <circle cx="92" cy="120" r="4" fill="#134E4A"/>
+  <rect x="114" y="110" width="34" height="20" rx="3" fill="#C4563A"/>
+  <path d="M70 88 V68 h20 v20" fill="none" stroke="#3A2718" stroke-width="3"/>
+  <ellipse cx="80" cy="64" rx="10" ry="5" fill="#7FA47A"/>
+
+  <text x="100" y="188" text-anchor="middle" font-family="Georgia,serif" font-size="13" font-weight="700" fill="#3A2718">une cuisine</text>
+</svg>
