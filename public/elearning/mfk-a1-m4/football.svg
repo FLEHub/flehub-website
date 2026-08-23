@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" role="img" aria-label="le football">
+  <rect width="200" height="200" rx="24" fill="#F6E6DC"/>
+  <rect x="9" y="9" width="182" height="182" rx="18" fill="none" stroke="#C46B6B" stroke-width="1.8" opacity="0.45"/>
+  <ellipse cx="100" cy="86" rx="70" ry="52" fill="#E8D5C8" opacity="0.55"/>
+  <path d="M168 18c3 7-1 12-6 14 6 2 9 8 6 13 6-2 13 3 13 9 4-9 1-20-5-26-3-4-7-7-8-10z" fill="#1E6B66" opacity="0.16"/>
+  <ellipse cx="100" cy="166" rx="74" ry="13" fill="#E8C99A"/>
+  <circle cx="100" cy="100" r="38" fill="#FFF6EE" stroke="#3A2718" stroke-width="3"/>
+  <path d="M100 70 L118 84 L112 106 L88 106 L82 84z" fill="#3A2718"/>
+  <path d="M118 84 L136 92M82 84 L64 92M112 106 L124 128M88 106 L76 128" stroke="#3A2718" stroke-width="3"/>
+
+  <text x="100" y="188" text-anchor="middle" font-family="Georgia,serif" font-size="13" font-weight="700" fill="#3A2718">le football</text>
+</svg>
