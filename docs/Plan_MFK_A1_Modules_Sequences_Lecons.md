@@ -171,12 +171,35 @@ Relecture : `docs/Relecture_MFK_A1_Module5.md`
 
 ---
 
-## Modules 2 et 6 à 9 *(non seedés)*
+## Module 6 — A1 — Histoires vécues
+
+| Champ | Valeur |
+| --- | --- |
+| Titre | A1 — Histoires vécues |
+| `cefr_level` | A1 |
+| Micro-monde | Cour « Le Seuil des Sources », Rukiri-Nord — cahier des histoires sous le figuier ; Feuille du Seuil ; Infirmerie des Herbes ; Salle des Herbes |
+| Personnages | Aline, Patrick, Léa, Marc, Hawa, Joël, Rose, Kévin ; figures inventées : Mado Karekezi (plume), Sami Niyonteze (tambour), Benoît Habumuremyi (course), Yvette Mukeshimana (infirmerie) |
+
+| # | Séquence | Thème | Point de langue |
+| --- | --- | --- | --- |
+| 6.1 | Apprendre à sa manière | Raconter des événements passés | Passé composé avec *avoir* (`j'ai écouté`, `lu`, `écrit`, `appris`) ; `hier` |
+| 6.2 | Jeunes talents | Expériences récentes et projets | Passé récent `venir de` + infinitif ; futur proche `aller` + infinitif |
+| 6.3 | Plumes francophones | Informations biographiques | `être né(e)` ; `avoir écrit` ; `habiter` / `parler` ; futur proche |
+| 6.4 | Portrait d'un jour | Description physique + un événement | `il/elle est` ; `il/elle a` ; `être arrivé(e)` (accord) |
+| 6.5 | Un choix de vie | Passé et présent | `avant` + passé composé ; `maintenant` + présent ; `j'ai choisi` |
+| 6.6 | S'informer pour avancer | Conseils | Impératif (`écoutez`, `lisez`) ; `il faut` + inf. ; `on peut` + inf. |
+
+Seed : `supabase/migrations/20260827140000_elearning_mfk_a1_module6_histoires_vecues.sql`  
+Illustrations : `/elearning/mfk-a1-m6/` (style cahier, prune / terracotta / sarcelle).  
+Relecture : `docs/Relecture_MFK_A1_Module6.md`
+
+---
+
+## Modules 2 et 7 à 9 *(non seedés)*
 
 | # | Module | Séquences |
 | --- | --- | --- |
 | 2 | A1 — Faire connaissance | 4 à 6 séquences |
-| 6 | A1 — Histoires vécues | 4 à 6 séquences |
 | 7 | A1 — Cap sur ailleurs | 4 à 6 séquences |
 | 8 | A1 — Gestes du quotidien | 4 à 6 séquences |
 | 9 | A1 — Retour sur le chemin parcouru | 4 à 6 séquences |

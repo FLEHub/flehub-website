@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" role="img" aria-label="un conseil">
+  <rect width="200" height="200" rx="24" fill="#F6E6DC"/>
+  <rect x="9" y="9" width="182" height="182" rx="18" fill="none" stroke="#6B4C7A" stroke-width="1.8" opacity="0.7"/>
+  <path d="M28 22 v28" stroke="#6B4C7A" stroke-width="8" stroke-linecap="round"/>
+  <rect x="24" y="18" width="16" height="22" rx="2" fill="#D9A441"/>
+  <ellipse cx="100" cy="90" rx="70" ry="50" fill="#E8D5C8" opacity="0.45"/>
+  <ellipse cx="100" cy="166" rx="74" ry="13" fill="#E8C99A"/>
+  <path d="M70 70c0-22 14-36 30-36s30 14 30 36c0 16-10 24-18 30v12H88v-12c-8-6-18-14-18-30z" fill="#D9A441"/>
+  <rect x="88" y="118" width="24" height="10" fill="#8B5A2B"/>
+  <rect x="92" y="132" width="16" height="14" rx="2" fill="#1E6B66"/>
+
+  <text x="100" y="188" text-anchor="middle" font-family="Georgia,serif" font-size="13" font-weight="700" fill="#3A2718">un conseil</text>
+</svg>

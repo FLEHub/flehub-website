@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" role="img" aria-label="apprendre">
+  <rect width="200" height="200" rx="24" fill="#F6E6DC"/>
+  <rect x="9" y="9" width="182" height="182" rx="18" fill="none" stroke="#6B4C7A" stroke-width="1.8" opacity="0.7"/>
+  <path d="M28 22 v28" stroke="#6B4C7A" stroke-width="8" stroke-linecap="round"/>
+  <rect x="24" y="18" width="16" height="22" rx="2" fill="#D9A441"/>
+  <ellipse cx="100" cy="90" rx="70" ry="50" fill="#E8D5C8" opacity="0.45"/>
+  <ellipse cx="100" cy="166" rx="74" ry="13" fill="#E8C99A"/>
+  <circle cx="78" cy="72" r="14" fill="#E8B888"/>
+  <path d="M62 148c4-40 10-52 16-52s12 12 16 52" fill="#1E6B66"/>
+  <path d="M94 90 L118 78" stroke="#3A2718" stroke-width="5" stroke-linecap="round"/>
+  <rect x="114" y="70" width="40" height="52" rx="4" fill="#C4563A"/>
+  <path d="M134 70 v52" stroke="#FFF6EE" stroke-width="3"/>
+
+  <text x="100" y="188" text-anchor="middle" font-family="Georgia,serif" font-size="13" font-weight="700" fill="#3A2718">apprendre</text>
+</svg>
