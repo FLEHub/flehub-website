@@ -147,12 +147,35 @@ Relecture : `docs/Relecture_MFK_A1_Module4.md`
 
 ---
 
-## Modules 2 et 5 à 9 *(non seedés)*
+## Module 5 — A1 — Le fil des journées
+
+| Champ | Valeur |
+| --- | --- |
+| Titre | A1 — Le fil des journées |
+| `cefr_level` | A1 |
+| Micro-monde | Cour « Le Seuil des Sources », Rukiri-Nord — fil des heures sous le figuier ; Salle des Herbes ; Marché des Lampions ; Radio Figuier |
+| Personnages | Aline Uwase, Patrick Habimana, Léa Niyonzima, Marc Nkurunziza, Hawa Diallo, Joël Mugisha, Rose Iradukunda, Kévin Nkurunziza |
+
+| # | Séquence | Thème | Point de langue |
+| --- | --- | --- | --- |
+| 5.1 | Une journée dans le monde | Indiquer l'heure et les horaires | `Quelle heure est-il ?` ; `il est` + heure ; `à` + heure ; `du matin` / `de l'après-midi` / `du soir` ; midi / minuit |
+| 5.2 | Rythmes de vie | Activités et habitudes quotidiennes | `je me lève` / `je me couche` ; `le matin` / `l'après-midi` / `le soir` ; `d'habitude` / `parfois` |
+| 5.3 | Nos habitudes partagées | Routines du groupe | `on` + verbe ; `tous les jours` ; `d'habitude` ; `parfois` ; le samedi / le dimanche |
+| 5.4 | Une journée de travail | Horaires de travail | `je travaille` ; `je commence à` ; `je finis à` ; pause |
+| 5.5 | Sortir à sa façon | S'informer sur les sorties | `je sors` ; `je vais à` / `au` / `à la` ; `ce soir` / `demain` |
+| 5.6 | Organiser une rencontre | Inviter, accepter, refuser | `Tu veux… ?` ; `avec plaisir` ; `d'accord` ; `je ne peux pas` ; `désolé(e)` |
+
+Seed : `supabase/migrations/20260827120000_elearning_mfk_a1_module5_fil_journees.sql`  
+Illustrations : `/elearning/mfk-a1-m5/` (style fil des heures, ocre / terracotta / sarcelle).  
+Relecture : `docs/Relecture_MFK_A1_Module5.md`
+
+---
+
+## Modules 2 et 6 à 9 *(non seedés)*
 
 | # | Module | Séquences |
 | --- | --- | --- |
 | 2 | A1 — Faire connaissance | 4 à 6 séquences |
-| 5 | A1 — Le fil des journées | 4 à 6 séquences |
 | 6 | A1 — Histoires vécues | 4 à 6 séquences |
 | 7 | A1 — Cap sur ailleurs | 4 à 6 séquences |
 | 8 | A1 — Gestes du quotidien | 4 à 6 séquences |
