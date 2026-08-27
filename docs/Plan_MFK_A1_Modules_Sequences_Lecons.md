@@ -195,12 +195,35 @@ Relecture : `docs/Relecture_MFK_A1_Module6.md`
 
 ---
 
-## Modules 2 et 7 à 9 *(non seedés)*
+## Module 7 — A1 — Cap sur ailleurs
+
+| Champ | Valeur |
+| --- | --- |
+| Titre | A1 — Cap sur ailleurs |
+| `cefr_level` | A1 |
+| Micro-monde | Cour « Le Seuil des Sources », Rukiri-Nord — carnet de route sous le figuier ; destinations inventées : lac des Nénuphars, Port de la Brise, Île de Sable-Rouge, Mwezi-Haut, Rive d'Orage, Auberge des Figues |
+| Personnages | Aline, Patrick, Léa, Marc, Hawa, Joël ; figures inventées : Noura Sarr, Ibrahim Tchami (bateau), Mado Karekezi (carnet) |
+
+| # | Séquence | Thème | Point de langue |
+| --- | --- | --- | --- |
+| 7.1 | Envie de partir | Dire un projet de départ | Futur simple `je partirai` / `tu seras` / `j'aurai` ; `il faut` + nom ou infinitif (toujours 3e pers. du singulier) |
+| 7.2 | Voyager autrement | Moyens de voyage | `je prendrai` ; `je ferai` (un r) ; `on pourra` (deux r) ; `il faudra` |
+| 7.3 | Un tour d'horizon | Lieux et directions | `nous visiterons` ; `j'irai` / `nous irons` ; `il y aura` ; nord / sud / est / ouest |
+| 7.4 | Un point de chute | Hébergement | `je resterai` ; `nous arriverons` / `on arrivera` ; `je rentrerai` ; `il faudra` + nom ou infinitif |
+| 7.5 | Choisir sa saison | Temps et saisons | `il fera` (chaud / frais / froid) ; `il pleuvra` ; saison sèche / des pluies / fraîche ; printemps, été, automne, hiver |
+| 7.6 | Carnets de route | Noter le voyage | `j'écrirai` ; `je serai` / `nous serons` ; `nous lirons` ; `nous raconterons` ; `il faudra` une ligne |
+
+Seed : `supabase/migrations/20260827160000_elearning_mfk_a1_module7_cap_ailleurs.sql`  
+Illustrations : `/elearning/mfk-a1-m7/` (style carte-boussole, bleu mer / terracotta / sarcelle).  
+Relecture : `docs/Relecture_MFK_A1_Module7.md`
+
+---
+
+## Modules 2, 8 et 9 *(non seedés)*
 
 | # | Module | Séquences |
 | --- | --- | --- |
 | 2 | A1 — Faire connaissance | 4 à 6 séquences |
-| 7 | A1 — Cap sur ailleurs | 4 à 6 séquences |
 | 8 | A1 — Gestes du quotidien | 4 à 6 séquences |
 | 9 | A1 — Retour sur le chemin parcouru | 4 à 6 séquences |
 
