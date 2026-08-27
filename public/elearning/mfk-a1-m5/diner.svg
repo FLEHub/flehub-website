@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" role="img" aria-label="dîner">
+  <rect width="200" height="200" rx="24" fill="#F6E6DC"/>
+  <rect x="9" y="9" width="182" height="182" rx="18" fill="none" stroke="#D9A441" stroke-width="1.8" opacity="0.7"/>
+  <path d="M26 26 H174" stroke="#D9A441" stroke-width="3" stroke-linecap="round"/>
+  <rect x="46" y="18" width="14" height="16" rx="2" fill="#FFF6EE" stroke="#C4563A" stroke-width="1.5"/>
+  <rect x="140" y="18" width="14" height="16" rx="2" fill="#FFF6EE" stroke="#1E6B66" stroke-width="1.5"/>
+  <ellipse cx="100" cy="90" rx="70" ry="50" fill="#E8D5C8" opacity="0.5"/>
+  <ellipse cx="100" cy="166" rx="74" ry="13" fill="#E8C99A"/>
+  <ellipse cx="100" cy="110" rx="44" ry="28" fill="#FFF6EE" stroke="#3A2718" stroke-width="3"/>
+  <circle cx="100" cy="108" r="16" fill="#C4563A"/>
+  <path d="M54 86 l-16-28M146 86 l16-28" stroke="#134E4A" stroke-width="5" stroke-linecap="round"/>
+  <rect x="48" y="132" width="104" height="10" rx="3" fill="#8B5A2B"/>
+
+  <text x="100" y="188" text-anchor="middle" font-family="Georgia,serif" font-size="13" font-weight="700" fill="#3A2718">dîner</text>
+</svg>
