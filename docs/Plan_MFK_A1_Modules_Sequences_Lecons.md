@@ -219,12 +219,35 @@ Relecture : `docs/Relecture_MFK_A1_Module7.md`
 
 ---
 
-## Modules 2, 8 et 9 *(non seedés)*
+## Module 8 — A1 — Gestes du quotidien
+
+| Champ | Valeur |
+| --- | --- |
+| Titre | A1 — Gestes du quotidien |
+| `cefr_level` | A1 |
+| Micro-monde | Cour « Le Seuil des Sources », Rukiri-Nord — Table des Sources ; Marché des Lampions ; Atelier du Tissu |
+| Personnages | Aline, Patrick, Léa, Marc, Hawa, Joël, Rose ; figures inventées : Félicie Ndayishimiye (table), Dieudonné Hakizimana (tissu) |
+
+| # | Séquence | Thème | Point de langue |
+| --- | --- | --- | --- |
+| 8.1 | La table du Seuil | Menu et goûts | Partitifs `du` / `de la` / `de l'` / `des` ; `pas de` ; `j'aime` + article défini |
+| 8.2 | Courses au marché | Quantités | `je voudrais` ; `un kilo de` / `une bouteille d'` / `un pot de` / `un morceau de` |
+| 8.3 | On compare | Comparer | `plus` / `moins` / `aussi` … `que` ; `plus de` / `moins de` ; `je vais le prendre` |
+| 8.4 | Autrefois, maintenant | Évolution | Imparfait (`j'étais`, `j'avais`, `je voulais`, `on mangeait`) ; présent pour *maintenant* |
+| 8.5 | S'habiller à la cour | Vêtements | `ce` / `cette` / `ces` ; couleurs (`bleue`, `verte`) ; trop / assez |
+| 8.6 | Dire son avis | Appréciation | `vraiment` / `assez` / `trop` + adj. ; `j'aime bien` ; `je n'aime pas trop` ; `ce n'est pas mal` |
+
+Seed : `supabase/migrations/20260829120000_elearning_mfk_a1_module8_gestes_quotidien.sql`  
+Illustrations : `/elearning/mfk-a1-m8/` (style table-marché, sage / terracotta / sarcelle).  
+Relecture : `docs/Relecture_MFK_A1_Module8.md`
+
+---
+
+## Modules 2 et 9 *(non seedés)*
 
 | # | Module | Séquences |
 | --- | --- | --- |
 | 2 | A1 — Faire connaissance | 4 à 6 séquences |
-| 8 | A1 — Gestes du quotidien | 4 à 6 séquences |
 | 9 | A1 — Retour sur le chemin parcouru | 4 à 6 séquences |
 
 Même gabarit : 5 leçons × 10 exercices, personnages et documents inventés, pas de copie de méthode.
