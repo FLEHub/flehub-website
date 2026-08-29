@@ -243,11 +243,34 @@ Relecture : `docs/Relecture_MFK_A1_Module8.md`
 
 ---
 
-## Modules 2 et 9 *(non seedés)*
+## Module 9 — A1 — Retour sur le chemin parcouru
+
+| Champ | Valeur |
+| --- | --- |
+| Titre | A1 — Retour sur le chemin parcouru |
+| `cefr_level` | A1 |
+| Micro-monde | Cour « Le Seuil des Sources », Rukiri-Nord — Cahier du chemin sous le figuier |
+| Personnages | Aline, Patrick, Léa, Marc, Hawa, Joël, Noura ; la cour au complet pour le bilan |
+
+| # | Séquence | Thème | Point de langue |
+| --- | --- | --- | --- |
+| 9.1 | Premiers pas | Se présenter à nouveau | `je m'appelle` ; `j'habite` ; `je suis` ; `j'ai … ans` ; `enchanté(e)` |
+| 9.2 | Ce que j'ai appris | Bilan au passé | Passé composé *avoir* (`j'ai appris`, `lu`, `écrit`) ; *être* (`je suis arrivé(e)`) |
+| 9.3 | Je sais le faire | Savoir-faire | `je peux` / `je sais` / `on peut` + infinitif ; `il faut` + infinitif |
+| 9.4 | Ce qui a changé | Évolution | Avant + imparfait ; maintenant + présent |
+| 9.5 | La suite du chemin | Projet | Futur simple `je serai` / `j'aurai` / `je ferai` / `on pourra` ; `il faut` / `il faudra` |
+| 9.6 | Une page pour la route | Clôture | `merci` ; `content(e)` ; `nous raconterons` ; `on se verra` ; `à bientôt` |
+
+Seed : `supabase/migrations/20260829140000_elearning_mfk_a1_module9_chemin_parcouru.sql`  
+Illustrations : `/elearning/mfk-a1-m9/` (style chemin-borne, ocre / terracotta / sarcelle).  
+Relecture : `docs/Relecture_MFK_A1_Module9.md`
+
+---
+
+## Module 2 *(non seedé)*
 
 | # | Module | Séquences |
 | --- | --- | --- |
 | 2 | A1 — Faire connaissance | 4 à 6 séquences |
-| 9 | A1 — Retour sur le chemin parcouru | 4 à 6 séquences |
 
 Même gabarit : 5 leçons × 10 exercices, personnages et documents inventés, pas de copie de méthode.
