@@ -274,3 +274,147 @@ Relecture : `docs/Relecture_MFK_A1_Module9.md`
 | 2 | A1 — Faire connaissance | 4 à 6 séquences |
 
 Même gabarit : 5 leçons × 10 exercices, personnages et documents inventés, pas de copie de méthode.
+
+---
+
+# Plan MFK — Niveau A2 (8 modules)
+
+Même architecture que les modules A1 seedés (tables `elearning_*`, 6 séquences × 5 leçons × 10 exercices, `published = false`).  
+Micro-monde : cour « Le Seuil des Sources », Rukiri-Nord. Les personnages A1 évoluent (escale à Val-des-Peupliers, offres à l'atelier / à la radio, engagement pour le figuier).  
+Cosmopolite 2 n'est utilisé qu'à titre d'objectifs génériques (communication, grammaire, lexique) : aucun texte, lieu réel, personnage ou mise en situation du manuel.
+
+Personnages : Aline Uwase, Patrick Habimana, Léa Niyonzima, Marc Nkurunziza, Hawa Diallo, Joël Mugisha, Rose Iradukunda ; figures A2 : Solange Mukamana, Karim Bamba, Lila Sow.  
+Lieux inventés ajoutés : Bureau des Escales, Maison des Vents, Val-des-Peupliers.
+
+Relecture consolidée : `docs/Relecture_MFK_A2_Modules1-8.md`
+
+## Module A2-1 — Escale en France
+
+| Champ | Valeur |
+| --- | --- |
+| Titre | A2 — Escale en France |
+| `cefr_level` | A2 |
+
+| # | Séquence | Point de langue |
+| --- | --- | --- |
+| 1.1 | Comparer des séjours | Comparatifs (`plus` / `moins` / `aussi` … `que`, `meilleur`) |
+| 1.2 | Premières démarches | Pronoms `y` et `en` |
+| 1.3 | Organiser un déplacement | Pronoms COD / COI, synthèse |
+| 1.4 | Trouver un logement | Impératif ; `devoir` / `il faut` + infinitif ; négation renforcée |
+| 1.5 | Un lieu pas comme les autres | Adverbes et locutions de lieu |
+| 1.6 | Suivre un itinéraire | Relatifs `qui` / `que` / `à qui` / `avec qui` |
+
+Seed : `supabase/migrations/20260829180000_elearning_mfk_a2_module1_escale_france.sql`  
+Illustrations : `/elearning/mfk-a2-m1/`
+
+## Module A2-2 — Aventures partagées
+
+| Titre | A2 — Aventures partagées |
+
+| # | Séquence | Point de langue |
+| --- | --- | --- |
+| 2.1 | Une expérience à raconter | Accord du participe passé avec *être* |
+| 2.2 | Règles et conseils | Obligation / interdiction ; subjonctif présent (intro) |
+| 2.3 | Émotions et souvenirs | Passé composé / imparfait pour raconter |
+| 2.4 | Un week-end à thème | Mise en relief `c'est… qui` / `c'est… que` |
+| 2.5 | Partir à l'aventure | Genre des noms |
+| 2.6 | Le fil de mon parcours | `il y a`, `pendant`, `depuis`, `dans` |
+
+Seed : `supabase/migrations/20260829180100_elearning_mfk_a2_module2_aventures_partagees.sql`  
+Illustrations : `/elearning/mfk-a2-m2/`
+
+## Module A2-3 — Un métier en français
+
+| Titre | A2 — Un métier en français |
+
+| # | Séquence | Point de langue |
+| --- | --- | --- |
+| 3.1 | Une offre à saisir | Compétences et qualités professionnelles |
+| 3.2 | Se présenter professionnellement | Articulateurs du discours |
+| 3.3 | Proposer un service | Adverbes en `-ment` (réguliers / irréguliers) |
+| 3.4 | Oser un choix | Hypothèse avec `si` + présent |
+| 3.5 | Un parcours à raconter | Plus-que-parfait |
+| 3.6 | Répondre avec assurance | Interrogation formelle ; adjectifs indéfinis |
+
+Seed : `supabase/migrations/20260829180200_elearning_mfk_a2_module3_metier_francais.sql`  
+Illustrations : `/elearning/mfk-a2-m3/`
+
+## Module A2-4 — Cultures en partage
+
+| Titre | A2 — Cultures en partage |
+
+| # | Séquence | Point de langue |
+| --- | --- | --- |
+| 4.1 | Précisions et nuances | Place de l'adverbe |
+| 4.2 | Un événement à raconter | `ce qui` / `ce que` … `c'est` |
+| 4.3 | Une enquête à mener | `lequel` / `laquelle` / `lesquels` / `lesquelles` |
+| 4.4 | Faire une appréciation | Superlatif |
+| 4.5 | Demander des explications | Interrogation formelle inversée |
+| 4.6 | Souhaits et conseils | Conditionnel présent |
+
+Seed : `supabase/migrations/20260829180300_elearning_mfk_a2_module4_cultures_partage.sql`  
+Illustrations : `/elearning/mfk-a2-m4/`
+
+## Module A2-5 — Vivre ensemble autrement
+
+| Titre | A2 — Vivre ensemble autrement |
+
+| # | Séquence | Point de langue |
+| --- | --- | --- |
+| 5.1 | Portraits croisés | `c'est` / `ce sont` + relative |
+| 5.2 | Ce qu'on m'a dit | Discours indirect au présent |
+| 5.3 | D'accord, pas d'accord | Relatifs `où` / `dont` |
+| 5.4 | Vivre ensemble | Demander / donner un avis |
+| 5.5 | Convaincre en douceur | Démonstratifs `celui` / `celle` / `ceux` / `celles` |
+| 5.6 | Un état d'esprit | Présent continu, futur proche, passé récent |
+
+Seed : `supabase/migrations/20260829180400_elearning_mfk_a2_module5_vivre_ensemble.sql`  
+Illustrations : `/elearning/mfk-a2-m5/`
+
+## Module A2-6 — Petits gestes, grand quotidien
+
+| Titre | A2 — Petits gestes, grand quotidien |
+
+| # | Séquence | Point de langue |
+| --- | --- | --- |
+| 6.1 | Instructions du jour | Verbes en `-cer` / `-ger` / `-yer` / `-ayer` |
+| 6.2 | Une recette à rédiger | Verbes prépositionnels (`essayer de`, `réussir à`…) |
+| 6.3 | Un mode d'emploi | `si` + imparfait ; pronoms indéfinis |
+| 6.4 | Une réussite à raconter | Accord du participe passé avec *avoir* |
+| 6.5 | Prendre soin de soi | Pronoms possessifs |
+| 6.6 | Une suite d'actions | `avant de` / `après` + infinitif ; marqueurs temporels |
+
+Seed : `supabase/migrations/20260829180500_elearning_mfk_a2_module6_petits_gestes.sql`  
+Illustrations : `/elearning/mfk-a2-m6/`
+
+## Module A2-7 — Mémoire et engagement
+
+| Titre | A2 — Mémoire et engagement |
+
+| # | Séquence | Point de langue |
+| --- | --- | --- |
+| 7.1 | Un récit à comprendre | PC / imparfait / plus-que-parfait (synthèse) |
+| 7.2 | Un souvenir à raconter | Moment précis et durée |
+| 7.3 | Une suite de faits | Prépositions et marqueurs temporels (synthèse) |
+| 7.4 | Une cause à défendre | Cause et conséquence |
+| 7.5 | Agir pour la nature | Adjectif + `à` / `de` |
+| 7.6 | Donner son avis | `de plus en plus` / `de moins en moins` |
+
+Seed : `supabase/migrations/20260829180600_elearning_mfk_a2_module7_memoire_engagement.sql`  
+Illustrations : `/elearning/mfk-a2-m7/`
+
+## Module A2-8 — Le monde en direct
+
+| Titre | A2 — Le monde en direct |
+
+| # | Séquence | Point de langue |
+| --- | --- | --- |
+| 8.1 | Un fait à raconter | Forme passive |
+| 8.2 | Info du jour | Nominalisation |
+| 8.3 | Réagir avec justesse | Gérondif |
+| 8.4 | Des suggestions à faire | Conditionnel ; `suggérer` / `proposer de` |
+| 8.5 | Espérer un monde meilleur | Subjonctif |
+| 8.6 | Parler d'un livre | Pronom `on` |
+
+Seed : `supabase/migrations/20260829180700_elearning_mfk_a2_module8_monde_direct.sql`  
+Illustrations : `/elearning/mfk-a2-m8/`
