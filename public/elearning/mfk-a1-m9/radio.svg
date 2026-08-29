@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" role="img" aria-label="la radio">
+  <rect width="200" height="200" rx="24" fill="#F6E6DC"/>
+  <rect x="9" y="9" width="182" height="182" rx="18" fill="none" stroke="#D9A441" stroke-width="1.8" opacity="0.8"/>
+  <path d="M22 36 L28 18 L34 36z" fill="#C4563A"/>
+  <ellipse cx="100" cy="90" rx="70" ry="50" fill="#E8DCC8" opacity="0.55"/>
+  <ellipse cx="100" cy="166" rx="74" ry="13" fill="#E8C99A"/>
+  <rect x="52" y="78" width="96" height="56" rx="10" fill="#8B5A2B"/>
+  <circle cx="84" cy="106" r="16" fill="#FFF6EE"/>
+  <circle cx="84" cy="106" r="6" fill="#C4563A"/>
+  <rect x="112" y="92" width="24" height="10" fill="#D9A441"/>
+  <rect x="112" y="110" width="24" height="10" fill="#1E6B66"/>
+
+  <text x="100" y="188" text-anchor="middle" font-family="Georgia,serif" font-size="13" font-weight="700" fill="#3A2718">la radio</text>
+</svg>

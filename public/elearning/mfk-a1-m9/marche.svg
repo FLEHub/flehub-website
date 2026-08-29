@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" role="img" aria-label="le marché">
+  <rect width="200" height="200" rx="24" fill="#F6E6DC"/>
+  <rect x="9" y="9" width="182" height="182" rx="18" fill="none" stroke="#D9A441" stroke-width="1.8" opacity="0.8"/>
+  <path d="M22 36 L28 18 L34 36z" fill="#C4563A"/>
+  <ellipse cx="100" cy="90" rx="70" ry="50" fill="#E8DCC8" opacity="0.55"/>
+  <ellipse cx="100" cy="166" rx="74" ry="13" fill="#E8C99A"/>
+  <rect x="44" y="100" width="48" height="40" fill="#FFF6EE" stroke="#3A2718" stroke-width="3"/>
+  <rect x="108" y="100" width="48" height="40" fill="#FFF6EE" stroke="#3A2718" stroke-width="3"/>
+  <path d="M40 100 L68 70 L96 100" fill="#C4563A"/>
+  <path d="M104 100 L132 70 L160 100" fill="#1E6B66"/>
+
+  <text x="100" y="188" text-anchor="middle" font-family="Georgia,serif" font-size="13" font-weight="700" fill="#3A2718">le marché</text>
+</svg>
