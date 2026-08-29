@@ -225,7 +225,8 @@ Cuisine du Seuil — Rukiri-Nord""",
 essayer : j'essaie ou j'essaye ; nous essayons
 payer / balayer : je paie ou je paye ; je balaie ou je balaye ; nous payons
 employer / nettoyer : j'emploie, nous employons ; je nettoie, nous nettoyons
-On n'écrit pas : nous commencons, nous mangeons sans e, nous essuions.""",
+On n'écrit pas : nous commencons, nous mangeons sans e, nous essuions.
+Au Seuil, Félicie écrit ces formes au tableau de la cour chaque matin.""",
         tf_item=(
             "On peut écrire j'essaie et j'essaye.",
             True,
@@ -467,7 +468,9 @@ Table des Sources""",
 Sens : de souvent « se détacher / tenter » ; à souvent « se diriger vers l'action »
 Attention : commencer à (pas commencer de, en français courant).
 Continuer à + infinitif = poursuivre. Continuer de existe, plus rare ici : on retient à.
-Ne pas dire : je réussis de, j'essaie à.""",
+Ne pas dire : je réussis de, j'essaie à.
+Dans la cuisine de Félicie : on essaie de goûter, on réussit à tourner.
+Pensez à couvrir. N'oubliez pas de poser le sel.""",
         tf_item=(
             "On dit « je réussis de » à l'A2 du Seuil.",
             False,
@@ -955,7 +958,8 @@ La tasse que j'ai cassée. (que = tasse)
 Je l'ai ouverte. (l' = fenêtre)
 Pas d'accord si le COD est après : J'ai fait les galettes. J'ai ouvert la fenêtre.
 Pas d'accord avec le sujet : Hawa a réussi (pas réussie, même si Hawa est une femme).
-Attention : les lettres que j'ai écrites ; les mots que j'ai lus ; les figues apportées.""",
+Attention : les lettres que j'ai écrites ; les mots que j'ai lus ; les figues apportées.
+Au Seuil : les galettes que j'ai faites ; la tasse que tu as cassée.""",
         tf_item=(
             "On accorde le participe avec le sujet quand l'auxiliaire est avoir.",
             False,
@@ -1187,7 +1191,9 @@ Féminin : la mienne, la tienne, la sienne, la nôtre, la vôtre, la leur
 Pluriel : les miens / les miennes ; les nôtres ; les vôtres ; les leurs
 nôtre / vôtre : accent circonflexe au pronom. Notre / votre (adjectifs) : pas d'accent.
 Le mien = mon objet (masc.). La mienne = mon objet (fém.).
-On ne dit pas : c'est mien. On dit : c'est le mien.""",
+On ne dit pas : c'est mien. On dit : c'est le mien.
+À l'infirmerie : la serviette, c'est la mienne ; les brosses, ce sont les nôtres.
+Leur / leurs (adjectif) → le leur / les leurs (pronom).""",
         tf_item=(
             "On écrit « les notres » sans accent.",
             False,
@@ -1429,7 +1435,9 @@ Après + infinitif : Après ranger… / Après avoir rangé… (l'action est fai
 Pas : avant couper. Pas : après de ranger.
 Marqueurs : d'abord, ensuite, puis, enfin. Aussi : puis, après cela, pour finir.
 Avant d' + voyelle : avant d'ouvrir, avant d'essayer.
-Même sujet pour avant de / après + infinitif. Si le sujet change : avant que (plus tard).""",
+Même sujet pour avant de / après + infinitif. Si le sujet change : avant que (plus tard).
+Suite type : d'abord l'eau, ensuite le feu, puis le sel, enfin le goût.
+Après avoir signé, on accroche le crayon au tableau de la cour.""",
         tf_item=(
             "On écrit « avant d'ouvrir » avec d'.",
             True,

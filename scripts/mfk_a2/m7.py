@@ -180,6 +180,7 @@ La cour était calme. Le figuier donnait de l'ombre.
 Un soir, l'eau a touché le banc. Elle avait déjà reculé deux fois.
 Nous avons porté les jeunes plants. Patrick avait ouvert le seau.
 J'ai signé le Cahier des racines. Je n'avais jamais écrit si vite.
+Dieudonné cousait encore. Il avait déjà tendu le premier coupon.
 Léa
 Seuil des Sources — Rukiri-Nord""",
         tf_item=(
@@ -223,7 +224,9 @@ Passé composé : fait achevé, souvent daté ou soudain. L'eau a monté. Nous a
 Plus-que-parfait : déjà fait avant un autre moment du passé. Il avait préparé. J'avais oublié.
 Repères : un jour / soudain / puis → souvent PC.
 déjà / jamais + PQP : On n'avait jamais vu. Elle avait déjà monté.
-On ne raconte pas tout à l'imparfait si les faits avancent.""",
+On ne raconte pas tout à l'imparfait si les faits avancent.
+Exemple Seuil : Le figuier était là. Un soir, l'eau a monté. Joël avait préparé des seaux.
+Le PQP se place souvent avant un PC dans la même histoire.""",
         tf_item=(
             "Le plus-que-parfait se forme avec l'imparfait de avoir / être + participe.",
             True,
@@ -455,7 +458,9 @@ Durée fermée : pendant deux heures ; en une nuit ; toute la semaine
 Durée ouverte jusqu'à maintenant : depuis lundi ; ça fait trois jours
 Distance : il y a cinq ans (on compte depuis aujourd'hui vers le passé)
 Attention : depuis + début. Pendant + longueur. En + temps pour accomplir.
-On ne dit pas : pendant huit heures pour un craquement d'une seconde.""",
+On ne dit pas : pendant huit heures pour un craquement d'une seconde.
+Rose : ce matin-là, à huit heures (point). Pendant deux heures, on a tenu (durée).
+Ça fait trois jours = depuis trois jours, jusqu'à maintenant.""",
         tf_item=(
             "« Il y a » et « depuis » veulent dire la même chose.",
             False,
@@ -683,7 +688,8 @@ pendant + durée : pendant la pluie, pendant quatre jours
 depuis + début (ça continue) : depuis samedi
 jusqu'à + fin : jusqu'à vingt heures, jusqu'au pont (à + le = au)
 dès + moment de départ : dès l'aube, dès le 3 mars
-lorsque / quand + fait : Lorsque le cahier est arrivé…""",
+lorsque / quand + fait : Lorsque le cahier est arrivé…
+Ensuite / puis / enfin enchaînent sans préposition : ensuite Benoît a répété.""",
         tf_item=(
             "On dit « avant de la réunion ».",
             False,
@@ -867,10 +873,11 @@ Il reste peu d'ombre, alors on arrose.""",
         "Imitez l'appel de Rose.",
         "Appel de Rose Iradukunda",
         """Rose Iradukunda
-        Je signe parce que le figuier m'a donné de l'ombre.
+Je signe parce que le figuier m'a donné de l'ombre.
 Puisque la rivière nous a sauvés l'été, on la défend.
 À cause des plastiques, l'eau est moins claire.
 La terre glisse, donc on pose deux tuteurs.
+Alors on arrose le soir, près de la rive.
 C'est pourquoi je porte le Cahier des racines jusqu'à la Table des Sources.
 Rose""",
         tf_item=(
@@ -914,7 +921,9 @@ Cause + nom : à cause de (négatif ou neutre), grâce à (positif)
 Conséquence : donc, alors, c'est pourquoi
 Place : cause d'abord ou conséquence d'abord. C'est pourquoi souvent en tête de phrase.
 Pas : à cause que. Pas : grâce que.
-Donc se place souvent après une virgule : La terre a glissé, donc on plante.""",
+Donc se place souvent après une virgule : La terre a glissé, donc on plante.
+Au Seuil : on écrit parce que l'eau recule ; c'est pourquoi le cahier existe.
+Alors est plus parlé ; c'est pourquoi est plus posé, bon pour un appel.""",
         tf_item=(
             "« Puisque » présente souvent une cause que l'autre connaît déjà.",
             True,
@@ -1151,7 +1160,10 @@ Petite rivière — Seuil des Sources""",
 + de + nom ou infinitif : content de, heureux de, ravi de, fier de, sûr de, certain de, capable de, fatigué de
 Sens : à souvent « pour faire / vis-à-vis de l'action ». de souvent « à propos de / source du sentiment ».
 Attention : prêt à (pas prêt de). fier de (pas fier à). capable de.
-facile à dire ≠ je suis facile (la personne).""",
+facile à dire ≠ je suis facile (la personne).
+Exemples rive : prêt à porter les seaux ; fier de ce figuier ; content de signer.
+Difficile à filtrer. Utile à marcher ensemble. Fatigué de ramasser les plastiques.
+On retient ces listes pour Agir pour la nature, pas d'autres prépositions au hasard.""",
         tf_item=(
             "On dit « fier à » devant un nom.",
             False,
@@ -1252,6 +1264,7 @@ Avis 3 — Rose : Les enfants sont de plus en plus curieux du cahier.
 Avis 4 — Joël : Je marche de moins en moins vite près des nids.
 Avis 5 — Hawa : De plus en plus de signatures, de moins en moins de doutes.
 Avis 6 — Marc : Le soir, on discute de plus en plus longtemps.
+Avis 7 — Solange : Les pages sont de plus en plus pleines.
 Règle : adj. / adv. sans de ; nom avec de (d' devant voyelle).""",
         tf_item=(
             "Patrick parle d'une baisse d'eau en août.",
@@ -1387,7 +1400,9 @@ de moins en moins + adjectif : de moins en moins simple / patiente
 + adverbe : de plus en plus longtemps ; de moins en moins vite / fort
 + nom : de plus en plus de signatures ; de moins en moins d'eau (d' + voyelle)
 Accord de l'adjectif : on est de plus en plus nombreux ; je suis de plus en plus fière.
-On ne dit pas : de plus en plus de clair. On ne dit pas : de plus en plus signatures.""",
+On ne dit pas : de plus en plus de clair. On ne dit pas : de plus en plus signatures.
+Sous le figuier : de plus en plus de signatures ; de moins en moins d'ombre au milieu.
+Je suis de moins en moins d'accord avec les sacs trop lourds.""",
         tf_item=(
             "Devant un nom, il faut de (ou d').",
             True,

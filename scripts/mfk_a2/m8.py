@@ -175,6 +175,7 @@ Ce matin, la Table des Sources a été nettoyée.
 Deux seaux ont été remplis. Ils ont été posés par Joël.
 La nouvelle a été lue à Radio Figuier. Elle a été notée par Léa.
 Rien n'a été oublié. Le cahier a été refermé.
+Le bulletin a été relu une dernière fois avant l'antenne.
 Hawa
 Émission « Le monde en direct »""",
         tf_item=(
@@ -219,7 +220,8 @@ Temps : a été + PP (passé). est + PP (présent). sera + PP (futur).
 Accord du PP avec le sujet : la nouvelle a été lue ; les noms ont été ajoutés.
 Agent facultatif : par + personne. Sans agent : Le pont a été réparé.
 On choisit le passif pour mettre le fait en avant, comme à la radio.
-Pas : le pont a réparé (si le pont n'est pas l'auteur).""",
+Pas : le pont a réparé (si le pont n'est pas l'auteur).
+Au Seuil : la nouvelle a été lue ; deux tuteurs ont été plantés par Rose.""",
         tf_item=(
             "L'agent est obligatoire au passif.",
             False,
@@ -448,7 +450,8 @@ annoncer → l'annonce ; informer → l'information
 protéger → la protection ; choisir → le choix
 ouvrir → l'ouverture ; fermer → la fermeture ; arriver → l'arrivée
 Souvent : -er → -tion / -sion. Parfois un nom court : le choix, l'annonce.
-Article : la / l' / le. On ne laisse pas le verbe tel quel comme nom.""",
+Article : la / l' / le. On ne laisse pas le verbe tel quel comme nom.
+À Radio Figuier : décider → la décision ; informer → l'information du matin.""",
         tf_item=(
             "Tous les noms viennent d'un verbe en -tion.",
             False,
@@ -677,7 +680,8 @@ Verbes en -ger : en mangeant (e garde). -cer : en commençant (ç).
 Sens 1 : en même temps. Sens 2 : manière (en précisant, en riant).
 tout en + -ant : deux actions ensemble, parfois un léger contraste.
 Ne pas confondre : pour + infinitif (but) et en + -ant (manière / temps).
-Un seul sujet : En partant, rangez (vous partez et vous rangez).""",
+Un seul sujet : En partant, rangez (vous partez et vous rangez).
+Studio : en ouvrant l'antenne, souriez ; j'ai compris en écoutant Hawa.""",
         tf_item=(
             "« Pour écouter » est un gérondif.",
             False,
@@ -910,7 +914,8 @@ on pourrait / on devrait + infinitif (sans de)
 il vaudrait mieux + infinitif
 et si on + imparfait : Et si on invitait… ?
 Plus poli que l'impératif : on suggère, on n'ordonne pas.
-Attention : je suggérerais de (pas à). Je proposerais de (pas à).""",
+Attention : je suggérerais de (pas à). Je proposerais de (pas à).
+Autour de la table : on pourrait attendre Hawa ; il vaudrait mieux vérifier.""",
         tf_item=(
             "« On pourrait » se construit sans de.",
             True,
@@ -1108,7 +1113,7 @@ Radio Figuier — Rukiri-Nord""",
         ),
         qcm_item=(
             "Jusqu'où Hawa veut-elle que le Seuil soit écouté ?",
-            ["Val-des-Peupliers seulement", "Port de la Brise", "Paris", "Lyon"],
+            ["Val-des-Peupliers seulement", "Port de la Brise", "Mwezi-Haut seulement", "Rive d'Orage seulement"],
             1,
             "« jusqu'à Port de la Brise. »",
         ),
@@ -1372,7 +1377,8 @@ Patrick
 3. on = les gens / tout le monde : On dit que… On raconte que…
 Participe : on est allé (accord possible au sens nous, avancé). Ici : on a lu (invariable avec avoir si pas de COD avant).
 On n'écrit pas : on sommes, on ont, on allons.
-Élision : l'on (rare, après si, que : si l'on relit) — possible, pas obligatoire.""",
+Élision : l'on (rare, après si, que : si l'on relit) — possible, pas obligatoire.
+Livre du Seuil : on a lu « Le figuier n'oublie pas » ; on dit que l'arbre entend.""",
         tf_item=(
             "On écrit « on allons » quand on veut dire nous.",
             False,
