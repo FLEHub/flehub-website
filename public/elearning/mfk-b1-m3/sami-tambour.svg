@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="320" height="200" viewBox="0 0 320 200">
+  <rect width="320" height="200" rx="16" fill="#F7EFE4"/>
+  <rect x="10" y="10" width="300" height="180" rx="12" fill="#FFF8F0" stroke="#C4563A" stroke-width="3"/>
+  <circle cx="94" cy="76" r="24" fill="#C4563A" opacity="0.88"/>
+  <rect x="166" y="51" width="107" height="73" rx="10" fill="#1E6B66" opacity="0.82"/>
+  <polygon points="64,160 114,111 164,160" fill="#C4563A" opacity="0.75"/>
+  <text x="160" y="188" text-anchor="middle" font-family="Georgia, serif" font-size="11" fill="#5C4033">sami tambour</text>
+</svg>

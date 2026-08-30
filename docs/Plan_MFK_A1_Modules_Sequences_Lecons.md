@@ -418,3 +418,141 @@ Illustrations : `/elearning/mfk-a2-m7/`
 
 Seed : `supabase/migrations/20260829180700_elearning_mfk_a2_module8_monde_direct.sql`  
 Illustrations : `/elearning/mfk-a2-m8/`
+
+---
+
+# Plan MFK — Niveau B1 (8 modules)
+
+Même architecture (tables `elearning_*`, 6 séquences × 5 leçons × 10 exercices, `published = false`).  
+Les 4 axes communicatifs de la référence sont développés, puis **deux séquences supplémentaires** par module (synthèse ou prolongement).  
+Cosmopolite 3 : objectifs génériques seulement. Univers Seuil des Sources. Lieux B1 inventés : Rive-des-Saules, Pavillon du Saule, Lampe-Figue, Filtre des Herbes, Saison des Voix.
+
+Relecture consolidée : `docs/Relecture_MFK_B1_Modules1-8.md`
+
+## Module B1-1 — Ailleurs, un nouveau chez-soi
+
+| Titre | B1 — Ailleurs, un nouveau chez-soi |
+
+| # | Séquence | Point de langue |
+| --- | --- | --- |
+| 1.1 | Choisir un lieu de vie | Verbes prépositionnels d'expatriation ; mise en garde |
+| 1.2 | Formuler un souhait | Conditionnel présent ; demande polie |
+| 1.3 | Un quartier à caractériser | Place de l'adjectif ; hypothèse `si` + imparfait |
+| 1.4 | Souvenirs d'arrivée | Relatifs `où` / `dont` |
+| 1.5 | Deux rives, un choix | Synthèse : prépositionnels + conditionnel |
+| 1.6 | Écrire à ceux qui restent | Lettre ; politesse ; lien des deux rives |
+
+Seed : `supabase/migrations/20260830120000_elearning_mfk_b1_module1_ailleurs_nouveau_chez_soi.sql`  
+Illustrations : `/elearning/mfk-b1-m1/`
+
+## Module B1-2 — S'installer autrement
+
+| Titre | B1 — S'installer autrement |
+
+| # | Séquence | Point de langue |
+| --- | --- | --- |
+| 2.1 | Un souci du quotidien | Subjonctif des sentiments |
+| 2.2 | Anticiper un problème de santé | Conséquence (`donc`, `si bien que`, `c'est pourquoi`) |
+| 2.3 | Des papiers à remplir | Impératif + pronoms ; discours indirect |
+| 2.4 | Goûts et façons de vivre | Négation nuancée |
+| 2.5 | Trouver un rythme | Synthèse habitudes / changement |
+| 2.6 | Un voisinage à tisser | Médiation, compromis |
+
+Seed : `supabase/migrations/20260830120100_elearning_mfk_b1_module2_sinstaller_autrement.sql`  
+Illustrations : `/elearning/mfk-b1-m2/`
+
+## Module B1-3 — Organiser la fête
+
+| Titre | B1 — Organiser la fête |
+
+| # | Séquence | Point de langue |
+| --- | --- | --- |
+| 3.1 | Proposer une sortie | Conseils ; mise en relief |
+| 3.2 | Convaincre le groupe | Expression du but (`pour que`, `afin de`) |
+| 3.3 | Fêtes et coutumes | `en` / `y` ; concession (`bien que`) |
+| 3.4 | Autour de la soirée | Démonstratifs et indéfinis |
+| 3.5 | Préparer la veillée | Synthèse d'organisation |
+| 3.6 | Après la fête | Raconter, remercier |
+
+Seed : `supabase/migrations/20260830120200_elearning_mfk_b1_module3_organiser_la_fete.sql`  
+Illustrations : `/elearning/mfk-b1-m3/`
+
+## Module B1-4 — Agir pour demain
+
+| Titre | B1 — Agir pour demain |
+
+| # | Séquence | Point de langue |
+| --- | --- | --- |
+| 4.1 | Rendre compte, adhérer, nuancer | Indéfinis de quantité |
+| 4.2 | Débattre de solutions | Participe présent ; adverbes `-ment` ; intensité |
+| 4.3 | Un projet pour la rive | Infinitif et subjonctif de but |
+| 4.4 | Persuader d'agir | Éco-gestes ; persuasion |
+| 4.5 | Mesurer l'impact | `de plus en plus` / `de moins en moins` |
+| 4.6 | Convaincre le Bureau | Lettre, pétition, Cahier des racines |
+
+Seed : `supabase/migrations/20260830120300_elearning_mfk_b1_module4_agir_pour_demain.sql`  
+Illustrations : `/elearning/mfk-b1-m4/`
+
+## Module B1-5 — Étudier et travailler autrement
+
+| Titre | B1 — Étudier et travailler autrement |
+
+| # | Séquence | Point de langue |
+| --- | --- | --- |
+| 5.1 | Dire son parcours | Articulateurs de lettre de motivation |
+| 5.2 | Se préparer à l'entretien | Conseils d'embauche |
+| 5.3 | Oser une expérience | Valoriser une prise de risque |
+| 5.4 | Une journée de métier | `où` ; gérondif vs participe présent |
+| 5.5 | Un stage à la radio | Plateau de Radio Figuier |
+| 5.6 | Bilan de la première semaine | Synthèse parcours + gérondif |
+
+Seed : `supabase/migrations/20260830120400_elearning_mfk_b1_module5_etudier_travailler.sql`  
+Illustrations : `/elearning/mfk-b1-m5/`
+
+## Module B1-6 — S'informer, s'exprimer
+
+| Titre | B1 — S'informer, s'exprimer |
+
+| # | Séquence | Point de langue |
+| --- | --- | --- |
+| 6.1 | Lire une source | Concession ; voix passive |
+| 6.2 | Écrire un fait divers | Récit journalistique ; temps du passé |
+| 6.3 | Démasquer une rumeur | `d'après` / `il paraît` / `il a été confirmé` |
+| 6.4 | Tenir le micro | Mise en évidence (`ce qui` / `c'est… que`) |
+| 6.5 | Préparer le journal parlé | Structure d'une émission |
+| 6.6 | L'éthique du micro | Droit de réponse ; charte inventée |
+
+Seed : `supabase/migrations/20260830120500_elearning_mfk_b1_module6_sinformer_sexprimer.sql`  
+Illustrations : `/elearning/mfk-b1-m6/`
+
+## Module B1-7 — L'esprit d'innovation
+
+| Titre | B1 — L'esprit d'innovation |
+
+| # | Séquence | Point de langue |
+| --- | --- | --- |
+| 7.1 | Des talents à découvrir | Relatifs composés (`auquel`, `duquel`…) |
+| 7.2 | Expliquer une découverte | Présenter une innovation |
+| 7.3 | Argumenter pas à pas | Progression chronologique |
+| 7.4 | Imaginer demain | Doute et certitude (indicatif / subjonctif) |
+| 7.5 | Le prototype sous le figuier | Test de la Lampe-Figue |
+| 7.6 | Pitcher devant la cour | Oral de synthèse |
+
+Seed : `supabase/migrations/20260830120600_elearning_mfk_b1_module7_esprit_innovation.sql`  
+Illustrations : `/elearning/mfk-b1-m7/`
+
+## Module B1-8 — Un monde de culture
+
+| Titre | B1 — Un monde de culture |
+
+| # | Séquence | Point de langue |
+| --- | --- | --- |
+| 8.1 | Une critique enthousiaste | Superlatif |
+| 8.2 | Spectacles et parcours | Spectacles vivants ; parcours artistique |
+| 8.3 | Réagir à une œuvre | Double pronominalisation |
+| 8.4 | Pourquoi lire | Interrogation (`qu'est-ce qui` / inversion) |
+| 8.5 | Soirée lecture | Cercle du Cahier du chemin |
+| 8.6 | Inventer une saison | Programmer la Saison des Voix |
+
+Seed : `supabase/migrations/20260830120700_elearning_mfk_b1_module8_monde_de_culture.sql`  
+Illustrations : `/elearning/mfk-b1-m8/`
