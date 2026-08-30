@@ -556,3 +556,141 @@ Illustrations : `/elearning/mfk-b1-m7/`
 
 Seed : `supabase/migrations/20260830120700_elearning_mfk_b1_module8_monde_de_culture.sql`  
 Illustrations : `/elearning/mfk-b1-m8/`
+
+---
+
+# Plan MFK — Niveau B2 (8 modules)
+
+Même architecture (tables `elearning_*`, 6 séquences × 5 leçons × 10 exercices, `published = false`).  
+Les 4 axes de la référence sont développés, plus **deux séquences** de débat ou de prolongement. Supports plus longs et argumentatifs (articles, interviews, débats).  
+Cosmopolite 4 : objectifs génériques seulement. Univers Seuil des Sources.
+
+Relecture consolidée : `docs/Relecture_MFK_B2_Modules1-8.md`
+
+## Module B2-1 — Tendances du Seuil
+
+| Titre | B2 — Tendances du Seuil |
+
+| # | Séquence | Point de langue |
+| --- | --- | --- |
+| 1.1 | Mode et apparence | Participe présent / adjectif verbal ; participe composé |
+| 1.2 | Tendance alimentaire | Futur antérieur |
+| 1.3 | Vacances et pratiques sociales | Opposition et concession |
+| 1.4 | Introduire un texte explicatif | Conjonctions de temps |
+| 1.5 | Débattre des tendances | Synthèse sous le figuier |
+| 1.6 | Une chronique pour Radio Figuier | Article / oral argumenté |
+
+Seed : `supabase/migrations/20260830140000_elearning_mfk_b2_module1_tendances_seuil.sql`  
+Illustrations : `/elearning/mfk-b2-m1/`
+
+## Module B2-2 — Mémoire du Seuil
+
+| Titre | B2 — Mémoire du Seuil |
+
+| # | Séquence | Point de langue |
+| --- | --- | --- |
+| 2.1 | Hypothèses sur le passé | `si` + PQP → conditionnel passé |
+| 2.2 | Un métier, une société | Évolution sociale ; décrire un métier |
+| 2.3 | Lieux d'enfance | Passé simple (compréhension) ; prépositions de lieu |
+| 2.4 | Raconter l'histoire autrement | Voix, archives, radio |
+| 2.5 | Archives du Cahier du chemin | Documents inventés |
+| 2.6 | Table ronde « ce que le figuier a vu » | Débat / synthèse |
+
+Seed : `supabase/migrations/20260830140100_elearning_mfk_b2_module2_memoire_seuil.sql`  
+Illustrations : `/elearning/mfk-b2-m2/`
+
+## Module B2-3 — Une culture commune
+
+| Titre | B2 — Une culture commune |
+
+| # | Séquence | Point de langue |
+| --- | --- | --- |
+| 3.1 | Préférences et résumés | Comparatifs et superlatifs |
+| 3.2 | Débattre et portraits | Relatifs (dont composés) |
+| 3.3 | Problème culturel, solutions | Mise en relief |
+| 3.4 | Tendance et création | `en` / `y` ; registres |
+| 3.5 | Bilan de la Saison des Voix | Critique |
+| 3.6 | Manifeste culturel du Seuil | Texte argumenté |
+
+Seed : `supabase/migrations/20260830140200_elearning_mfk_b2_module3_culture_commune.sql`  
+Illustrations : `/elearning/mfk-b2-m3/`
+
+## Module B2-4 — Vivre avec la technologie
+
+| Titre | B2 — Vivre avec la technologie |
+
+| # | Séquence | Point de langue |
+| --- | --- | --- |
+| 4.1 | Actualité technologique | Inversion ; préfixes négatifs |
+| 4.2 | Évolution sociétale | Exprimer la durée |
+| 4.3 | Mémoire et réseaux | Préfixe `re-` ; cause / conséquence |
+| 4.4 | Raisonnement sur la déconnexion | Connecteurs de raisonnement |
+| 4.5 | Charte numérique de Radio Figuier | Texte de charte |
+| 4.6 | Débat « Lampe-Figue et le fil » | Pour / contre |
+
+Seed : `supabase/migrations/20260830140300_elearning_mfk_b2_module4_vivre_technologie.sql`  
+Illustrations : `/elearning/mfk-b2-m4/`
+
+## Module B2-5 — Questions de société
+
+| Titre | B2 — Questions de société |
+
+| # | Séquence | Point de langue |
+| --- | --- | --- |
+| 5.1 | Un enjeu à analyser | Voix passive |
+| 5.2 | Prendre position | Emplois du subjonctif |
+| 5.3 | Fait culturel et politique | Assemblée, motion, veillée |
+| 5.4 | Nuancer une comparaison | Subjonctif d'alternative |
+| 5.5 | Enquête à Rukiri-Nord | Rapport d'enquête |
+| 5.6 | Éditorial pour le Cahier des racines | Éditorial |
+
+Seed : `supabase/migrations/20260830140400_elearning_mfk_b2_module5_questions_societe.sql`  
+Illustrations : `/elearning/mfk-b2-m5/`
+
+## Module B2-6 — Faire évoluer la société
+
+| Titre | B2 — Faire évoluer la société |
+
+| # | Séquence | Point de langue |
+| --- | --- | --- |
+| 6.1 | Dresser un bilan | Condition (`pourvu que`, `à moins que`) |
+| 6.2 | Prise de conscience et recommandations | Conditionnel ; conditionnel passé |
+| 6.3 | Action citoyenne | Indéfinis |
+| 6.4 | Dénoncer et proposer | Locutions prépositionnelles ; accord PP / COD |
+| 6.5 | Assemblée sous le figuier | Synthèse orale |
+| 6.6 | Motion au Bureau des Escales | Texte formel |
+
+Seed : `supabase/migrations/20260830140500_elearning_mfk_b2_module6_evoluer_societe.sql`  
+Illustrations : `/elearning/mfk-b2-m6/`
+
+## Module B2-7 — Agir au travail
+
+| Titre | B2 — Agir au travail |
+
+| # | Séquence | Point de langue |
+| --- | --- | --- |
+| 7.1 | Pratiques et parcours | Discours indirect présent / passé |
+| 7.2 | Identifier des compétences | Lexique professionnel |
+| 7.3 | Communiquer au travail | Double pronominalisation ; figures de style |
+| 7.4 | Métier et point de vue | Expressions pour nuancer |
+| 7.5 | Entretien croisé Atelier / Radio | Dialogue professionnel |
+| 7.6 | Charte du travail au Seuil | Texte de charte |
+
+Seed : `supabase/migrations/20260830140600_elearning_mfk_b2_module7_agir_travail.sql`  
+Illustrations : `/elearning/mfk-b2-m7/`
+
+## Module B2-8 — Modèles éducatifs
+
+| Titre | B2 — Modèles éducatifs |
+
+| # | Séquence | Point de langue |
+| --- | --- | --- |
+| 8.1 | Objectifs et expériences novatrices | Relatives de but / souhait ; subjonctif d'opinion |
+| 8.2 | Expliquer et commenter des résultats | Commentaire de chiffres inventés |
+| 8.3 | L'utilité des diplômes | Subjonctif de probabilité |
+| 8.4 | Une initiative, des différences | `ne… ni… ni…` |
+| 8.5 | Bilan pédagogique d'Aline | Synthèse |
+| 8.6 | Projet d'école de la cour | Manifeste éducatif |
+
+Seed : `supabase/migrations/20260830140700_elearning_mfk_b2_module8_modeles_educatifs.sql`  
+Illustrations : `/elearning/mfk-b2-m8/`
