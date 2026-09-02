@@ -179,10 +179,15 @@ export function Sidebar({
 
   const sidebarWidth = collapsed ? 'w-16' : 'w-60'
 
-  const SidebarContent = ({ expanded }: { expanded: boolean }) => (
+  const SidebarContent = ({ expanded, isMobile }: { expanded: boolean; isMobile?: boolean }) => (
     <div className="flex h-full flex-col bg-white border-r border-gray-200 shadow-sm">
       {/* Logo */}
-      <div className="flex min-h-16 items-center justify-between gap-1 px-3 py-2.5 border-b border-gray-100">
+      <div
+        className={cn(
+          'flex min-h-16 items-center justify-between gap-1 py-2.5 border-b border-gray-100',
+          isMobile ? 'pl-14 pr-3' : 'px-3'
+        )}
+      >
         <Link
           href="/"
           className="flex items-center gap-2 min-w-0 flex-1 bg-transparent shadow-none"
@@ -319,7 +324,7 @@ export function Sidebar({
         )}
         aria-hidden={!mobileOpen}
       >
-        <SidebarContent expanded />
+        <SidebarContent expanded isMobile />
       </aside>
 
       {/* Desktop sidebar */}
