@@ -147,7 +147,7 @@ export function Header({ title, profile }: HeaderProps) {
     <header className="fixed top-0 left-0 right-0 z-20 h-16 bg-white border-b border-gray-200 shadow-sm lg:left-60">
       <div className="flex h-full items-center justify-between px-4 sm:px-6">
         {/* Page title */}
-        <div className="flex items-center gap-3 pl-10 lg:pl-0">
+        <div className="flex items-center gap-3 pl-14 lg:pl-0 min-w-0">
           <h1 className="text-lg font-semibold text-gray-900 truncate">{title}</h1>
         </div>
 
@@ -160,7 +160,7 @@ export function Header({ title, profile }: HeaderProps) {
                 setNotifOpen((v) => !v)
                 setUserMenuOpen(false)
               }}
-              className="relative flex items-center justify-center w-9 h-9 rounded-lg text-gray-500 hover:text-gray-900 hover:bg-gray-100 transition-colors"
+              className="relative flex h-11 w-11 items-center justify-center rounded-lg text-gray-500 hover:text-gray-900 hover:bg-gray-100 transition-colors"
               aria-label="Notifications"
             >
               <Bell className="w-5 h-5" />
@@ -172,7 +172,7 @@ export function Header({ title, profile }: HeaderProps) {
             </button>
 
             {notifOpen && (
-              <div className="absolute right-0 top-11 w-80 bg-white rounded-xl border border-gray-200 shadow-lg overflow-hidden z-50">
+              <div className="absolute right-0 top-12 w-[min(20rem,calc(100vw-1.5rem))] bg-white rounded-xl border border-gray-200 shadow-lg overflow-hidden z-50">
                 <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100">
                   <span className="font-semibold text-sm text-gray-900">Notifications</span>
                   {unreadCount > 0 && (
@@ -237,7 +237,7 @@ export function Header({ title, profile }: HeaderProps) {
                 setUserMenuOpen((v) => !v)
                 setNotifOpen(false)
               }}
-              className="flex items-center gap-2 rounded-lg px-2 py-1.5 hover:bg-gray-100 transition-colors"
+              className="flex min-h-11 items-center gap-2 rounded-lg px-2 py-1.5 hover:bg-gray-100 transition-colors"
               aria-label="User menu"
             >
               <Avatar className="w-7 h-7">
@@ -257,7 +257,7 @@ export function Header({ title, profile }: HeaderProps) {
             </button>
 
             {userMenuOpen && (
-              <div className="absolute right-0 top-11 w-52 bg-white rounded-xl border border-gray-200 shadow-lg overflow-hidden z-50">
+              <div className="absolute right-0 top-12 w-[min(13rem,calc(100vw-1.5rem))] bg-white rounded-xl border border-gray-200 shadow-lg overflow-hidden z-50">
                 <div className="px-4 py-3 border-b border-gray-100">
                   <p className="text-sm font-semibold text-gray-900 truncate">
                     {profile.full_name || 'User'}
@@ -274,7 +274,7 @@ export function Header({ title, profile }: HeaderProps) {
                 <div className="py-1">
                   <Link
                     href={`${roleDashboardPath}/profile`}
-                    className="flex items-center gap-2.5 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 hover:text-gray-900 transition-colors"
+                    className="flex min-h-11 items-center gap-2.5 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 hover:text-gray-900 transition-colors"
                     onClick={() => setUserMenuOpen(false)}
                   >
                     <User className="w-4 h-4 text-gray-400" />
@@ -282,7 +282,7 @@ export function Header({ title, profile }: HeaderProps) {
                   </Link>
                   <Link
                     href={`${roleDashboardPath}/settings`}
-                    className="flex items-center gap-2.5 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 hover:text-gray-900 transition-colors"
+                    className="flex min-h-11 items-center gap-2.5 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 hover:text-gray-900 transition-colors"
                     onClick={() => setUserMenuOpen(false)}
                   >
                     <Settings className="w-4 h-4 text-gray-400" />
@@ -294,7 +294,7 @@ export function Header({ title, profile }: HeaderProps) {
                   <button
                     onClick={handleSignOut}
                     disabled={signingOut}
-                    className="flex w-full items-center gap-2.5 px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors disabled:opacity-50"
+                    className="flex min-h-11 w-full items-center gap-2.5 px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors disabled:opacity-50"
                   >
                     <LogOut className="w-4 h-4" />
                     {signingOut ? 'Signing out…' : 'Sign Out'}

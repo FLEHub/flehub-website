@@ -354,7 +354,7 @@ export default function AdminJournalistsPage() {
           ) : rows.length === 0 ? (
             <p className="text-sm text-gray-500 py-8 text-center">No journalists yet.</p>
           ) : (
-            <div className="overflow-x-auto">
+            <div className="table-frame">
               <Table>
                 <TableHeader>
                   <TableRow>

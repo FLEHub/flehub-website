@@ -369,7 +369,7 @@ export default function AdminFinancesPage() {
           </Select>
         </CardHeader>
         <CardContent className="p-0">
-          <div className="overflow-x-auto">
+          <div className="table-frame">
             <Table>
               <TableHeader>
                 <TableRow>

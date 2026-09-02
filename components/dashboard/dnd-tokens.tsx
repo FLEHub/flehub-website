@@ -10,6 +10,13 @@ export interface DnDToken {
 
 const DND_TYPE = 'application/x-flehub-dnd';
 
+const TOKEN_CLASS =
+  'dnd-token inline-flex min-h-11 min-w-11 items-center justify-center px-3 py-2.5 rounded-md text-sm font-medium shadow-sm select-none cursor-grab active:cursor-grabbing';
+
+function lockPageScroll(lock: boolean) {
+  document.documentElement.classList.toggle('dnd-dragging', lock);
+}
+
 interface TokenSorterProps {
   /** Correct order labels (used only for validation by parent). */
   bank: DnDToken[];
@@ -75,6 +82,7 @@ export function TokenSorter({
     setGhost(null);
     pointerDragRef.current = null;
     dragLabelRef.current = '';
+    lockPageScroll(false);
   }
 
   function onHtmlDragStart(e: React.DragEvent, tokenId: string, label: string) {
@@ -140,10 +148,17 @@ export function TokenSorter({
     // Mouse uses HTML5 DnD; pointer path is for touch / pen
     if (e.pointerType === 'mouse') return;
     e.preventDefault();
+    e.stopPropagation();
+    try {
+      e.currentTarget.setPointerCapture(e.pointerId);
+    } catch {
+      /* ignore */
+    }
     pointerDragRef.current = { id: tokenId, active: true };
     dragLabelRef.current = label;
     setDraggingId(tokenId);
     setGhost({ x: e.clientX, y: e.clientY, label });
+    lockPageScroll(true);
   }
 
   return (
@@ -180,7 +195,8 @@ export function TokenSorter({
                 role="button"
                 tabIndex={0}
                 className={cn(
-                  'px-3 py-1.5 rounded-md bg-white border border-gray-200 text-sm font-medium text-gray-800 shadow-sm select-none cursor-grab active:cursor-grabbing',
+                  TOKEN_CLASS,
+                  'bg-white border border-gray-200 text-gray-800',
                   draggingId === token.id && 'opacity-40'
                 )}
                 onDragStart={(e) => onHtmlDragStart(e, token.id, token.label)}
@@ -227,7 +243,8 @@ export function TokenSorter({
                 role="button"
                 tabIndex={0}
                 className={cn(
-                  'px-3 py-1.5 rounded-md bg-flehub-green-light border border-flehub-green/30 text-sm font-medium text-flehub-green select-none cursor-grab active:cursor-grabbing',
+                  TOKEN_CLASS,
+                  'bg-flehub-green-light border border-flehub-green/30 text-flehub-green',
                   draggingId === token.id && 'opacity-40'
                 )}
                 onDragStart={(e) => onHtmlDragStart(e, token.id, token.label)}
@@ -243,7 +260,7 @@ export function TokenSorter({
 
       {ghost && (
         <div
-          className="pointer-events-none fixed z-[100] px-3 py-1.5 rounded-md bg-flehub-green text-white text-sm font-medium shadow-lg -translate-x-1/2 -translate-y-1/2"
+          className="pointer-events-none fixed z-[100] px-3 py-2.5 rounded-md bg-flehub-green text-white text-sm font-medium shadow-lg -translate-x-1/2 -translate-y-[120%]"
           style={{ left: ghost.x, top: ghost.y }}
         >
           {ghost.label}
@@ -302,6 +319,7 @@ export function MatchBoard({
     setGhost(null);
     pointerDragRef.current = null;
     dragLabelRef.current = '';
+    lockPageScroll(false);
   }
 
   function assignToTarget(targetId: string, sourceId: string) {
@@ -369,10 +387,17 @@ export function MatchBoard({
   function startPointerDrag(e: React.PointerEvent, sourceId: string, label: string) {
     if (e.pointerType === 'mouse') return;
     e.preventDefault();
+    e.stopPropagation();
+    try {
+      e.currentTarget.setPointerCapture(e.pointerId);
+    } catch {
+      /* ignore */
+    }
     pointerDragRef.current = { id: sourceId, active: true };
     dragLabelRef.current = label;
     setDraggingId(sourceId);
     setGhost({ x: e.clientX, y: e.clientY, label });
+    lockPageScroll(true);
   }
 
   return (
@@ -387,7 +412,7 @@ export function MatchBoard({
               data-dnd-drop="target"
               data-dnd-target-id={target.id}
               className={cn(
-                'flex items-center gap-3 rounded-lg border-2 border-dashed p-3 transition-colors',
+                'flex flex-col xs:flex-row sm:flex-row items-stretch sm:items-center gap-3 rounded-lg border-2 border-dashed p-3 transition-colors',
                 draggingId
                   ? 'border-flehub-green bg-flehub-green-light/30'
                   : 'border-gray-200 bg-gray-50'
@@ -407,7 +432,7 @@ export function MatchBoard({
                     <img
                       src={target.imageUrl}
                       alt={target.label || 'Image'}
-                      className="h-20 w-20 object-cover rounded-md border border-gray-100 bg-white pointer-events-none"
+                      className="h-20 w-20 max-w-full object-cover rounded-md border border-gray-100 bg-white pointer-events-none"
                       draggable={false}
                     />
                   ) : (
@@ -424,14 +449,17 @@ export function MatchBoard({
                   <p className="text-sm font-medium text-gray-800">{target.label}</p>
                 )}
               </div>
-              <div className="min-w-[120px] text-right">
+              <div className="min-w-0 sm:min-w-[120px] sm:text-right">
                 {label && assigned ? (
                   <div className="inline-flex items-center gap-1">
                     <div
                       draggable
                       role="button"
                       tabIndex={0}
-                      className="px-3 py-1.5 rounded-md bg-white border border-flehub-green text-sm text-flehub-green select-none cursor-grab active:cursor-grabbing"
+                      className={cn(
+                        TOKEN_CLASS,
+                        'bg-white border border-flehub-green text-flehub-green'
+                      )}
                       onDragStart={(e) => onHtmlDragStart(e, assigned, label)}
                       onDragEnd={clearDrag}
                       onPointerDown={(e) => startPointerDrag(e, assigned, label)}
@@ -440,7 +468,7 @@ export function MatchBoard({
                     </div>
                     <button
                       type="button"
-                      className="px-1.5 py-1 rounded-md text-xs text-gray-400 hover:text-red-500"
+                      className="flex h-11 w-11 items-center justify-center rounded-md text-gray-400 hover:text-red-500"
                       onClick={() => onAssign(target.id, null)}
                       aria-label="Retirer"
                     >
@@ -448,7 +476,9 @@ export function MatchBoard({
                     </button>
                   </div>
                 ) : (
-                  <span className="text-xs text-gray-400">Déposer ici</span>
+                  <span className="inline-flex min-h-11 items-center text-xs text-gray-400">
+                    Déposer ici
+                  </span>
                 )}
               </div>
             </div>
@@ -467,7 +497,8 @@ export function MatchBoard({
               role="button"
               tabIndex={0}
               className={cn(
-                'px-3 py-1.5 rounded-md bg-flehub-green-light border border-flehub-green/30 text-sm font-medium text-flehub-green select-none cursor-grab active:cursor-grabbing',
+                TOKEN_CLASS,
+                'bg-flehub-green-light border border-flehub-green/30 text-flehub-green',
                 draggingId === source.id && 'opacity-40'
               )}
               onDragStart={(e) => onHtmlDragStart(e, source.id, source.label)}
@@ -482,7 +513,7 @@ export function MatchBoard({
 
       {ghost && (
         <div
-          className="pointer-events-none fixed z-[100] px-3 py-1.5 rounded-md bg-flehub-green text-white text-sm font-medium shadow-lg -translate-x-1/2 -translate-y-1/2"
+          className="pointer-events-none fixed z-[100] px-3 py-2.5 rounded-md bg-flehub-green text-white text-sm font-medium shadow-lg -translate-x-1/2 -translate-y-[120%]"
           style={{ left: ghost.x, top: ghost.y }}
         >
           {ghost.label}

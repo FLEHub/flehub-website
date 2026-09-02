@@ -22,6 +22,7 @@ import {
   ChevronLeft,
   ChevronRight,
   Menu,
+  X,
   ClipboardList,
   BookOpenCheck,
   PenSquare,
@@ -129,20 +130,33 @@ export function Sidebar({
 
   const navItems = navByRole[role] ?? navByRole.learner
 
-  // On desktop, always expanded; on mobile, collapsed by default
+  // Desktop only: keep the rail expanded by default. On mobile the drawer
+  // is always fully labelled — never collapse it to icons.
   useEffect(() => {
     const handleResize = () => {
       if (window.innerWidth >= 1024) {
         setCollapsed(false)
         setMobileOpen(false)
-      } else {
-        setCollapsed(true)
       }
     }
     handleResize()
     window.addEventListener('resize', handleResize)
     return () => window.removeEventListener('resize', handleResize)
   }, [])
+
+  useEffect(() => {
+    if (!mobileOpen) return
+    const prev = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setMobileOpen(false)
+    }
+    window.addEventListener('keydown', onKey)
+    return () => {
+      document.body.style.overflow = prev
+      window.removeEventListener('keydown', onKey)
+    }
+  }, [mobileOpen])
 
   const handleSignOut = async () => {
     setSigningOut(true)
@@ -165,7 +179,7 @@ export function Sidebar({
 
   const sidebarWidth = collapsed ? 'w-16' : 'w-60'
 
-  const SidebarContent = () => (
+  const SidebarContent = ({ expanded }: { expanded: boolean }) => (
     <div className="flex h-full flex-col bg-white border-r border-gray-200 shadow-sm">
       {/* Logo */}
       <div className="flex min-h-16 items-center justify-between gap-1 px-3 py-2.5 border-b border-gray-100">
@@ -175,7 +189,7 @@ export function Sidebar({
           style={{ backgroundColor: 'transparent' }}
         >
           <BrandLogo size={32} />
-          {!collapsed && (
+          {expanded && (
             <BrandMark
               shortName={orgShortName}
               tagline={orgTagline}
@@ -213,22 +227,22 @@ export function Sidebar({
               href={item.href}
               onClick={() => setMobileOpen(false)}
               className={cn(
-                'sidebar-link flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all duration-150',
+                'sidebar-link flex min-h-11 items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all duration-150',
                 isActive
                   ? 'sidebar-link active bg-[#E8F1FA] text-[#1E5FA8]'
                   : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900',
-                collapsed && 'justify-center px-2'
+                !expanded && 'justify-center px-2'
               )}
-              title={collapsed ? item.label : undefined}
+              title={!expanded ? item.label : undefined}
             >
               <Icon
                 className={cn(
                   'flex-shrink-0',
-                  collapsed ? 'w-5 h-5' : 'w-4 h-4',
+                  !expanded ? 'w-5 h-5' : 'w-4 h-4',
                   isActive ? 'text-[#1E5FA8]' : 'text-gray-500'
                 )}
               />
-              {!collapsed && <span className="truncate">{item.label}</span>}
+              {expanded && <span className="truncate">{item.label}</span>}
             </Link>
           )
         })}
@@ -239,7 +253,7 @@ export function Sidebar({
         <div
           className={cn(
             'flex items-center gap-3 rounded-lg p-2',
-            collapsed && 'justify-center'
+            !expanded && 'justify-center'
           )}
         >
           <Avatar className="flex-shrink-0 w-8 h-8">
@@ -247,7 +261,7 @@ export function Sidebar({
               {initials}
             </AvatarFallback>
           </Avatar>
-          {!collapsed && (
+          {expanded && (
             <div className="min-w-0 flex-1">
               <p className="text-sm font-medium text-gray-900 truncate">
                 {profile.full_name || 'User'}
@@ -263,13 +277,13 @@ export function Sidebar({
           onClick={handleSignOut}
           disabled={signingOut}
           className={cn(
-            'w-full text-gray-600 hover:text-red-600 hover:bg-red-50 transition-colors',
-            collapsed ? 'justify-center px-2' : 'justify-start gap-2'
+            'w-full min-h-11 text-gray-600 hover:text-red-600 hover:bg-red-50 transition-colors',
+            !expanded ? 'justify-center px-2' : 'justify-start gap-2'
           )}
-          title={collapsed ? 'Sign Out' : undefined}
+          title={!expanded ? 'Sign Out' : undefined}
         >
           <LogOut className="w-4 h-4 flex-shrink-0" />
-          {!collapsed && <span>{signingOut ? 'Signing out…' : 'Sign Out'}</span>}
+          {expanded && <span>{signingOut ? 'Signing out…' : 'Sign Out'}</span>}
         </Button>
       </div>
     </div>
@@ -277,13 +291,15 @@ export function Sidebar({
 
   return (
     <>
-      {/* Mobile hamburger */}
+      {/* Mobile hamburger — overlays content, does not steal layout width */}
       <button
+        type="button"
         onClick={() => setMobileOpen((v) => !v)}
-        className="lg:hidden fixed top-4 left-4 z-50 flex items-center justify-center w-9 h-9 rounded-lg bg-white border border-gray-200 shadow-sm text-gray-600 hover:text-gray-900"
-        aria-label="Toggle navigation"
+        className="lg:hidden fixed top-3 left-3 z-[60] flex h-11 w-11 items-center justify-center rounded-lg bg-white border border-gray-200 shadow-sm text-gray-700 hover:text-gray-900"
+        aria-label={mobileOpen ? 'Fermer le menu' : 'Ouvrir le menu'}
+        aria-expanded={mobileOpen}
       >
-        <Menu className="w-5 h-5" />
+        {mobileOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
       </button>
 
       {/* Mobile overlay */}
@@ -295,14 +311,15 @@ export function Sidebar({
         />
       )}
 
-      {/* Mobile drawer */}
+      {/* Mobile drawer overlay (full labels, never icon-only) */}
       <aside
         className={cn(
-          'lg:hidden fixed top-0 left-0 z-40 h-full w-60 transition-transform duration-200',
+          'lg:hidden fixed top-0 left-0 z-50 h-[var(--vvh,100dvh)] w-[min(16.5rem,calc(100vw-2.5rem))] max-w-xs transition-transform duration-200 pt-[env(safe-area-inset-top)]',
           mobileOpen ? 'translate-x-0' : '-translate-x-full'
         )}
+        aria-hidden={!mobileOpen}
       >
-        <SidebarContent />
+        <SidebarContent expanded />
       </aside>
 
       {/* Desktop sidebar */}
@@ -312,7 +329,7 @@ export function Sidebar({
           sidebarWidth
         )}
       >
-        <SidebarContent />
+        <SidebarContent expanded={!collapsed} />
       </aside>
     </>
   )

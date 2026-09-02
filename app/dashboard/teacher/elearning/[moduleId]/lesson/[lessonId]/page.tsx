@@ -415,7 +415,7 @@ export default function TeacherLessonEditPage() {
 
   if (loading) {
     return (
-      <div className="p-6 space-y-6 max-w-3xl mx-auto">
+      <div className="p-4 sm:p-6 space-y-6 max-w-3xl mx-auto">
         <Skeleton className="h-8 w-64" />
         <Skeleton className="h-40 w-full rounded-xl" />
         <Skeleton className="h-40 w-full rounded-xl" />
@@ -426,7 +426,7 @@ export default function TeacherLessonEditPage() {
   if (!lesson) return null;
 
   return (
-    <div className="p-6 space-y-6 max-w-3xl mx-auto">
+    <div className="p-4 sm:p-6 space-y-6 max-w-3xl mx-auto">
       <div className="space-y-2">
         <Button
           asChild
@@ -695,7 +695,7 @@ export default function TeacherLessonEditPage() {
       </Card>
 
       <Card>
-        <CardHeader className="pb-3 flex flex-row items-center justify-between gap-3">
+        <CardHeader className="pb-3 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div>
             <CardTitle className="text-base font-semibold">Exercices</CardTitle>
             <p className="text-xs text-gray-400 mt-1">
@@ -724,7 +724,7 @@ export default function TeacherLessonEditPage() {
             exercises.map((ex) => (
               <div
                 key={ex.id}
-                className="flex items-center justify-between gap-3 p-3 rounded-lg border border-gray-100 bg-gray-50"
+                className="flex items-center justify-between gap-3 p-3 min-h-[44px] rounded-lg border border-gray-100 bg-gray-50"
               >
                 <div className="min-w-0">
                   <p className="text-sm font-medium text-gray-800 truncate">{ex.title}</p>
@@ -736,7 +736,7 @@ export default function TeacherLessonEditPage() {
                   <Button
                     variant="ghost"
                     size="sm"
-                    className="text-flehub-green hover:bg-flehub-green-light"
+                    className="text-flehub-green hover:bg-flehub-green-light min-h-11 min-w-11"
                     onClick={() => openEditExercise(ex)}
                   >
                     <Pencil className="w-3.5 h-3.5" />
@@ -744,7 +744,7 @@ export default function TeacherLessonEditPage() {
                   <Button
                     variant="ghost"
                     size="sm"
-                    className="text-red-500 hover:bg-red-50"
+                    className="text-red-500 hover:bg-red-50 min-h-11 min-w-11"
                     onClick={() => setDeleteExerciseId(ex.id)}
                   >
                     <Trash2 className="w-3.5 h-3.5" />

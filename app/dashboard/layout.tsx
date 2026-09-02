@@ -4,6 +4,7 @@ import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { Sidebar } from '@/components/dashboard/sidebar'
 import { Header } from '@/components/dashboard/header'
+import { MobileViewport } from '@/components/dashboard/mobile-viewport'
 import { normalizeOrgBranding } from '@/lib/org-branding'
 
 export default async function DashboardLayout({
@@ -51,7 +52,8 @@ export default async function DashboardLayout({
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen overflow-x-clip bg-gray-50">
+      <MobileViewport />
       {/* Sidebar */}
       <Sidebar
         role={safeProfile.role}
@@ -60,13 +62,13 @@ export default async function DashboardLayout({
         orgTagline={branding.orgTagline}
       />
 
-      {/* Main area */}
-      <div className="lg:ml-60 flex flex-col min-h-screen transition-all duration-200">
+      {/* Main area — full width on mobile (no persistent sidebar gutter) */}
+      <div className="flex min-h-screen min-w-0 flex-col transition-all duration-200 lg:ml-60">
         {/* Top header */}
         <Header title="" profile={safeProfile} />
 
         {/* Page content */}
-        <main className="flex-1 pt-16">
+        <main className="min-w-0 flex-1 overflow-x-clip pt-16 pb-[var(--kb-inset,0px)]">
           {children}
         </main>
       </div>
