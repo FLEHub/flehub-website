@@ -97,17 +97,17 @@ export default async function HomePage() {
             <p className="text-sm sm:text-base text-white font-medium text-center sm:text-left">
               Accédez à la plateforme e-learning et aux services {shortName}.
             </p>
-            <div className="flex items-center gap-2">
+            <div className="flex w-full sm:w-auto flex-col sm:flex-row items-stretch sm:items-center gap-2">
               <Link
                 href="/app"
-                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-white hover:bg-[#FFF8E1] text-[#0B1F3A] text-sm font-bold shadow-md transition-colors"
+                className="inline-flex min-h-11 items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-white hover:bg-[#FFF8E1] text-[#0B1F3A] text-sm font-bold shadow-md transition-colors"
               >
                 Accéder à {shortName} App
                 <ArrowRight className="w-4 h-4" />
               </Link>
               <Link
                 href="/login"
-                className="inline-flex items-center px-4 py-2.5 rounded-xl border-2 border-white/70 bg-transparent text-white text-sm font-semibold hover:bg-white/15 transition-colors"
+                className="inline-flex min-h-11 items-center justify-center px-4 py-2.5 rounded-xl border-2 border-white/70 bg-transparent text-white text-sm font-semibold hover:bg-white/15 transition-colors"
               >
                 Se connecter
               </Link>

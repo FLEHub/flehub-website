@@ -62,7 +62,7 @@ export function HomeHero({ item }: Props) {
           )}
           <Link
             href={item.href}
-            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-[#F2B705] hover:bg-[#C99404] text-[#0B1F3A] text-sm font-bold shadow-md transition-colors"
+            className="inline-flex min-h-11 items-center gap-2 px-5 py-2.5 rounded-xl bg-[#F2B705] hover:bg-[#C99404] text-[#0B1F3A] text-sm font-bold shadow-md transition-colors"
           >
             Lire la suite
             <ArrowRight className="w-4 h-4" />
