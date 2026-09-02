@@ -281,7 +281,7 @@ export default function AdminPartnersPage() {
               No partners yet.
             </p>
           ) : (
-            <div className="overflow-x-auto">
+            <div className="table-frame">
               <Table>
                 <TableHeader>
                   <TableRow>

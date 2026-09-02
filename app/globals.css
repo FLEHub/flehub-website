@@ -35,13 +35,41 @@
     --mfk-gold: #F2B705;
     --mfk-green: #2E7D32;
     --mfk-silver: #C8CCD1;
+    --vvh: 100dvh;
+    --kb-inset: 0px;
   }
 }
 
 @layer base {
   * { @apply border-border; }
-  body { @apply bg-white text-foreground antialiased; }
+  html {
+    overflow-x: clip;
+  }
+  body {
+    @apply bg-white text-foreground antialiased;
+    overflow-x: clip;
+    padding-bottom: env(safe-area-inset-bottom);
+  }
   h1, h2, h3, h4, h5, h6 { @apply tracking-tight; }
+  img, video, canvas, svg, iframe, audio {
+    max-width: 100%;
+  }
+  audio {
+    width: 100%;
+  }
+}
+
+/* Phone: 16px inputs prevent iOS auto-zoom; 44px minimum touch height */
+@media (max-width: 1023px) {
+  input:not([type='checkbox']):not([type='radio']):not([type='range']):not([type='file']):not([type='hidden']):not([type='color']),
+  select,
+  textarea {
+    font-size: 16px !important;
+  }
+  input:not([type='checkbox']):not([type='radio']):not([type='range']):not([type='file']):not([type='hidden']):not([type='color']):not([type='submit']):not([type='button']):not([type='reset']),
+  select {
+    min-height: 44px;
+  }
 }
 
 @layer utilities {
@@ -84,6 +112,36 @@
 .flehub-modal-panel {
   background-color: #ffffff;
   color: #0B1F3A;
+}
+
+.table-frame {
+  width: 100%;
+  max-width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior-x: contain;
+}
+.table-frame table {
+  min-width: 32rem;
+}
+
+.dnd-token {
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+html.dnd-dragging,
+html.dnd-dragging body {
+  overflow: hidden;
+  touch-action: none;
+}
+
+@media (max-width: 1023px) {
+  .touch-target {
+    min-height: 44px;
+    min-width: 44px;
+  }
 }
 
 /* Accueil MFK : canvas coloré + motif géométrique subtil */

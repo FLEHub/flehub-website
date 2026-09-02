@@ -408,7 +408,7 @@ export default function LearnerDashboard() {
   ];
 
   return (
-    <div className="p-6 space-y-8 max-w-7xl mx-auto">
+    <div className="p-4 sm:p-6 space-y-8 max-w-7xl mx-auto">
       {/* Welcome Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
@@ -717,7 +717,7 @@ export default function LearnerDashboard() {
               upcomingExams.map((exam) => (
                 <div
                   key={exam.id}
-                  className="flex items-center justify-between gap-2 p-3 rounded-lg border border-gray-100"
+                  className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 p-3 rounded-lg border border-gray-100"
                 >
                   <div>
                     <div className="flex items-center gap-2 mb-1">

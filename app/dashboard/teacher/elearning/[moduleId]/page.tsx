@@ -297,7 +297,7 @@ export default function TeacherModuleDetailPage() {
 
   if (loading) {
     return (
-      <div className="p-6 space-y-6 max-w-5xl mx-auto">
+    <div className="p-4 sm:p-6 space-y-6 max-w-5xl mx-auto">
         <Skeleton className="h-8 w-64" />
         <Skeleton className="h-4 w-96" />
         <Skeleton className="h-40 w-full rounded-xl" />
@@ -309,7 +309,7 @@ export default function TeacherModuleDetailPage() {
   if (!module) return null;
 
   return (
-    <div className="p-6 space-y-6 max-w-5xl mx-auto">
+    <div className="p-4 sm:p-6 space-y-6 max-w-5xl mx-auto">
       <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
         <div className="space-y-2">
           <Button
@@ -402,11 +402,11 @@ export default function TeacherModuleDetailPage() {
                         </p>
                       </div>
                     </div>
-                    <div className="flex gap-1 shrink-0">
+                    <div className="flex flex-wrap gap-1 shrink-0">
                       <Button
                         variant="ghost"
                         size="sm"
-                        className="text-flehub-green hover:bg-flehub-green-light"
+                        className="text-flehub-green hover:bg-flehub-green-light min-h-11 min-w-11"
                         onClick={() => openEditSequence(seq)}
                       >
                         <Pencil className="w-3.5 h-3.5" />
@@ -414,7 +414,7 @@ export default function TeacherModuleDetailPage() {
                       <Button
                         variant="ghost"
                         size="sm"
-                        className="text-red-500 hover:bg-red-50"
+                        className="text-red-500 hover:bg-red-50 min-h-11 min-w-11"
                         onClick={() => setDeleteTarget({ type: 'sequence', id: seq.id })}
                       >
                         <Trash2 className="w-3.5 h-3.5" />
@@ -446,7 +446,7 @@ export default function TeacherModuleDetailPage() {
                         >
                           <Link
                             href={`/dashboard/teacher/elearning/${moduleId}/lesson/${lesson.id}`}
-                            className="flex items-center gap-3 min-w-0 flex-1"
+                            className="flex min-h-11 items-center gap-3 min-w-0 flex-1"
                           >
                             <BookOpen className="w-4 h-4 text-gray-400 group-hover:text-flehub-green shrink-0" />
                             <p className="text-sm font-medium text-gray-800 truncate">
@@ -466,7 +466,7 @@ export default function TeacherModuleDetailPage() {
                           <Button
                             variant="ghost"
                             size="sm"
-                            className="text-red-400 hover:text-red-600 hover:bg-red-50 h-8 w-8 p-0 shrink-0"
+                            className="text-red-400 hover:text-red-600 hover:bg-red-50 h-11 w-11 min-h-[44px] min-w-[44px] p-0 shrink-0"
                             onClick={() =>
                               setDeleteTarget({ type: 'lesson', id: lesson.id })
                             }

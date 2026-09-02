@@ -256,15 +256,15 @@ export default function TeacherDashboard() {
   ];
 
   return (
-    <div className="p-6 space-y-8 max-w-7xl mx-auto">
-      <div className="flex items-center justify-between">
+    <div className="p-4 sm:p-6 space-y-8 max-w-7xl mx-auto">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Espace enseignant</h1>
           <p className="text-gray-500 text-sm mt-1">
             Gérez vos modules eLearning, sessions et corrections
           </p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2">
           <Button
             variant="outline"
             size="sm"
@@ -361,7 +361,7 @@ export default function TeacherDashboard() {
                     <Button
                       size="sm"
                       variant="outline"
-                      className="h-6 text-xs text-flehub-green border-flehub-green hover:bg-flehub-green-light"
+                      className="min-h-11 text-xs text-flehub-green border-flehub-green hover:bg-flehub-green-light sm:h-6 sm:min-h-0"
                     >
                       Rejoindre
                     </Button>
@@ -388,34 +388,51 @@ export default function TeacherDashboard() {
                 Aucune activité récente
               </p>
             ) : (
-              <div className="overflow-x-auto">
-                <table className="w-full text-sm">
-                  <thead>
-                    <tr className="border-b border-gray-100">
-                      <th className="text-left pb-2 text-gray-500 font-medium">Apprenant</th>
-                      <th className="text-left pb-2 text-gray-500 font-medium">Module</th>
-                      <th className="text-left pb-2 text-gray-500 font-medium">Leçon</th>
-                      <th className="text-left pb-2 text-gray-500 font-medium">Complétée</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {activity.map((a) => (
-                      <tr key={a.id} className="border-b border-gray-50 hover:bg-gray-50">
-                        <td className="py-2 font-medium text-gray-800">{a.learner_name}</td>
-                        <td className="py-2 text-gray-600 max-w-[140px] truncate">
-                          {a.module_title}
-                        </td>
-                        <td className="py-2 text-gray-600 max-w-[140px] truncate">
-                          {a.lesson_title}
-                        </td>
-                        <td className="py-2 text-xs text-gray-400">
-                          {new Date(a.completed_at).toLocaleDateString('fr-FR')}
-                        </td>
+              <>
+                <div className="table-frame hidden sm:block">
+                  <table className="w-full text-sm">
+                    <thead>
+                      <tr className="border-b border-gray-100">
+                        <th className="text-left pb-2 text-gray-500 font-medium">Apprenant</th>
+                        <th className="text-left pb-2 text-gray-500 font-medium">Module</th>
+                        <th className="text-left pb-2 text-gray-500 font-medium">Leçon</th>
+                        <th className="text-left pb-2 text-gray-500 font-medium">Complétée</th>
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
+                    </thead>
+                    <tbody>
+                      {activity.map((a) => (
+                        <tr key={a.id} className="border-b border-gray-50 hover:bg-gray-50">
+                          <td className="py-2 font-medium text-gray-800">{a.learner_name}</td>
+                          <td className="py-2 text-gray-600 max-w-[140px] truncate">
+                            {a.module_title}
+                          </td>
+                          <td className="py-2 text-gray-600 max-w-[140px] truncate">
+                            {a.lesson_title}
+                          </td>
+                          <td className="py-2 text-xs text-gray-400">
+                            {new Date(a.completed_at).toLocaleDateString('fr-FR')}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+                <div className="space-y-2 sm:hidden">
+                  {activity.map((a) => (
+                    <div
+                      key={a.id}
+                      className="rounded-lg border border-gray-100 bg-gray-50 p-3 space-y-1"
+                    >
+                      <p className="font-medium text-sm text-gray-800">{a.learner_name}</p>
+                      <p className="text-xs text-gray-600 truncate">{a.module_title}</p>
+                      <p className="text-xs text-gray-500 truncate">{a.lesson_title}</p>
+                      <p className="text-xs text-gray-400">
+                        {new Date(a.completed_at).toLocaleDateString('fr-FR')}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              </>
             )}
           </CardContent>
         </Card>

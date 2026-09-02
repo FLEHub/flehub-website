@@ -72,7 +72,7 @@ export function LessonContentView({
     }
     return (
       <div
-        className={`relative w-full aspect-video rounded-lg overflow-hidden bg-black ${className}`}
+        className={`relative w-full max-w-full aspect-video rounded-lg overflow-hidden bg-black ${className}`}
       >
         <iframe
           src={embed}
@@ -101,7 +101,7 @@ export function LessonContentView({
       <img
         src={signedUrl}
         alt="Contenu de la leçon"
-        className={`w-full max-h-[480px] object-contain rounded-lg border border-gray-100 bg-gray-50 ${className}`}
+        className={`w-full max-w-full h-auto max-h-[min(480px,70dvh)] object-contain rounded-lg border border-gray-100 bg-gray-50 ${className}`}
       />
     );
   }
@@ -119,9 +119,9 @@ export function LessonContentView({
     }
     return (
       <div
-        className={`rounded-lg border border-gray-100 bg-gray-50 p-4 ${className}`}
+        className={`rounded-lg border border-gray-100 bg-gray-50 p-4 max-w-full overflow-hidden ${className}`}
       >
-        <audio controls className="w-full" src={signedUrl}>
+        <audio controls className="w-full max-w-full" src={signedUrl}>
           Votre navigateur ne prend pas en charge l&apos;audio.
         </audio>
       </div>
@@ -140,8 +140,8 @@ export function LessonContentView({
       );
     }
     return (
-      <div className={`space-y-3 ${className}`}>
-        <div className="w-full h-[420px] rounded-lg overflow-hidden border border-gray-100 bg-gray-50">
+      <div className={`space-y-3 max-w-full ${className}`}>
+        <div className="w-full h-[min(50dvh,420px)] min-h-[220px] rounded-lg overflow-hidden border border-gray-100 bg-gray-50">
           <iframe
             src={signedUrl}
             title="Aperçu PDF"
@@ -161,7 +161,7 @@ export function LessonContentView({
 
   return (
     <div
-      className={`rounded-lg border border-gray-100 bg-gray-50 p-4 text-sm text-gray-800 whitespace-pre-wrap leading-relaxed ${className}`}
+      className={`rounded-lg border border-gray-100 bg-gray-50 p-4 text-sm text-gray-800 whitespace-pre-wrap break-words leading-relaxed ${className}`}
     >
       {content}
     </div>

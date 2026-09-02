@@ -490,7 +490,7 @@ export default function LearnerModulePage() {
 
   if (loading) {
     return (
-      <div className="space-y-6 p-6 max-w-6xl mx-auto">
+      <div className="space-y-6 p-4 sm:p-6 max-w-6xl mx-auto">
         <Skeleton className="h-8 w-64" />
         <Skeleton className="h-4 w-full max-w-md" />
         <div className="grid gap-4 lg:grid-cols-[280px_1fr]">
@@ -503,7 +503,7 @@ export default function LearnerModulePage() {
 
   if (!module || !enrolled) {
     return (
-      <div className="space-y-4 p-6 max-w-6xl mx-auto">
+      <div className="space-y-4 p-4 sm:p-6 max-w-6xl mx-auto">
         <p className="text-destructive">{error ?? 'Module introuvable'}</p>
         <Button variant="outline" asChild>
           <Link href="/dashboard/learner/elearning">
@@ -526,7 +526,7 @@ export default function LearnerModulePage() {
     : null;
 
   return (
-    <div className="space-y-6 p-6 max-w-6xl mx-auto">
+    <div className="space-y-6 p-4 sm:p-6 max-w-6xl mx-auto">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div className="space-y-2">
           <Button variant="ghost" size="sm" className="-ml-2" asChild>
@@ -597,7 +597,7 @@ export default function LearnerModulePage() {
                             setActiveExerciseIndex(0);
                             setError(null);
                           }}
-                          className={`flex w-full items-center gap-2 rounded-md px-2 py-2 text-left text-sm transition-colors ${
+                          className={`flex min-h-11 w-full items-center gap-2 rounded-md px-2 py-2.5 text-left text-sm transition-colors ${
                             active
                               ? 'bg-flehub-green/10 font-medium text-flehub-green'
                               : 'hover:bg-muted'

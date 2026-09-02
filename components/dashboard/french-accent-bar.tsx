@@ -65,7 +65,7 @@ interface FrenchAccentBarProps {
 }
 
 const CHAR_BTN =
-  'h-7 min-w-7 touch-manipulation select-none rounded bg-white px-1.5 text-sm font-medium text-gray-800 ring-1 ring-inset ring-gray-200 hover:bg-flehub-green-light hover:text-flehub-green active:bg-flehub-green-light';
+  'h-9 min-h-9 min-w-9 touch-manipulation select-none rounded bg-white px-1.5 text-sm font-medium text-gray-800 ring-1 ring-inset ring-gray-200 hover:bg-flehub-green-light hover:text-flehub-green active:bg-flehub-green-light';
 
 export function FrenchAccentBar({
   inputRef,
@@ -127,7 +127,7 @@ export function FrenchAccentBar({
         onMouseDown={(e) => e.preventDefault()}
         onPointerDown={(e) => press(e, () => setUppercase((v) => !v))}
         className={cn(
-          'h-7 min-w-7 touch-manipulation select-none rounded px-1.5 text-[11px] font-semibold tracking-wide',
+          'h-9 min-h-9 min-w-9 touch-manipulation select-none rounded px-1.5 text-[11px] font-semibold tracking-wide',
           uppercase
             ? 'bg-flehub-green text-white'
             : 'bg-white text-gray-600 ring-1 ring-inset ring-gray-200 hover:bg-gray-100'

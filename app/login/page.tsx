@@ -179,7 +179,7 @@ export default function LoginPage() {
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
+          className="absolute right-1 top-1/2 flex h-11 w-11 -translate-y-1/2 items-center justify-center text-gray-400 hover:text-gray-600 transition-colors"
                   tabIndex={-1}
                   aria-label={showPassword ? 'Masquer le mot de passe' : 'Afficher le mot de passe'}
                 >
@@ -221,7 +221,9 @@ export default function LoginPage() {
 
           <div className="my-7 flex items-center gap-3">
             <div className="flex-1 h-px bg-gray-200" />
-            <span className="text-xs text-gray-400 font-medium">Nouveau sur MFK — Maison de la Francophonie Kigali ?</span>
+            <span className="text-xs text-gray-400 font-medium text-center px-2 leading-snug">
+              Nouveau sur MFK ?
+            </span>
             <div className="flex-1 h-px bg-gray-200" />
           </div>
 
