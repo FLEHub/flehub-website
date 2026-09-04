@@ -694,3 +694,205 @@ Illustrations : `/elearning/mfk-b2-m7/`
 
 Seed : `supabase/migrations/20260830140700_elearning_mfk_b2_module8_modeles_educatifs.sql`  
 Illustrations : `/elearning/mfk-b2-m8/`
+
+---
+
+# Plan MFK — Niveaux C1 et C2 (12 modules)
+
+Même architecture (tables `elearning_*`, 6 séquences × 5 leçons × 10 exercices, `published = false`).
+Cosmopolite 5 : objectifs génériques seulement. Univers Seuil des Sources.
+Les 4 leçons de chaque dossier deviennent les séquences 1–4 ; les séquences 5–6 sont des prolongements originaux.
+
+Relecture consolidée : `docs/Relecture_MFK_C1-C2_Modules1-12.md`
+
+## Module C1-1 — La colline de demain
+
+| Titre | C1 — La colline de demain |
+
+| # | Séquence | Point de langue |
+| --- | --- | --- |
+| 1.1 | La colline future | nominalisation ; encore que / pour autant que + subjonctif |
+| 1.2 | Habiter autrement | synthèse ; ce dont / ce à quoi ; relatives complexes |
+| 1.3 | Circuler à Rukiri-Nord | il convient que / il s'agit de ; recommandations |
+| 1.4 | Midi sans ombre | conditionnel d'hypotypose ; comme si ; on dirait que |
+| 1.5 | Recommandations pour la colline | connecteurs de recommandation ; il convient que ; en vue de |
+| 1.6 | Compte-rendu 2040 | selon / d'après / il ressort que ; attribution des sources |
+
+Seed : `supabase/migrations/20260904120000_elearning_mfk_c1_module1_colline_demain.sql`  
+Illustrations : `/elearning/mfk-c1-m1/`
+
+## Module C1-2 — Faims du figuier
+
+| Titre | C1 — Faims du figuier |
+
+| # | Séquence | Point de langue |
+| --- | --- | --- |
+| 2.1 | Le creux a un nom | définir une notion ; cause émotionnelle ; nominalisation des sensations |
+| 2.2 | Un tiers n'est pas une morale | commenter des chiffres ; s'établir à ; alors que |
+| 2.3 | La terre n'est pas un caprice | cause et conséquence avancées ; du fait que ; si bien que |
+| 2.4 | Choisir au marché | conseil atténué ; on ferait mieux de ; il vaudrait mieux que |
+| 2.5 | Débat marketing | certes… mais ; encore que ; avantages et inconvénients |
+| 2.6 | Huit notices sous le figuier | écriture créative encadrée ; nominalisation des sensations |
+
+Seed : `supabase/migrations/20260904120100_elearning_mfk_c1_module2_faims_figuier.sql`  
+Illustrations : `/elearning/mfk-c1-m2/`
+
+## Module C1-3 — Soigner autrement
+
+| Titre | C1 — Soigner autrement |
+
+| # | Séquence | Point de langue |
+| --- | --- | --- |
+| 3.1 | Dons et parcours | passif ; reformulation d'un parcours ; vocabulaire du soin (inventé) |
+| 3.2 | Le graphique n'efface pas la peur | rapporter une enquête ; il apparaîtrait que ; modalisation |
+| 3.3 | Une vie de formation | journal intime ; imparfait / plus-que-parfait ; modalisation du doute |
+| 3.4 | L'herbe et la porte | présenter une polémique ; certains affirment / d'autres objectent |
+| 3.5 | Mini-conférence du Filtre | plan déductif ; il s'ensuit que ; en conséquence |
+| 3.6 | Podcast du parcours | discours rapporté complexe ; elle a dit qu'elle / si |
+
+Seed : `supabase/migrations/20260904120200_elearning_mfk_c1_module3_soigner_autrement.sql`  
+Illustrations : `/elearning/mfk-c1-m3/`
+
+## Module C1-4 — Corps visibles
+
+| Titre | C1 — Corps visibles |
+
+| # | Séquence | Point de langue |
+| --- | --- | --- |
+| 4.1 | Image de soi sous le figuier | commenter une tendance ; on dirait que ; registre du regard |
+| 4.2 | La planche n'est pas une rampe | dénoncer une inégalité ; relatives complexes ; il n'est que trop |
+| 4.3 | Les épaules ne sont pas un verdict | idiomes corporels ; ne pas les calquer ; interpréter un geste |
+| 4.4 | Le lin tient le geste | décrire une œuvre ; présent de reportage ; métaphore contrôlée |
+| 4.5 | Manifeste de la rampe | injonction vs subjonctif de volonté ; nous exigeons que |
+| 4.6 | Audioguide de Rose | deuxième personne de guide ; hypotaxe ; hypothèse signalée |
+
+Seed : `supabase/migrations/20260904120300_elearning_mfk_c1_module4_corps_visibles.sql`  
+Illustrations : `/elearning/mfk-c1-m4/`
+
+## Module C1-5 — Le monde de la cour
+
+| Titre | C1 — Le monde de la cour |
+
+| # | Séquence | Point de langue |
+| --- | --- | --- |
+| 5.1 | Chant de la cour | expliquer un implicite ; métaphore ; message d'un chant inventé |
+| 5.2 | Biographie engagée | plus-que-parfait ; il fut un temps ; résumé d'un discours |
+| 5.3 | Le sourire n'est pas un lit | humour et sous-entendu ; écrire un poème ; chronique |
+| 5.4 | Deux vitesses une cour | registres selon l'interlocuteur ; tutoiement / vouvoiement ; alors que |
+| 5.5 | Poème et chronique | croiser deux genres ; implicite ; humour sans mépris |
+| 5.6 | Comparaison de générations | alors que / tandis que / à mesure que ; synthèse |
+
+Seed : `supabase/migrations/20260904120400_elearning_mfk_c1_module5_monde_cour.sql`  
+Illustrations : `/elearning/mfk-c1-m5/`
+
+## Module C1-6 — Travailler au Seuil
+
+| Titre | C1 — Travailler au Seuil |
+
+| # | Séquence | Point de langue |
+| --- | --- | --- |
+| 6.1 | Pas de tout le monde dit | selon tel cahier / tel micro ; organisation du travail |
+| 6.2 | Accroche et entretien | discours indirect ; accroche d'offre ; témoignage |
+| 6.3 | Conflit à l'atelier | rapporter une crise ; style indirect libre ; on aurait dit |
+| 6.4 | Là-bas n'est pas une morale | concession ; hypothèse ; habitudes professionnelles ailleurs |
+| 6.5 | Témoignages croisés | intégrer des citations ; il a déclaré que ; nuance |
+| 6.6 | Analyse du travail au Seuil | synthèse argumentée ; encore que ; il s'agit de |
+
+Seed : `supabase/migrations/20260904120500_elearning_mfk_c1_module6_travailler_seuil.sql`  
+Illustrations : `/elearning/mfk-c1-m6/`
+
+## Module C2-1 — Bonheurs et utopies
+
+| Titre | C2 — Bonheurs et utopies |
+
+| # | Séquence | Point de langue |
+| --- | --- | --- |
+| 1.1 | Scène sous le figuier | interprétation théâtrale ; sous-entendu ; point de vue critique |
+| 1.2 | Bonheur en série | antiphrase ; industrialisation d'un sentiment ; prise de position |
+| 1.3 | La bête et le banc | argumentation juridique inventée ; encore que ; fût-ce |
+| 1.4 | Ailleurs possibles | utopie / contrainte ; conditionnel ; rêve et réalité |
+| 1.5 | Lettre pour Basile | lettre formelle ; concession ; hypotaxe longue |
+| 1.6 | Une utopie de rive | écriture d'utopie ; charges avouées ; ironie douce |
+
+Seed : `supabase/migrations/20260904120600_elearning_mfk_c2_module1_bonheurs_utopies.sql`  
+Illustrations : `/elearning/mfk-c2-m1/`
+
+## Module C2-2 — Parler nos français
+
+| Titre | C2 — Parler nos français |
+
+| # | Séquence | Point de langue |
+| --- | --- | --- |
+| 2.1 | Mots voyageurs | emprunts ; représentation d'une langue ; sans purisme de boutique |
+| 2.2 | Politiques des voix | lettre ouverte ; politiques linguistiques inventées ; francophonies |
+| 2.3 | Deux extraits deux oreilles | registres sociaux ; comparer deux extraits ; choix d'écriture |
+| 2.4 | Le souffle sous le figuier | art oratoire ; rapport à l'oral ; souffle et hypotaxe |
+| 2.5 | Lettre ouverte aux voix | dénoncer sans insulter ; hypotaxe ; nous demandons que |
+| 2.6 | Concours d'éloquence | prononcer un discours ; concession oratoire ; implicite assumé |
+
+Seed : `supabase/migrations/20260904120700_elearning_mfk_c2_module2_parler_nos_francais.sql`  
+Illustrations : `/elearning/mfk-c2-m2/`
+
+## Module C2-3 — L'ère du fil
+
+| Titre | C2 — L'ère du fil |
+
+| # | Séquence | Point de langue |
+| --- | --- | --- |
+| 3.1 | Le fil et le Cahier | accord, concession, désaccord ; fil et livres |
+| 3.2 | Deux tons un même soin | adapter un discours ; conseils ; public visé |
+| 3.3 | Le bruit sans source | paradoxe ; bruit sans source ; loin de / bel et bien |
+| 3.4 | Demain trop net | dystopie ; dérives ; point de vue d'un intervenant |
+| 3.5 | Article-paradoxe | exprimer un paradoxe ; concession ; reformulation |
+| 3.6 | Extrait dystopique | écriture d'anticipation ; voix ; ombre |
+
+Seed : `supabase/migrations/20260904120800_elearning_mfk_c2_module3_ere_du_fil.sql`  
+Illustrations : `/elearning/mfk-c2-m3/`
+
+## Module C2-4 — Ce que le figuier se souvient
+
+| Titre | C2 — Ce que le figuier se souvient |
+
+| # | Séquence | Point de langue |
+| --- | --- | --- |
+| 4.1 | Le tableau de la cour | raisonnement déductif ; intérêt d'un support pédagogique |
+| 4.2 | Éditorial des pactes | plan chronologique ; éditorial ; accords de rive inventés |
+| 4.3 | Les noms avant la formule | analyse d'un discours ; chronique de veillée ; mémoire |
+| 4.4 | Plaidoirie sous le figuier | plan d'une plaidoirie ; contexte et opinion ; justice de cour |
+| 4.5 | Essai du support | essai argumenté ; déduction ; pédagogie de mémoire |
+| 4.6 | Chronique de veillée | voix de chronique ; noms ; silence |
+
+Seed : `supabase/migrations/20260904120900_elearning_mfk_c2_module4_figuier_se_souvient.sql`  
+Illustrations : `/elearning/mfk-c2-m4/`
+
+## Module C2-5 — Cultures croisées
+
+| Titre | C2 — Cultures croisées |
+
+| # | Séquence | Point de langue |
+| --- | --- | --- |
+| 5.1 | Culture partagée | implicite ; accessibilité ; position non criée |
+| 5.2 | Qui paie le rire | ressorts comiques ; humour ; succès trop facile |
+| 5.3 | Le lin trop vite porté | débat ; appropriation ; tendance trop vite portée |
+| 5.4 | Récit interculturel | récit détaillé au passé ; différences ; sans ethnologiser |
+| 5.5 | Article implicite | écrire en sous-entendu ; faits ; écart |
+| 5.6 | Débat de la cour | débat contradictoire ; polémique ; synthèse |
+
+Seed : `supabase/migrations/20260904121000_elearning_mfk_c2_module5_cultures_croisees.sql`  
+Illustrations : `/elearning/mfk-c2-m5/`
+
+## Module C2-6 — Révolutions de la rive
+
+| Titre | C2 — Révolutions de la rive |
+
+| # | Séquence | Point de langue |
+| --- | --- | --- |
+| 6.1 | La crue trop tôt | hypothèses ; conséquences ; biodiversité de rive |
+| 6.2 | Consensus trop commode | stratégie argumentative ; répondre au déni poli |
+| 6.3 | Mesures pour la rive | programme ; mesures politiques de cour ; il convient que |
+| 6.4 | Un personnage de rive | gestes quotidiens ; personnage de roman ; mode et éthique inventées |
+| 6.5 | Compte-rendu climat | oral de synthèse ; conséquences ; sans spectacle |
+| 6.6 | Programme et personnage | synthèse finale ; programme ; roman |
+
+Seed : `supabase/migrations/20260904121100_elearning_mfk_c2_module6_revolutions_rive.sql`  
+Illustrations : `/elearning/mfk-c2-m6/`
