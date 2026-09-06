@@ -34,6 +34,7 @@ import {
   Pencil,
   CheckCircle2,
 } from 'lucide-react';
+import { PedagogicalPdfButton } from '@/components/dashboard/pedagogical-pdf-button';
 
 type Competency = 'CO' | 'CE' | 'PE' | 'PO' | 'EL';
 
@@ -346,6 +347,11 @@ export default function TeacherModuleDetailPage() {
           </p>
         </div>
         <div className="flex flex-wrap gap-2">
+          <PedagogicalPdfButton
+            moduleId={module.id}
+            size="default"
+            className="border-flehub-green text-flehub-green hover:bg-flehub-green-light"
+          />
           <Button
             variant="outline"
             disabled={sequences.length >= MAX_SEQUENCES || busy}
