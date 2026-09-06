@@ -26,6 +26,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Plus, Pencil, Trash2, BookOpen, Layers, FolderOpen } from 'lucide-react';
+import { PedagogicalPdfButton } from '@/components/dashboard/pedagogical-pdf-button';
 
 type CEFR = 'A1' | 'A2' | 'B1' | 'B2' | 'C1' | 'C2';
 
@@ -198,7 +199,16 @@ export default function TeacherElearningPage() {
         </div>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-          {modules.map((mod) => (
+          {modules.map((mod) => {
+            const sameLevel = modules
+              .filter((m) => m.cefr_level && m.cefr_level === mod.cefr_level)
+              .slice()
+              .sort(
+                (a, b) =>
+                  new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
+              );
+            const moduleNumber = sameLevel.findIndex((m) => m.id === mod.id) + 1;
+            return (
             <Card key={mod.id} className="card-hover flex flex-col">
               <CardHeader className="pb-2">
                 <div className="flex items-start justify-between gap-2">
@@ -247,6 +257,12 @@ export default function TeacherElearningPage() {
                     Gérer le contenu
                   </Link>
                 </Button>
+                <PedagogicalPdfButton
+                  moduleId={mod.id}
+                  moduleNumber={moduleNumber > 0 ? moduleNumber : undefined}
+                  fullWidth
+                  className="w-full border-flehub-green text-flehub-green hover:bg-flehub-green-light whitespace-normal h-auto py-2"
+                />
                 <div className="flex gap-2 pt-1 border-t border-gray-100">
                   <Button
                     variant="ghost"
@@ -268,7 +284,8 @@ export default function TeacherElearningPage() {
                 </div>
               </CardContent>
             </Card>
-          ))}
+            );
+          })}
         </div>
       )}
 
