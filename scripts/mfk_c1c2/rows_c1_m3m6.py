@@ -502,7 +502,7 @@ REST2 = [
         decoy1="Que Hawa a fermé le Pavillon",
         decoy2="Que Mado se moque des valises",
         decoy3="Que Dieudonné refuse les clés",
-        beats="Hawa : il ne s'agirait que d'un détail, le lit, à entendre certains sourires. | Loin de rassurer, le mot hospitaliers fatigue quand la clé manque. | Mado écrit une chronique où le sourire trébuche, sans écraser personne. | Aline : l'humour ici n'est pas une arme contre ceux qui arrivent. | Patrick pose un banc. | Rose coud un ourlet trop large pour une valise trop pleine. | Lila lira le poème lentement. | Marc : une terre d'accueil se mesure aux clés, pas aux phrases.",
+        beats="Hawa : il ne s'agirait que d'un détail, le lit, à entendre certains sourires. | Loin de rassurer, le mot hospitaliers fatigue quand la clé manque. | Mado écrit une chronique où le sourire trébuche, sans écraser personne. | Aline : l'humour ici n'est pas une arme contre ceux qui arrivent. | Patrick pose un banc. | Rose coud un ourlet trop large pour une valise trop pleine. | Lila lira le poème lentement. | Marc : un accueil de cour se mesure aux clés, pas aux phrases.",
     ),
     D(
         title="Deux vitesses une cour",

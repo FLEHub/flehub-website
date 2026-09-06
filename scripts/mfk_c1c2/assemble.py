@@ -76,25 +76,31 @@ def _support(comp: str, seq: dict, cefr: str) -> str:
     if len(t) < 18:
         raise ValueError(f"{seq['title']}: need 18 content lines, got {len(t)}")
     if comp == "CO":
+        def _voice(who: str, line: str) -> str:
+            stripped = line.strip()
+            if " : " in stripped[:48]:
+                return stripped
+            return f"{who} : {stripped}"
+
         head = [
-            f"Lila Sow : Radio Figuier. {t[0]}",
-            f"{VOICES[0]} : {t[1]}",
-            f"{VOICES[1]} : {t[2]}",
-            f"{VOICES[2]} : {t[3]}",
-            f"{VOICES[3]} : {t[4]}",
-            f"{VOICES[4]} : {t[5]}",
-            f"{VOICES[5]} : {t[6]}",
-            f"{VOICES[6]} : {t[7]}",
-            f"{VOICES[7]} : {t[8]}",
-            f"{VOICES[8]} : {t[9]}",
-            f"{VOICES[9]} : {t[10]}",
-            f"{VOICES[10]} : {t[11]}",
-            f"Yvette : {t[12]}",
-            f"Mado : {t[13]}",
-            f"Sami : {t[14]}",
-            f"Lila Sow : Je reformule pour les auditeurs. {t[15]}",
-            f"Nina Kayitesi : {t[16]}",
-            f"Lila Sow : Nous clôturons sans clore. {t[17]}",
+            _voice("Lila Sow", f"Radio Figuier. {t[0]}"),
+            _voice(VOICES[0], t[1]),
+            _voice(VOICES[1], t[2]),
+            _voice(VOICES[2], t[3]),
+            _voice(VOICES[3], t[4]),
+            _voice(VOICES[4], t[5]),
+            _voice(VOICES[5], t[6]),
+            _voice(VOICES[6], t[7]),
+            _voice(VOICES[7], t[8]),
+            _voice(VOICES[8], t[9]),
+            _voice(VOICES[9], t[10]),
+            _voice(VOICES[10], t[11]),
+            _voice("Yvette", t[12]),
+            _voice("Mado", t[13]),
+            _voice("Sami", t[14]),
+            _voice("Lila Sow", f"Je reformule pour les auditeurs. {t[15]}"),
+            _voice("Nina Kayitesi", t[16]),
+            _voice("Lila Sow", f"Nous clôturons sans clore. {t[17]}"),
         ]
         if cefr == "C2":
             head.append("Mado, plus bas, sans hausser le ton : " + seq["c2_aside"])

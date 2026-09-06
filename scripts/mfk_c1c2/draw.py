@@ -48,7 +48,7 @@ SETS = {
     "mfk-c1-m5": ("#2A4A5A", [
         "chant-cour", "verlan-doux", "clip-invente", "message-chanson",
         "biographie-engagee", "discours-solange", "necrologie-douce", "portrait-voix",
-        "terre-accueil", "poeme-rive", "chronique-humor", "valise-ouverte",
+        "accueil-cles", "poeme-rive", "chronique-humor", "valise-ouverte",
         "ages-vie", "deux-generations", "registre-soutenu", "banc-anciens",
         "comparaison-ages", "sketch-sami", "micro-monde", "cahier-combats",
         "feminisme-cour", "main-egale", "affiche-accueil", "lampe-veille",
@@ -67,7 +67,7 @@ SETS = {
     ]),
     "mfk-c2-m1": ("#4A3A6A", [
         "extrait-theatre", "critique-film", "sentiment-fin", "scene-ombres",
-        "routinite", "bonheur-usine", "interview-doute", "sourire-mesure",
+        "joie-horloge", "bonheur-usine", "interview-doute", "sourire-mesure",
         "mediation-animale", "lettre-chien", "justice-douce", "banc-bete",
         "utopie-rive", "contrainte-reve", "conte-philo", "carte-ailleurs",
         "point-de-vue", "ironie-fine", "micro-bonheur", "cahier-utopie",
@@ -87,7 +87,7 @@ SETS = {
     ]),
     "mfk-c2-m3": ("#1A3A4A", [
         "librairie-immense", "fil-litteraire", "debat-reseau", "resume-court",
-        "campagne-prevention", "public-cible", "conseil-adapte", "affiche-gaffe",
+        "campagne-prevention", "public-cible", "conseil-adapte", "campagne-deux-tons",
         "torrent-infos", "paradoxe-article", "bruit-vrai", "loupe-source",
         "dystopie-demain", "machine-voix", "extrait-noir", "antenne-muette",
         "accord-concession", "desaccord-fin", "micro-fil", "cahier-alerte",
@@ -98,7 +98,7 @@ SETS = {
     "mfk-c2-m4": ("#4A4A2A", [
         "tableau-pedago", "essai-support", "raisonnement-deductif", "craie-memoire",
         "editorial-accords", "plan-chrono", "assemblee-rive", "carte-pactes",
-        "souvenons-nous", "discours-officiel", "chronique-guerre", "veillee-noms",
+        "pacte-rive", "discours-officiel", "chronique-guerre", "veillee-noms",
         "plaidoirie-cour", "contexte-opinion", "plan-avocat", "balance-justice",
         "histoire-memoire", "cahier-racines-vieux", "micro-hier", "urne-parole",
         "figuier-archive", "soleil-deuil", "nuage-oubli", "feuille-plaidoirie",
@@ -116,7 +116,7 @@ SETS = {
         "lampe-accueil", "coeur-croise",
     ]),
     "mfk-c2-m6": ("#2A5A3A", [
-        "rapport-alarmant", "biodiversite-rive", "hypothese-climat", "graphique-crue",
+        "hypothese-crue", "biodiversite-rive", "hypothese-climat", "graphique-crue",
         "consensus-argument", "reponse-doute", "article-preuve", "loupe-chiffre",
         "mesures-politiques", "programme-rive", "conference-eau", "urne-vert",
         "echos-logiques", "personnage-roman", "geste-quotidien", "mode-ethique",

@@ -1,7 +1,14 @@
 """Complète un kernel compact : exercices de langue lexicalisés, puis expand_kernel."""
 from __future__ import annotations
 
-from expand_kernel import kernel, _ressort
+from expand_kernel import kernel, _que, _ressort
+
+
+def _de_name(name: str) -> str:
+    first = name.split()[0]
+    if first[0].lower() in "aeiouàâäéèêëîïôöùûüœ":
+        return "d'" + name
+    return "de " + name
 
 
 def _beats(val) -> list[str]:
@@ -364,9 +371,9 @@ def _grammar(d: dict) -> dict:
             "Toujours il faut.",
         ),
         (
-            f"Les arguments de {d['who']} est clairs, et Lila garde le micro ouvert.",
-            f"Les arguments de {d['who']} sont clairs, et Lila garde le micro ouvert.",
-            "Accord : les arguments sont.",
+            f"Les propos {_de_name(d['who'])} sur « {d['title']} » est nets, et Lila laisse le micro ouvert.",
+            f"Les propos {_de_name(d['who'])} sur « {d['title']} » sont nets, et Lila laisse le micro ouvert.",
+            "Accord : les propos sont nets.",
         ),
         (
             f"On va au {d['w3']} pour de vrai genre, et {d['hearer']} demande un registre plus net.",
@@ -394,7 +401,7 @@ def _grammar(d: dict) -> dict:
         "lang_ex",
         [
             f"Encore que l'on {subj}, {d['obstacle']} n'est pas un détail.",
-            f"{d['who']} concède que {d['concede']}, pour autant que {d['cond']}.",
+            f"{d['who']} concède {_que(d['concede'])}, pour autant que {d['cond']}.",
             f"Autrement dit, {d['reform']}",
             _ressort(d["proposal"]),
         ],

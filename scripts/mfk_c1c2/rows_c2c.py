@@ -380,7 +380,7 @@ C = [
         decoy2="Que Hawa a ajouté un slogan contraire",
         decoy3="Que l'écart n'a pas été justifié",
         c2_aside="Il faut le dire clairement : on notera que clairement, ici, signifie souvent plus fort que moi.",
-        beats="Aline : loin de manquer de courage, l'article se lisait. | Hawa garde le tarif. | Lila n'ajoute pas un cri. | Patrick relit l'écart. | Rose entend la porte. | Sami voulait plus net ; il relit, il cède. | Mado aime la composition. | Marc : un implicite C2 se justifie, il ne se dilue pas.",
+        beats="Aline : loin de manquer de courage, l'article se lisait. | Hawa garde le tarif bas dans sa version, sans le crier. | Lila n'ajoute pas un cri. | Patrick relit l'écart. | Rose entend la porte. | Sami voulait plus net ; il relit, il cède. | Mado aime la composition. | Marc : un implicite C2 se justifie, il ne se dilue pas.",
     ),
     D(
         title="Débat de la cour",
