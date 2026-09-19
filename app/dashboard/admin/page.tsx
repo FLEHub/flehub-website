@@ -25,6 +25,7 @@ import {
   CalendarDays,
   ArrowRight,
   ShieldAlert,
+  UserX,
 } from 'lucide-react'
 import Link from 'next/link'
 
@@ -481,6 +482,13 @@ export default async function AdminDashboardPage() {
                 icon: Users,
                 color: 'text-blue-600',
                 bg: 'bg-blue-50',
+              },
+              {
+                label: 'Comptes sans profil',
+                href: '/dashboard/admin/orphan-accounts',
+                icon: UserX,
+                color: 'text-orange-600',
+                bg: 'bg-orange-50',
               },
               {
                 label: 'View Calendar',

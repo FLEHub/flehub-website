@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
+import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
 import {
   Search,
@@ -10,6 +11,7 @@ import {
   RefreshCw,
   Users,
   ChevronDown,
+  UserX,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -163,7 +165,14 @@ export default function AdminUsersPage() {
         <div>
           <h1 className="text-2xl font-bold text-gray-900">User Management</h1>
           <p className="text-sm text-gray-500 mt-1">
-            Manage and approve MFK platform users.
+            Manage and approve MFK platform users.{' '}
+            <Link
+              href="/dashboard/admin/orphan-accounts"
+              className="text-[#1E5FA8] hover:underline inline-flex items-center gap-1"
+            >
+              <UserX className="w-3.5 h-3.5" />
+              Comptes Auth sans profil
+            </Link>
           </p>
         </div>
         <Button

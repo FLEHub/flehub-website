@@ -3,17 +3,30 @@
 export const EMAIL_ALREADY_USED =
   'Cette adresse e-mail est déjà utilisée. Veuillez vous connecter ou réinitialiser votre mot de passe.'
 
-export function mapRegisterAuthError(message: string, status?: number | null): string {
-  const msg = (message || '').toLowerCase()
+export const ORPHAN_LOOKUP_FAILED =
+  "Un compte existe déjà pour cette adresse, mais le profil n'a pas pu être créé automatiquement. Réessayez, ou contactez l'administrateur."
 
-  if (
+export function isAuthEmailTakenError(message: string): boolean {
+  const msg = (message || '').toLowerCase()
+  return (
     msg.includes('already registered') ||
     msg.includes('already been registered') ||
     msg.includes('user already exists') ||
     msg.includes('email_exists') ||
-    msg.includes('identity already exists')
-  ) {
+    msg.includes('identity already exists') ||
+    msg.includes('user already registered')
+  )
+}
+
+export function mapRegisterAuthError(message: string, status?: number | null): string {
+  const msg = (message || '').toLowerCase()
+
+  if (isAuthEmailTakenError(message)) {
     return EMAIL_ALREADY_USED
+  }
+
+  if (msg.includes('database error saving new user')) {
+    return "L'enregistrement du profil a échoué. Veuillez réessayer."
   }
 
   if (

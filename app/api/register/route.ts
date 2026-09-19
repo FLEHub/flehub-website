@@ -2,13 +2,15 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { findAuthUserByEmail } from '@/lib/find-auth-user'
+import { ensureProfileAndRole, type AppRole } from '@/lib/ensure-profile'
 import {
   EMAIL_ALREADY_USED,
+  ORPHAN_LOOKUP_FAILED,
+  isAuthEmailTakenError,
   mapRegisterAuthError,
-  mapRegisterDbError,
 } from '@/lib/register-errors'
 
-type Role = 'learner' | 'teacher' | 'school'
+type Role = Extract<AppRole, 'learner' | 'teacher' | 'school'>
 type LearnerSubtype = 'independent' | 'pupil'
 type CEFRLevel = 'A1' | 'A2' | 'B1' | 'B2' | 'C1' | 'C2'
 
@@ -39,115 +41,39 @@ function jsonError(error: string, status: number, debug?: unknown) {
   return NextResponse.json({ error }, { status })
 }
 
-async function upsertRoleRow(
+async function recoverOrphan(
   admin: ReturnType<typeof createAdminClient>,
   userId: string,
-  body: Required<Pick<RegisterBody, 'role'>> & RegisterBody
+  body: RegisterBody & { email: string; role: Role; full_name: string; phone: string; password: string }
 ): Promise<{ error: string | null }> {
-  if (body.role === 'learner') {
-    const { data: existing } = await admin
-      .from('learners')
-      .select('id')
-      .eq('profile_id', userId)
-      .maybeSingle()
-    if (existing) return { error: null }
-
-    const { error } = await admin.from('learners').insert({
-      profile_id: userId,
-      subtype: body.subtype || 'independent',
-      cefr_level: body.cefr_level || null,
+  const { error: updateErr } = await admin.auth.admin.updateUserById(userId, {
+    password: body.password,
+    user_metadata: { full_name: body.full_name, role: body.role, phone: body.phone },
+  })
+  if (updateErr) {
+    console.error('[register] orphan password/metadata update failed', {
+      email: body.email,
+      userId,
+      message: updateErr.message,
     })
-    if (error) {
-      return { error: mapRegisterDbError(error.message, error.code) }
-    }
-    return { error: null }
   }
 
-  if (body.role === 'teacher') {
-    const { data: existing } = await admin
-      .from('teachers')
-      .select('id')
-      .eq('profile_id', userId)
-      .maybeSingle()
-    if (existing) return { error: null }
-
-    const { error } = await admin.from('teachers').insert({
-      profile_id: userId,
-      bio: body.bio?.trim() || null,
-      qualifications: body.qualifications?.trim() || null,
-    })
-    if (error) {
-      return { error: mapRegisterDbError(error.message, error.code) }
-    }
-    return { error: null }
-  }
-
-  const { data: existing } = await admin
-    .from('schools')
-    .select('id')
-    .eq('profile_id', userId)
-    .maybeSingle()
-  if (existing) return { error: null }
-
-  const { error } = await admin.from('schools').insert({
-    profile_id: userId,
-    school_name: body.school_name?.trim(),
+  return ensureProfileAndRole(admin, userId, {
+    email: body.email,
+    full_name: body.full_name,
+    phone: body.phone,
+    role: body.role,
+    subtype: body.subtype,
+    cefr_level: body.cefr_level || null,
+    bio: body.bio,
+    qualifications: body.qualifications,
+    school_name: body.school_name,
     province: body.province,
     district: body.district,
     sector: body.sector,
     cell: body.cell,
-    village: body.village || null,
+    village: body.village,
   })
-  if (error) {
-    return { error: mapRegisterDbError(error.message, error.code) }
-  }
-  return { error: null }
-}
-
-async function ensureProfileAndRole(
-  admin: ReturnType<typeof createAdminClient>,
-  userId: string,
-  body: RegisterBody & { email: string; role: Role; full_name: string; phone: string }
-): Promise<{ error: string | null }> {
-  const status = body.role === 'learner' ? 'approved' : 'pending'
-
-  const { data: existing } = await admin
-    .from('profiles')
-    .select('id')
-    .eq('id', userId)
-    .maybeSingle()
-
-  if (!existing) {
-    const { error } = await admin.from('profiles').insert({
-      id: userId,
-      full_name: body.full_name,
-      email: body.email,
-      phone: body.phone,
-      role: body.role,
-      status,
-    })
-    if (error) {
-      console.error('[register] profiles insert', {
-        email: body.email,
-        userId,
-        code: error.code,
-        message: error.message,
-        details: error.details,
-      })
-      return { error: mapRegisterDbError(error.message, error.code) }
-    }
-  }
-
-  const roleResult = await upsertRoleRow(admin, userId, body)
-  if (roleResult.error) {
-    console.error('[register] role row insert', {
-      email: body.email,
-      userId,
-      role: body.role,
-      message: roleResult.error,
-    })
-  }
-  return roleResult
 }
 
 export async function POST(request: NextRequest) {
@@ -207,6 +133,8 @@ export async function POST(request: NextRequest) {
     )
   }
 
+  const payload = { ...body, email, role, full_name, phone, password }
+
   const { data: existingProfile } = await admin
     .from('profiles')
     .select('id')
@@ -217,6 +145,46 @@ export async function POST(request: NextRequest) {
     console.error('[register] email already has a profile', { email })
     return jsonError(EMAIL_ALREADY_USED, 409)
   }
+
+  const tryRecover = async (reason: string, exhaustive: boolean) => {
+    const existingAuth = await findAuthUserByEmail(admin, email, { exhaustive })
+    if (!existingAuth) return null
+
+    const { data: profile } = await admin
+      .from('profiles')
+      .select('id')
+      .eq('id', existingAuth.id)
+      .maybeSingle()
+
+    if (profile) {
+      console.error('[register] email already has a profile (auth id)', {
+        email,
+        userId: existingAuth.id,
+      })
+      return jsonError(EMAIL_ALREADY_USED, 409)
+    }
+
+    console.error('[register] orphan auth user without profile — completing', {
+      reason,
+      email,
+      userId: existingAuth.id,
+    })
+    const completed = await recoverOrphan(admin, existingAuth.id, payload)
+    if (completed.error) {
+      return jsonError(completed.error, 500, {
+        email,
+        userId: existingAuth.id,
+      })
+    }
+    return NextResponse.json({
+      ok: true,
+      pending: role !== 'learner',
+      recovered: true,
+    })
+  }
+
+  const recoveredBeforeSignUp = await tryRecover('pre-signup lookup', false)
+  if (recoveredBeforeSignUp) return recoveredBeforeSignUp
 
   const anon = createClient(url, anonKey, {
     auth: { autoRefreshToken: false, persistSession: false },
@@ -241,6 +209,13 @@ export async function POST(request: NextRequest) {
       status: signUpError.status,
       name: signUpError.name,
     })
+
+    if (isAuthEmailTakenError(signUpError.message)) {
+      const recovered = await tryRecover('signup already-registered', true)
+      if (recovered) return recovered
+      return jsonError(ORPHAN_LOOKUP_FAILED, 409, { email })
+    }
+
     const status =
       signUpError.status === 429 ? 429 : signUpError.status === 422 ? 409 : 400
     return jsonError(mapRegisterAuthError(signUpError.message, signUpError.status), status)
@@ -252,67 +227,33 @@ export async function POST(request: NextRequest) {
     !signedUpUser || (Array.isArray(identities) && identities.length === 0)
 
   if (isDuplicateHidden) {
-    // Supabase hides "email already exists" (no error, user=null or empty identities).
-    const existingAuth = await findAuthUserByEmail(admin, email)
-    if (existingAuth) {
-      const { data: profile } = await admin
-        .from('profiles')
-        .select('id')
-        .eq('id', existingAuth.id)
-        .maybeSingle()
-
-      if (!profile) {
-        console.error('[register] orphan auth user without profile — completing', {
-          email,
-          userId: existingAuth.id,
-        })
-        const { error: updateErr } = await admin.auth.admin.updateUserById(existingAuth.id, {
-          password,
-          user_metadata: { full_name, role, phone },
-        })
-        if (updateErr) {
-          console.error('[register] orphan password/metadata update failed', {
-            email,
-            userId: existingAuth.id,
-            message: updateErr.message,
-          })
-        }
-        const completed = await ensureProfileAndRole(admin, existingAuth.id, {
-          ...body,
-          email,
-          role,
-          full_name,
-          phone,
-        })
-        if (completed.error) {
-          return jsonError(completed.error, 500, {
-            email,
-            userId: existingAuth.id,
-          })
-        }
-        return NextResponse.json({
-          ok: true,
-          pending: role !== 'learner',
-          recovered: true,
-        })
-      }
-    }
+    const recovered = await tryRecover('signup hidden duplicate', true)
+    if (recovered) return recovered
 
     console.error('[register] signUp returned no usable user (likely existing email)', {
       email,
       hasUser: Boolean(signedUpUser),
       identityCount: identities?.length ?? null,
     })
-    return jsonError(EMAIL_ALREADY_USED, 409)
+    return jsonError(ORPHAN_LOOKUP_FAILED, 409, { email })
   }
 
   const userId = signedUpUser.id
   const completed = await ensureProfileAndRole(admin, userId, {
-    ...body,
     email,
-    role,
     full_name,
     phone,
+    role,
+    subtype: body.subtype,
+    cefr_level: body.cefr_level || null,
+    bio: body.bio,
+    qualifications: body.qualifications,
+    school_name: body.school_name,
+    province: body.province,
+    district: body.district,
+    sector: body.sector,
+    cell: body.cell,
+    village: body.village,
   })
   if (completed.error) {
     return jsonError(completed.error, 500, { email, userId })
