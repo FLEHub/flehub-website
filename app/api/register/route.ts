@@ -265,9 +265,10 @@ export async function POST(request: NextRequest) {
     return jsonError(mapRegisterAuthError(signUpError.message, signUpError.status), status)
   }
 
-  const identities = authData.user?.identities
+  const signedUpUser = authData.user
+  const identities = signedUpUser?.identities
   const isDuplicateHidden =
-    !authData.user || (Array.isArray(identities) && identities.length === 0)
+    !signedUpUser || (Array.isArray(identities) && identities.length === 0)
 
   if (isDuplicateHidden) {
     // Supabase hides "email already exists" (no error, user=null or empty identities).
@@ -307,13 +308,13 @@ export async function POST(request: NextRequest) {
 
     console.error('[register] signUp returned no usable user (likely existing email)', {
       email,
-      hasUser: Boolean(authData.user),
+      hasUser: Boolean(signedUpUser),
       identityCount: identities?.length ?? null,
     })
     return jsonError(EMAIL_ALREADY_USED, 409)
   }
 
-  const userId = authData.user.id
+  const userId = signedUpUser.id
   const completed = await ensureProfileAndRole(admin, userId, {
     ...body,
     email,
