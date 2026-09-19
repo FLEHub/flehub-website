@@ -51,7 +51,10 @@ export async function POST(request: NextRequest) {
   if (profileError || !profile) {
     await supabase.auth.signOut();
     return NextResponse.json(
-      { error: "Profil introuvable. Veuillez contacter l'administrateur." },
+      {
+        error:
+          "Votre compte existe mais le profil n'a pas été créé. Réessayez l'inscription avec la même adresse e-mail, ou contactez l'administrateur.",
+      },
       { status: 403 }
     );
   }

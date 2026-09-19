@@ -5,7 +5,6 @@ import Link from 'next/link';
 import { GraduationCap, BookOpen, Users, ArrowLeft, ArrowRight, CheckCircle, AlertCircle, Eye, EyeOff } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { createClient } from '@/lib/supabase/client';
 import { BrandMark } from '@/components/brand-mark';
 import { BrandLogo } from '@/components/brand-logo';
 import {
@@ -212,79 +211,47 @@ export default function RegisterPage() {
     setError(null);
 
     try {
-      const supabase = createClient();
-
-      // Sign up with Supabase Auth
-      const { data: authData, error: signUpError } = await supabase.auth.signUp({
-        email: formData.email.trim().toLowerCase(),
-        password: formData.password,
-        options: {
-          data: {
-            full_name: formData.full_name.trim(),
-            role: selectedRole,
-            phone: formData.phone.trim(),
-          },
-        },
-      });
-
-      if (signUpError) {
-        if (signUpError.message.includes('already registered')) {
-          setError('Cette adresse e-mail est déjà utilisée. Veuillez vous connecter.');
-        } else {
-          setError(signUpError.message);
-        }
-        return;
-      }
-
-      if (!authData.user) {
-        setError("L'inscription a échoué. Veuillez réessayer.");
-        return;
-      }
-
-      const userId = authData.user.id;
-      const status = selectedRole === 'learner' ? 'approved' : 'pending';
-
-      // Insert into profiles table
-      const { error: profileError } = await supabase.from('profiles').insert({
-        id: userId,
-        full_name: formData.full_name.trim(),
-        email: formData.email.trim().toLowerCase(),
-        phone: formData.phone.trim(),
-        role: selectedRole,
-        status,
-      });
-
-      if (profileError) {
-        console.error('Profile insert error:', profileError);
-      }
-
-      // Insert into role-specific table
-      if (selectedRole === 'learner') {
-        await supabase.from('learners').insert({
-          id: userId,
+      const res = await fetch('/api/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          full_name: formData.full_name.trim(),
+          email: formData.email.trim().toLowerCase(),
+          password: formData.password,
+          phone: formData.phone.trim(),
+          role: selectedRole,
           subtype: formData.subtype,
           cefr_level: formData.cefr_level,
-        });
-      } else if (selectedRole === 'teacher') {
-        await supabase.from('teachers').insert({
-          id: userId,
           bio: formData.bio.trim(),
           qualifications: formData.qualifications.trim(),
-        });
-      } else if (selectedRole === 'school') {
-        await supabase.from('schools').insert({
-          id: userId,
           school_name: formData.school_name.trim(),
           province: formData.province,
           district: formData.district,
           sector: formData.sector,
           cell: formData.cell,
-          village: formData.village || null,
+          village: formData.village,
+        }),
+      });
+
+      const result = await res.json().catch(() => ({}));
+
+      if (!res.ok) {
+        console.error('Register failed:', {
+          status: res.status,
+          error: result?.error,
+          result,
         });
+        setError(
+          typeof result?.error === 'string' && result.error
+            ? result.error
+            : "L'inscription a échoué. Veuillez réessayer."
+        );
+        return;
       }
 
       setSuccess(true);
-    } catch {
+    } catch (err) {
+      console.error('Register network error:', err);
       setError('Une erreur réseau est survenue. Veuillez vérifier votre connexion.');
     } finally {
       setLoading(false);
