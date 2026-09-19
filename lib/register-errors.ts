@@ -49,6 +49,15 @@ export function mapRegisterAuthError(message: string, status?: number | null): s
     return "Le compte a été créé mais l'e-mail de confirmation n'a pas pu être envoyé. Réessayez dans quelques minutes."
   }
 
+  if (
+    msg.includes('fetch failed') ||
+    msg.includes('failed to fetch') ||
+    msg.includes('network') ||
+    msg.includes('authretryablefetch')
+  ) {
+    return 'Une erreur réseau est survenue. Veuillez vérifier votre connexion ou réessayer dans quelques instants.'
+  }
+
   return message?.trim() || "L'inscription a échoué. Veuillez réessayer."
 }
 
