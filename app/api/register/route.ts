@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { createAdminClient } from '@/lib/supabase/admin'
+import { findAuthUserByEmail } from '@/lib/find-auth-user'
 import {
   EMAIL_ALREADY_USED,
   mapRegisterAuthError,
@@ -36,26 +37,6 @@ function jsonError(error: string, status: number, debug?: unknown) {
     console.error('[register]', error)
   }
   return NextResponse.json({ error }, { status })
-}
-
-async function findAuthUserByEmail(
-  admin: ReturnType<typeof createAdminClient>,
-  email: string
-): Promise<{ id: string } | null> {
-  const adminAuth = admin.auth.admin as typeof admin.auth.admin & {
-    getUserByEmail?: (email: string) => Promise<{
-      data: { user: { id: string } | null }
-      error: { message: string } | null
-    }>
-  }
-
-  if (typeof adminAuth.getUserByEmail === 'function') {
-    const { data, error } = await adminAuth.getUserByEmail(email)
-    if (error || !data?.user) return null
-    return { id: data.user.id }
-  }
-
-  return null
 }
 
 async function upsertRoleRow(
@@ -285,6 +266,17 @@ export async function POST(request: NextRequest) {
           email,
           userId: existingAuth.id,
         })
+        const { error: updateErr } = await admin.auth.admin.updateUserById(existingAuth.id, {
+          password,
+          user_metadata: { full_name, role, phone },
+        })
+        if (updateErr) {
+          console.error('[register] orphan password/metadata update failed', {
+            email,
+            userId: existingAuth.id,
+            message: updateErr.message,
+          })
+        }
         const completed = await ensureProfileAndRole(admin, existingAuth.id, {
           ...body,
           email,
