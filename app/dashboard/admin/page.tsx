@@ -28,6 +28,9 @@ import {
   UserX,
 } from 'lucide-react'
 import Link from 'next/link'
+import { createAdminClient } from '@/lib/supabase/admin'
+import { isActiveAccountStatus } from '@/lib/account-status'
+import { rejectPendingAccount, validatePendingAccount } from '@/lib/account-validation'
 
 // ─── Server Actions ────────────────────────────────────────────────────────────
 
@@ -37,12 +40,23 @@ async function approveUser(formData: FormData) {
   if (!userId) return
 
   const supabase = await createClient()
-  await supabase
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+  if (!user) return
+
+  const { data: adminProfile } = await supabase
     .from('profiles')
-    .update({ status: 'approved' })
-    .eq('id', userId)
+    .select('role, status')
+    .eq('id', user.id)
+    .maybeSingle()
+  if (adminProfile?.role !== 'admin' || !isActiveAccountStatus(adminProfile.status)) return
+
+  const admin = createAdminClient()
+  await validatePendingAccount(admin, { userId, adminId: user.id })
 
   revalidatePath('/dashboard/admin')
+  revalidatePath('/admin/validations')
 }
 
 async function rejectUser(formData: FormData) {
@@ -51,12 +65,23 @@ async function rejectUser(formData: FormData) {
   if (!userId) return
 
   const supabase = await createClient()
-  await supabase
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+  if (!user) return
+
+  const { data: adminProfile } = await supabase
     .from('profiles')
-    .update({ status: 'rejected' })
-    .eq('id', userId)
+    .select('role, status')
+    .eq('id', user.id)
+    .maybeSingle()
+  if (adminProfile?.role !== 'admin' || !isActiveAccountStatus(adminProfile.status)) return
+
+  const admin = createAdminClient()
+  await rejectPendingAccount(admin, { userId, adminId: user.id })
 
   revalidatePath('/dashboard/admin')
+  revalidatePath('/admin/validations')
 }
 
 // ─── Helpers ───────────────────────────────────────────────────────────────────
@@ -102,7 +127,10 @@ function StatCard({
 function statusBadge(status: string) {
   const map: Record<string, string> = {
     pending: 'bg-yellow-50 text-yellow-700 border-yellow-200',
+    pending_email_confirmation: 'bg-yellow-50 text-yellow-700 border-yellow-200',
+    pending_admin_validation: 'bg-amber-50 text-amber-700 border-amber-200',
     approved: 'bg-green-50 text-green-700 border-green-200',
+    active: 'bg-green-50 text-green-700 border-green-200',
     rejected: 'bg-red-50 text-red-700 border-red-200',
     suspended: 'bg-orange-50 text-orange-700 border-orange-200',
     upcoming: 'bg-blue-50 text-blue-700 border-blue-200',
@@ -153,17 +181,17 @@ export default async function AdminDashboardPage() {
     supabase
       .from('profiles')
       .select('*', { count: 'exact', head: true })
-      .eq('status', 'pending'),
+      .in('status', ['pending_admin_validation', 'pending']),
     supabase
       .from('profiles')
       .select('*', { count: 'exact', head: true })
       .eq('role', 'school')
-      .eq('status', 'approved'),
+      .eq('status', 'active'),
     supabase
       .from('profiles')
       .select('*', { count: 'exact', head: true })
       .eq('role', 'teacher')
-      .eq('status', 'approved'),
+      .eq('status', 'active'),
   ])
 
   // ── Pending approvals ──────────────────────────────────────────────────────
@@ -171,8 +199,8 @@ export default async function AdminDashboardPage() {
   const { data: pendingUsers } = await supabase
     .from('profiles')
     .select('id, full_name, email, role, created_at')
-    .eq('status', 'pending')
-    .order('created_at', { ascending: false })
+    .in('status', ['pending_admin_validation', 'pending'])
+    .order('email_confirmed_at', { ascending: true })
     .limit(10)
 
   // ── Recent exam sessions ───────────────────────────────────────────────────
@@ -209,7 +237,7 @@ export default async function AdminDashboardPage() {
       <div>
         <h1 className="text-2xl font-bold text-gray-900">Admin Dashboard</h1>
         <p className="text-sm text-gray-500 mt-1">
-          Welcome back — here's what's happening on MFK today.
+          Welcome back — here&apos;s what&apos;s happening on MFK today.
         </p>
       </div>
 
@@ -261,7 +289,7 @@ export default async function AdminDashboardPage() {
               </Badge>
             </div>
             <Link
-              href="/dashboard/admin/users?status=pending"
+              href="/admin/validations"
               className="text-sm text-[#1E5FA8] hover:underline flex items-center gap-1"
             >
               View all <ArrowRight className="w-3.5 h-3.5" />

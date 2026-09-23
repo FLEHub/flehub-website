@@ -98,6 +98,7 @@ export default function RegisterPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
+  const [emailConfirmationRequired, setEmailConfirmationRequired] = useState(true);
 
   // Rwanda geo cascading state
   const [provinces] = useState<string[]>(getProvinces());
@@ -249,6 +250,7 @@ export default function RegisterPage() {
         return;
       }
 
+      setEmailConfirmationRequired(result?.emailConfirmationRequired !== false);
       setSuccess(true);
     } catch (err) {
       console.error('Register network error:', err);
@@ -260,28 +262,29 @@ export default function RegisterPage() {
 
   // Success screen
   if (success) {
-    const isPending = selectedRole === 'school' || selectedRole === 'teacher';
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
         <div className="max-w-md w-full bg-white rounded-2xl shadow-sm border border-gray-100 p-8 text-center">
           <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-5">
             <CheckCircle className="w-9 h-9 text-flehub-green" />
           </div>
-          <h2 className="text-2xl font-bold text-gray-900 mb-3">
-            {isPending ? 'Inscription envoyée !' : 'Compte créé avec succès !'}
-          </h2>
+          <h2 className="text-2xl font-bold text-gray-900 mb-3">Inscription envoyée</h2>
           <p className="text-gray-500 text-sm leading-relaxed mb-6">
-            {isPending
-              ? "Votre demande d'inscription a été reçue. Un administrateur examinera votre dossier et vous notifiera par e-mail dès que votre compte sera approuvé."
-              : 'Votre compte apprenant a été créé et activé. Vous pouvez maintenant vous connecter et commencer votre apprentissage du français.'}
+            {emailConfirmationRequired ? (
+              <>
+                Un e-mail de confirmation a été envoyé à{' '}
+                <span className="font-medium text-gray-700">{formData.email}</span>. Cliquez sur
+                le lien pour vérifier votre adresse. Votre compte sera ensuite examiné par notre
+                équipe, et vous recevrez un e-mail dès son activation.
+              </>
+            ) : (
+              <>
+                Votre adresse e-mail est confirmée. Votre compte est en cours de validation par
+                notre équipe. Vous recevrez un e-mail dès son activation, puis vous pourrez vous
+                connecter.
+              </>
+            )}
           </p>
-          {!isPending && (
-            <p className="text-xs text-gray-400 mb-6">
-              Un e-mail de confirmation a été envoyé à{' '}
-              <span className="font-medium text-gray-600">{formData.email}</span>. Veuillez
-              vérifier votre boîte de réception.
-            </p>
-          )}
           <Link
             href="/login"
             className="block w-full py-3 bg-flehub-green text-white font-semibold rounded-xl hover:bg-flehub-green-dark transition-colors text-sm"

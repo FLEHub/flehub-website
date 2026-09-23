@@ -1,5 +1,6 @@
 import { redirect } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';
+import { isActiveAccountStatus } from '@/lib/account-status';
 
 export default async function DashboardPage() {
   const supabase = await createClient();
@@ -25,9 +26,8 @@ export default async function DashboardPage() {
     redirect('/login');
   }
 
-  // Redirect pending accounts back to login
-  if (profile.status === 'pending') {
-    redirect('/login?pending=true');
+  if (!isActiveAccountStatus(profile.status)) {
+    redirect(`/login?reason=${encodeURIComponent(profile.status)}`);
   }
 
   // Role-based redirect

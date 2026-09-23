@@ -72,7 +72,7 @@ export async function POST(request: NextRequest) {
       email,
       full_name: fullName,
       role: 'journalist',
-      status: 'approved',
+      status: 'active',
       updated_at: new Date().toISOString(),
     },
     { onConflict: 'id' }
@@ -110,7 +110,7 @@ export async function POST(request: NextRequest) {
         ...journalist,
         full_name: fullName,
         email,
-        status: 'approved',
+        status: 'active',
       },
     },
     { status: 201 }

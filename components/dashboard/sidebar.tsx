@@ -59,6 +59,7 @@ const navByRole: Record<Role, NavItem[]> = {
   admin: [
     { label: 'Dashboard', href: '/dashboard/admin', icon: LayoutDashboard },
     { label: 'Users', href: '/dashboard/admin/users', icon: Shield },
+    { label: 'Validations', href: '/admin/validations', icon: UserCheck },
     { label: 'Comptes sans profil', href: '/dashboard/admin/orphan-accounts', icon: UserX },
     { label: 'Journalists', href: '/dashboard/admin/journalists', icon: Newspaper },
     { label: 'Creators', href: '/dashboard/admin/creators', icon: Clapperboard },

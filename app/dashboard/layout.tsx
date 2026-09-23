@@ -6,6 +6,7 @@ import { Sidebar } from '@/components/dashboard/sidebar'
 import { Header } from '@/components/dashboard/header'
 import { MobileViewport } from '@/components/dashboard/mobile-viewport'
 import { normalizeOrgBranding } from '@/lib/org-branding'
+import { isActiveAccountStatus } from '@/lib/account-status'
 
 export default async function DashboardLayout({
   children,
@@ -33,9 +34,8 @@ export default async function DashboardLayout({
     redirect('/login')
   }
 
-  // Block suspended/rejected users
-  if (profile.status === 'suspended' || profile.status === 'rejected') {
-    redirect('/login?reason=account_inactive')
+  if (!isActiveAccountStatus(profile.status)) {
+    redirect(`/login?reason=${encodeURIComponent(profile.status)}`)
   }
 
   const { data: orgSettings } = await supabase
