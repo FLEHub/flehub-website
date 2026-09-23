@@ -49,6 +49,105 @@ WHERE p.id = u.id
   AND u.email_confirmed_at IS NOT NULL
   AND p.email_confirmed_at IS NULL;
 
+-- Role rows (schools, and the same mirror if it exists on teachers/learners/…)
+-- copy profiles.status via sync_*_status_from_profile(). Widen those checks
+-- before rewriting profile statuses, otherwise the trigger writes 'active'
+-- into a constraint that still only allows pending/approved/rejected/suspended.
+DO $$
+DECLARE
+  tbl text;
+  r record;
+  tables text[] := ARRAY['schools', 'teachers', 'learners', 'journalists', 'creators'];
+BEGIN
+  FOREACH tbl IN ARRAY tables LOOP
+    IF to_regclass('public.' || tbl) IS NULL THEN
+      CONTINUE;
+    END IF;
+
+    IF NOT EXISTS (
+      SELECT 1
+      FROM information_schema.columns
+      WHERE table_schema = 'public'
+        AND table_name = tbl
+        AND column_name = 'status'
+    ) THEN
+      CONTINUE;
+    END IF;
+
+    IF NOT EXISTS (
+      SELECT 1
+      FROM pg_constraint con
+      JOIN pg_class rel ON rel.oid = con.conrelid
+      JOIN pg_namespace nsp ON nsp.oid = rel.relnamespace
+      WHERE nsp.nspname = 'public'
+        AND rel.relname = tbl
+        AND con.contype = 'c'
+        AND pg_get_constraintdef(con.oid) ILIKE '%approved%'
+    ) THEN
+      CONTINUE;
+    END IF;
+
+    FOR r IN
+      SELECT con.conname
+      FROM pg_constraint con
+      JOIN pg_class rel ON rel.oid = con.conrelid
+      JOIN pg_namespace nsp ON nsp.oid = rel.relnamespace
+      WHERE nsp.nspname = 'public'
+        AND rel.relname = tbl
+        AND con.contype = 'c'
+        AND pg_get_constraintdef(con.oid) ILIKE '%approved%'
+    LOOP
+      EXECUTE format('ALTER TABLE public.%I DROP CONSTRAINT %I', tbl, r.conname);
+    END LOOP;
+
+    EXECUTE format(
+      'UPDATE public.%I SET status = %L WHERE status = %L',
+      tbl, 'active', 'approved'
+    );
+
+    IF EXISTS (
+      SELECT 1
+      FROM information_schema.columns
+      WHERE table_schema = 'public'
+        AND table_name = tbl
+        AND column_name = 'profile_id'
+    ) THEN
+      EXECUTE format(
+        'UPDATE public.%I AS child
+         SET status = %L
+         FROM public.profiles p
+         WHERE child.profile_id = p.id
+           AND child.status = %L
+           AND p.email_confirmed_at IS NOT NULL',
+        tbl, 'pending_admin_validation', 'pending'
+      );
+    END IF;
+
+    EXECUTE format(
+      'UPDATE public.%I SET status = %L WHERE status = %L',
+      tbl, 'pending_email_confirmation', 'pending'
+    );
+
+    EXECUTE format(
+      'ALTER TABLE public.%I ADD CONSTRAINT %I CHECK (
+         status IS NULL OR status IN (
+           ''pending_email_confirmation'',
+           ''pending_admin_validation'',
+           ''active'',
+           ''rejected'',
+           ''suspended''
+         )
+       )',
+      tbl, tbl || '_status_check'
+    );
+
+    EXECUTE format(
+      'ALTER TABLE public.%I ALTER COLUMN status SET DEFAULT %L',
+      tbl, 'pending_email_confirmation'
+    );
+  END LOOP;
+END $$;
+
 UPDATE public.profiles
 SET status = 'active'
 WHERE status = 'approved';
