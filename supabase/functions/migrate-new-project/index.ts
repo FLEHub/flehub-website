@@ -14,7 +14,7 @@ CREATE TABLE IF NOT EXISTS profiles (
   role text NOT NULL CHECK (role IN ('admin', 'school', 'teacher', 'learner')),
   avatar_url text,
   phone text,
-  status text NOT NULL DEFAULT 'pending' CHECK (status IN ('pending', 'approved', 'rejected', 'suspended')),
+  status text NOT NULL DEFAULT 'pending_email_confirmation' CHECK (status IN ('pending_email_confirmation', 'pending_admin_validation', 'active', 'rejected', 'suspended')),
   created_at timestamptz DEFAULT now(),
   updated_at timestamptz DEFAULT now()
 );
@@ -410,8 +410,8 @@ Deno.serve(async (req: Request) => {
     try {
       await sql2`
         INSERT INTO profiles (id, email, full_name, role, status)
-        VALUES (${adminUserId}, 'admin@flehub.com', 'FLEHub Admin', 'admin', 'approved')
-        ON CONFLICT (id) DO UPDATE SET role = 'admin', status = 'approved'
+        VALUES (${adminUserId}, 'admin@flehub.com', 'FLEHub Admin', 'admin', 'active')
+        ON CONFLICT (id) DO UPDATE SET role = 'admin', status = 'active'
       `;
     } finally {
       await sql2.end();

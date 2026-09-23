@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { Eye, EyeOff, AlertCircle, Clock, ArrowRight } from 'lucide-react';
@@ -8,18 +8,31 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { BrandMark } from '@/components/brand-mark';
 import { BrandLogo } from '@/components/brand-logo';
+import { loginBlockForStatus, type LoginBlockTone } from '@/lib/account-status';
 
 export default function LoginPage() {
   const router = useRouter();
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [pending, setPending] = useState(false);
+  const [notice, setNotice] = useState<{ tone: LoginBlockTone; message: string } | null>(null);
   const [isPending, setIsPending] = useState(false);
+
+  useEffect(() => {
+    const reason = new URLSearchParams(window.location.search).get('reason');
+    if (!reason) return;
+    const block = loginBlockForStatus(reason);
+    if (block) setNotice(block);
+  }, []);
+
+  const showBlock = (tone: LoginBlockTone, message: string) => {
+    setError(null);
+    setNotice({ tone, message });
+  };
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setError(null);
-    setPending(false);
+    setNotice(null);
     setIsPending(true);
 
     const formData = new FormData(e.currentTarget);
@@ -35,8 +48,9 @@ export default function LoginPage() {
 
       const result = await res.json();
 
-      if (result.pending) {
-        setPending(true);
+      if (result.blocked || result.pending) {
+        const block = loginBlockForStatus(result.blocked || 'pending_admin_validation');
+        showBlock(block?.tone ?? 'warning', result.error || block?.message || '');
       } else if (result.error) {
         setError(result.error);
       } else if (result.redirect) {
@@ -118,20 +132,30 @@ export default function LoginPage() {
             </p>
           </div>
 
-          {pending && (
-            <div className="mb-6 bg-amber-50 border border-amber-200 rounded-xl p-4 flex gap-3">
-              <Clock className="w-5 h-5 text-amber-500 flex-shrink-0 mt-0.5" />
-              <div>
-                <p className="text-sm font-semibold text-amber-800">En attente d&apos;approbation</p>
-                <p className="text-xs text-amber-700 mt-0.5">
-                  Votre compte est en cours de validation par un administrateur. Vous recevrez une
-                  notification dès que votre accès sera activé.
-                </p>
-              </div>
+          {notice && (
+            <div
+              className={`mb-6 rounded-xl p-4 flex gap-3 border ${
+                notice.tone === 'warning'
+                  ? 'bg-amber-50 border-amber-200'
+                  : 'bg-red-50 border-red-200'
+              }`}
+            >
+              {notice.tone === 'warning' ? (
+                <Clock className="w-5 h-5 text-amber-500 flex-shrink-0 mt-0.5" />
+              ) : (
+                <AlertCircle className="w-5 h-5 text-red-500 flex-shrink-0 mt-0.5" />
+              )}
+              <p
+                className={`text-sm ${
+                  notice.tone === 'warning' ? 'text-amber-800' : 'text-red-700'
+                }`}
+              >
+                {notice.message}
+              </p>
             </div>
           )}
 
-          {error && !pending && (
+          {error && !notice && (
             <div className="mb-6 bg-red-50 border border-red-200 rounded-xl p-4 flex gap-3">
               <AlertCircle className="w-5 h-5 text-red-500 flex-shrink-0 mt-0.5" />
               <p className="text-sm text-red-700">{error}</p>

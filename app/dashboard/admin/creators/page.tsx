@@ -36,7 +36,14 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog'
 
-type UserStatus = 'pending' | 'approved' | 'rejected' | 'suspended'
+type UserStatus =
+  | 'pending'
+  | 'pending_email_confirmation'
+  | 'pending_admin_validation'
+  | 'approved'
+  | 'active'
+  | 'rejected'
+  | 'suspended'
 
 interface CreatorRow {
   id: string
@@ -51,7 +58,10 @@ interface CreatorRow {
 
 const STATUS_CLASS: Record<UserStatus, string> = {
   pending: 'bg-yellow-50 text-yellow-700 border-yellow-200',
+  pending_email_confirmation: 'bg-yellow-50 text-yellow-700 border-yellow-200',
+  pending_admin_validation: 'bg-amber-50 text-amber-700 border-amber-200',
   approved: 'bg-[#E8F1FA] text-[#1E5FA8] border-green-200',
+  active: 'bg-[#E8F1FA] text-[#1E5FA8] border-green-200',
   rejected: 'bg-red-50 text-red-700 border-red-200',
   suspended: 'bg-orange-50 text-orange-700 border-orange-200',
 }
@@ -116,7 +126,7 @@ export default function AdminCreatorsPage() {
             created_at: c.created_at,
             full_name: p?.full_name ?? '—',
             email: p?.email ?? '—',
-            status: (p?.status as UserStatus) ?? 'approved',
+            status: (p?.status as UserStatus) ?? 'active',
           }
         })
       )
@@ -412,8 +422,8 @@ export default function AdminCreatorsPage() {
                           <Button
                             variant="outline"
                             size="sm"
-                            disabled={actionId === row.profile_id + 'approved'}
-                            onClick={() => updateStatus(row.profile_id, 'approved')}
+                            disabled={actionId === row.profile_id + 'active'}
+                            onClick={() => updateStatus(row.profile_id, 'active')}
                             className="border-green-200 text-[#1E5FA8]"
                           >
                             <CheckCircle2 className="w-3.5 h-3.5 mr-1" />

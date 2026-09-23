@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { createClient as createSupabaseClient } from '@supabase/supabase-js';
+import { isActiveAccountStatus, loginBlockForStatus } from '@/lib/account-status';
 
 export async function POST(request: NextRequest) {
   const { email, password } = await request.json();
@@ -20,6 +21,14 @@ export async function POST(request: NextRequest) {
   });
 
   if (error) {
+    const message = error.message.toLowerCase();
+    if (message.includes('email not confirmed') || message.includes('email_not_confirmed')) {
+      const block = loginBlockForStatus('pending_email_confirmation');
+      return NextResponse.json(
+        { error: block?.message, blocked: 'pending_email_confirmation' },
+        { status: 403 }
+      );
+    }
     if (error.message.includes('Invalid login credentials')) {
       return NextResponse.json(
         { error: 'Email ou mot de passe incorrect. Veuillez réessayer.' },
@@ -44,7 +53,7 @@ export async function POST(request: NextRequest) {
 
   const { data: profile, error: profileError } = await adminSupabase
     .from('profiles')
-    .select('role, status')
+    .select('role, status, rejection_reason')
     .eq('id', data.user.id)
     .maybeSingle();
 
@@ -59,15 +68,16 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  if (profile.status === 'pending') {
+  if (!isActiveAccountStatus(profile.status)) {
     await supabase.auth.signOut();
-    return NextResponse.json({ pending: true }, { status: 200 });
-  }
-
-  if (profile.status === 'suspended' || profile.status === 'rejected') {
-    await supabase.auth.signOut();
+    const block = loginBlockForStatus(profile.status, profile.rejection_reason);
     return NextResponse.json(
-      { error: "Votre compte est inactif. Veuillez contacter l'administrateur." },
+      {
+        error: block?.message,
+        blocked: profile.status,
+        pending:
+          profile.status === 'pending_admin_validation' || profile.status === 'pending',
+      },
       { status: 403 }
     );
   }

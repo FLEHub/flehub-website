@@ -1,4 +1,5 @@
 import { createAdminClient } from '@/lib/supabase/admin'
+import { ACCOUNT_STATUS, type AccountStatus } from '@/lib/account-status'
 import { mapRegisterDbError } from '@/lib/register-errors'
 
 export type AppRole = 'admin' | 'school' | 'teacher' | 'learner' | 'journalist' | 'creator'
@@ -18,6 +19,8 @@ export type EnsureProfileInput = {
   sector?: string | null
   cell?: string | null
   village?: string | null
+  /** Auth user already has email_confirmed_at (orphan recovery or confirmations off). */
+  emailConfirmedAt?: string | null
 }
 
 type AdminClient = ReturnType<typeof createAdminClient>
@@ -27,10 +30,15 @@ function isDuplicate(code?: string | null, message?: string | null) {
   return code === '23505' || msg.includes('duplicate key') || msg.includes('unique constraint')
 }
 
-export function profileStatusForRole(role: AppRole): 'approved' | 'pending' {
-  return role === 'learner' || role === 'admin' || role === 'journalist' || role === 'creator'
-    ? 'approved'
-    : 'pending'
+/** Public signup waits for email, then for an admin. Staff accounts are active. */
+export function initialAccountStatus(
+  role: AppRole,
+  emailConfirmed: boolean
+): AccountStatus {
+  if (role === 'admin' || role === 'journalist' || role === 'creator') {
+    return ACCOUNT_STATUS.ACTIVE
+  }
+  return emailConfirmed ? ACCOUNT_STATUS.PENDING_ADMIN : ACCOUNT_STATUS.PENDING_EMAIL
 }
 
 async function upsertRoleRow(
@@ -156,7 +164,8 @@ export async function ensureProfileAndRole(
   userId: string,
   body: EnsureProfileInput
 ): Promise<{ error: string | null }> {
-  const status = profileStatusForRole(body.role)
+  const emailConfirmed = Boolean(body.emailConfirmedAt)
+  const status = initialAccountStatus(body.role, emailConfirmed)
 
   const { data: existing } = await admin
     .from('profiles')
@@ -173,6 +182,7 @@ export async function ensureProfileAndRole(
         phone: body.phone || null,
         role: body.role,
         status,
+        email_confirmed_at: body.emailConfirmedAt || null,
       },
       { onConflict: 'id', ignoreDuplicates: true }
     )

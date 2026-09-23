@@ -33,7 +33,14 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 
-type UserStatus = 'pending' | 'approved' | 'rejected' | 'suspended'
+type UserStatus =
+  | 'pending'
+  | 'pending_email_confirmation'
+  | 'pending_admin_validation'
+  | 'approved'
+  | 'active'
+  | 'rejected'
+  | 'suspended'
 type UserRole = 'admin' | 'school' | 'teacher' | 'learner' | 'journalist' | 'creator'
 
 interface Profile {
@@ -53,8 +60,20 @@ const STATUS_CONFIG: Record<
     label: 'Pending',
     className: 'bg-yellow-50 text-yellow-700 border border-yellow-200',
   },
+  pending_email_confirmation: {
+    label: 'Email not confirmed',
+    className: 'bg-yellow-50 text-yellow-700 border border-yellow-200',
+  },
+  pending_admin_validation: {
+    label: 'Awaiting validation',
+    className: 'bg-amber-50 text-amber-700 border border-amber-200',
+  },
   approved: {
     label: 'Approved',
+    className: 'bg-[#E8F1FA] text-[#1E5FA8] border border-green-200',
+  },
+  active: {
+    label: 'Active',
     className: 'bg-[#E8F1FA] text-[#1E5FA8] border border-green-200',
   },
   rejected: {
@@ -356,35 +375,19 @@ export default function AdminUsersPage() {
                             {/* Actions */}
                             <TableCell className="py-3 pr-6 text-right">
                               <div className="flex items-center justify-end gap-1.5">
-                                {profile.status === 'pending' && (
-                                  <>
-                                    <Button
-                                      size="sm"
-                                      disabled={!!isActing}
-                                      onClick={() =>
-                                        updateStatus(profile.id, 'approved')
-                                      }
-                                      className="h-7 px-2.5 text-xs bg-[#1E5FA8] hover:bg-[#164A82] text-white"
-                                    >
-                                      <CheckCircle2 className="w-3.5 h-3.5 mr-1" />
-                                      Approve
-                                    </Button>
-                                    <Button
-                                      size="sm"
-                                      variant="outline"
-                                      disabled={!!isActing}
-                                      onClick={() =>
-                                        updateStatus(profile.id, 'rejected')
-                                      }
-                                      className="h-7 px-2.5 text-xs text-red-600 border-red-200 hover:bg-red-50"
-                                    >
-                                      <XCircle className="w-3.5 h-3.5 mr-1" />
-                                      Reject
-                                    </Button>
-                                  </>
+                                {(profile.status === 'pending' ||
+                                  profile.status === 'pending_admin_validation') && (
+                                  <Button
+                                    size="sm"
+                                    variant="outline"
+                                    className="h-7 px-2.5 text-xs"
+                                    asChild
+                                  >
+                                    <Link href="/admin/validations">Review</Link>
+                                  </Button>
                                 )}
 
-                                {profile.status === 'approved' && (
+                                {(profile.status === 'approved' || profile.status === 'active') && (
                                   <DropdownMenu>
                                     <DropdownMenuTrigger asChild>
                                       <Button
@@ -427,7 +430,7 @@ export default function AdminUsersPage() {
                                     variant="outline"
                                     disabled={!!isActing}
                                     onClick={() =>
-                                      updateStatus(profile.id, 'approved')
+                                      updateStatus(profile.id, 'active')
                                     }
                                     className="h-7 px-2.5 text-xs text-[#1E5FA8] border-green-200 hover:bg-[#E8F1FA]"
                                   >

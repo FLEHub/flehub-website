@@ -8,7 +8,14 @@ export interface Journalist {
   created_at: string;
   updated_at?: string;
 }
-export type Status = 'pending' | 'approved' | 'rejected' | 'suspended';
+export type Status =
+  | 'pending_email_confirmation'
+  | 'pending_admin_validation'
+  | 'active'
+  | 'rejected'
+  | 'suspended'
+  | 'pending'
+  | 'approved';
 export type CefrLevel = 'A1' | 'A2' | 'B1' | 'B2' | 'C1' | 'C2';
 export type Competency = 'EO' | 'EE' | 'CO' | 'CE' | 'EL';
 export type LearnerSubtype = 'independent' | 'pupil';
@@ -24,6 +31,10 @@ export interface Profile {
   avatar_url?: string;
   phone?: string;
   status: Status;
+  email_confirmed_at?: string | null;
+  validated_by?: string | null;
+  validated_at?: string | null;
+  rejection_reason?: string | null;
   created_at: string;
   updated_at: string;
 }

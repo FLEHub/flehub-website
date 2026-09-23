@@ -9,6 +9,7 @@ import {
   isAuthEmailTakenError,
   mapRegisterAuthError,
 } from '@/lib/register-errors'
+import { authConfirmedUrl } from '@/lib/site-url'
 
 type Role = Extract<AppRole, 'learner' | 'teacher' | 'school'>
 type LearnerSubtype = 'independent' | 'pupil'
@@ -44,7 +45,8 @@ function jsonError(error: string, status: number, debug?: unknown) {
 async function recoverOrphan(
   admin: ReturnType<typeof createAdminClient>,
   userId: string,
-  body: RegisterBody & { email: string; role: Role; full_name: string; phone: string; password: string }
+  body: RegisterBody & { email: string; role: Role; full_name: string; phone: string; password: string },
+  emailConfirmedAt?: string | null
 ): Promise<{ error: string | null }> {
   const { error: updateErr } = await admin.auth.admin.updateUserById(userId, {
     password: body.password,
@@ -73,6 +75,7 @@ async function recoverOrphan(
     sector: body.sector,
     cell: body.cell,
     village: body.village,
+    emailConfirmedAt: emailConfirmedAt ?? null,
   })
 }
 
@@ -169,7 +172,12 @@ export async function POST(request: NextRequest) {
       email,
       userId: existingAuth.id,
     })
-    const completed = await recoverOrphan(admin, existingAuth.id, payload)
+    const completed = await recoverOrphan(
+      admin,
+      existingAuth.id,
+      payload,
+      existingAuth.email_confirmed_at
+    )
     if (completed.error) {
       return jsonError(completed.error, 500, {
         email,
@@ -178,7 +186,7 @@ export async function POST(request: NextRequest) {
     }
     return NextResponse.json({
       ok: true,
-      pending: role !== 'learner',
+      emailConfirmationRequired: !existingAuth.email_confirmed_at,
       recovered: true,
     })
   }
@@ -193,13 +201,14 @@ export async function POST(request: NextRequest) {
   const { data: authData, error: signUpError } = await anon.auth.signUp({
     email,
     password,
-    options: {
-      data: {
-        full_name,
-        role,
-        phone,
+      options: {
+        emailRedirectTo: authConfirmedUrl(),
+        data: {
+          full_name,
+          role,
+          phone,
+        },
       },
-    },
   })
 
   if (signUpError) {
@@ -254,6 +263,7 @@ export async function POST(request: NextRequest) {
     sector: body.sector,
     cell: body.cell,
     village: body.village,
+    emailConfirmedAt: signedUpUser.email_confirmed_at,
   })
   if (completed.error) {
     return jsonError(completed.error, 500, { email, userId })
@@ -262,6 +272,6 @@ export async function POST(request: NextRequest) {
   console.info('[register] success', { email, role, userId })
   return NextResponse.json({
     ok: true,
-    pending: role !== 'learner',
+    emailConfirmationRequired: !signedUpUser.email_confirmed_at,
   })
 }
