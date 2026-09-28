@@ -6,6 +6,9 @@
     Site URL: https://mfkigali.com
     Redirect URLs: https://mfkigali.com/auth/confirmed
                    https://mfkigali.com/auth/confirm
+
+  The confirmation link is written in full (https://mfkigali.com/...)
+  so a Site URL left on localhost cannot send the visitor there.
 -->
 <!DOCTYPE html>
 <html lang="fr">
@@ -37,13 +40,13 @@
                   Après cette confirmation, votre compte sera examiné par notre équipe. Vous recevrez un e-mail dès qu'il sera activé.
                 </p>
                 <p style="margin:0 0 28px;text-align:center;">
-                  <a href="{{ .SiteURL }}/auth/confirm?token_hash={{ .TokenHash }}&type=signup" style="display:inline-block;background:#1E5FA8;color:#ffffff;text-decoration:none;font-weight:700;font-size:15px;padding:12px 22px;border-radius:12px;">
+                  <a href="https://mfkigali.com/auth/confirm?token_hash={{ .TokenHash }}&type=signup" style="display:inline-block;background:#1E5FA8;color:#ffffff;text-decoration:none;font-weight:700;font-size:15px;padding:12px 22px;border-radius:12px;">
                     Confirmer mon e-mail
                   </a>
                 </p>
                 <p style="margin:0;font-size:12px;line-height:1.5;color:#9ca3af;">
                   Si le bouton ne fonctionne pas, copiez ce lien dans votre navigateur :<br />
-                  <a href="{{ .SiteURL }}/auth/confirm?token_hash={{ .TokenHash }}&type=signup" style="color:#1E5FA8;word-break:break-all;">{{ .SiteURL }}/auth/confirm?token_hash={{ .TokenHash }}&amp;type=signup</a>
+                  <a href="https://mfkigali.com/auth/confirm?token_hash={{ .TokenHash }}&type=signup" style="color:#1E5FA8;word-break:break-all;">https://mfkigali.com/auth/confirm?token_hash={{ .TokenHash }}&amp;type=signup</a>
                 </p>
               </td>
             </tr>

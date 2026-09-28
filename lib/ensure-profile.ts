@@ -219,3 +219,37 @@ export async function ensureProfileAndRole(
   }
   return roleResult
 }
+
+/**
+ * Email confirmation is recorded by Supabase Auth (and normally by a database
+ * trigger). This repeats that step from the app, only while the profile is
+ * still waiting for the email, so a missed trigger does not leave the account stuck.
+ * It never activates the account: an admin still has to approve it.
+ */
+export async function promoteProfileAfterEmailConfirmation(
+  admin: AdminClient,
+  userId: string,
+  emailConfirmedAt?: string | null
+): Promise<boolean> {
+  const confirmedAt = emailConfirmedAt || new Date().toISOString()
+  const { data, error } = await admin
+    .from('profiles')
+    .update({
+      status: ACCOUNT_STATUS.PENDING_ADMIN,
+      email_confirmed_at: confirmedAt,
+      updated_at: confirmedAt,
+    })
+    .eq('id', userId)
+    .eq('status', ACCOUNT_STATUS.PENDING_EMAIL)
+    .select('id')
+
+  if (error) {
+    console.error('[account] promote after email confirmation', {
+      userId,
+      message: error.message,
+    })
+    return false
+  }
+
+  return (data?.length ?? 0) > 0
+}

@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
 import type { EmailOtpType } from '@supabase/supabase-js'
 import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/admin'
+import { promoteProfileAfterEmailConfirmation } from '@/lib/ensure-profile'
+import { appUrl } from '@/lib/site-url'
 
 const OTP_TYPES = new Set<EmailOtpType>(['signup', 'email', 'invite', 'recovery', 'magiclink', 'email_change'])
 
@@ -13,11 +16,12 @@ export async function GET(request: NextRequest) {
   const tokenHash = url.searchParams.get('token_hash')
   const type = url.searchParams.get('type')
   const code = url.searchParams.get('code')
-  const confirmed = new URL('/auth/confirmed', url.origin)
-  const failed = new URL('/login', url.origin)
+  const confirmed = appUrl('/auth/confirmed', url.origin)
+  const failed = appUrl('/login', url.origin)
   failed.searchParams.set('reason', 'pending_email_confirmation')
 
   const supabase = await createClient()
+  let verified = false
 
   if (tokenHash && type && OTP_TYPES.has(type as EmailOtpType)) {
     const { error } = await supabase.auth.verifyOtp({
@@ -28,14 +32,31 @@ export async function GET(request: NextRequest) {
       console.error('[auth/confirm] verifyOtp', error.message)
       return NextResponse.redirect(failed)
     }
+    verified = true
   } else if (code) {
     const { error } = await supabase.auth.exchangeCodeForSession(code)
     if (error) {
       console.error('[auth/confirm] exchangeCode', error.message)
       return NextResponse.redirect(failed)
     }
-  } else {
-    return NextResponse.redirect(confirmed)
+    verified = true
+  }
+
+  if (!verified) {
+    return NextResponse.redirect(failed)
+  }
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+
+  if (user?.id) {
+    try {
+      const admin = createAdminClient()
+      await promoteProfileAfterEmailConfirmation(admin, user.id, user.email_confirmed_at)
+    } catch (err) {
+      console.error('[auth/confirm] promote profile', err)
+    }
   }
 
   await supabase.auth.signOut()

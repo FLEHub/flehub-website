@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { createClient as createSupabaseClient } from '@supabase/supabase-js';
-import { isActiveAccountStatus, loginBlockForStatus } from '@/lib/account-status';
+import { ACCOUNT_STATUS, isActiveAccountStatus, loginBlockForStatus } from '@/lib/account-status';
+import { promoteProfileAfterEmailConfirmation } from '@/lib/ensure-profile';
 
 export async function POST(request: NextRequest) {
   const { email, password } = await request.json();
@@ -51,11 +52,32 @@ export async function POST(request: NextRequest) {
     process.env.SUPABASE_SERVICE_ROLE_KEY!
   );
 
-  const { data: profile, error: profileError } = await adminSupabase
+  let { data: profile, error: profileError } = await adminSupabase
     .from('profiles')
     .select('role, status, rejection_reason')
     .eq('id', data.user.id)
     .maybeSingle();
+
+  if (
+    profile &&
+    data.user.email_confirmed_at &&
+    profile.status === ACCOUNT_STATUS.PENDING_EMAIL
+  ) {
+    await promoteProfileAfterEmailConfirmation(
+      adminSupabase,
+      data.user.id,
+      data.user.email_confirmed_at
+    );
+    const refreshed = await adminSupabase
+      .from('profiles')
+      .select('role, status, rejection_reason')
+      .eq('id', data.user.id)
+      .maybeSingle();
+    if (refreshed.data) {
+      profile = refreshed.data;
+      profileError = refreshed.error;
+    }
+  }
 
   if (profileError || !profile) {
     await supabase.auth.signOut();
