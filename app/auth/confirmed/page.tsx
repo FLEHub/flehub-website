@@ -10,9 +10,16 @@ import { BrandMark } from '@/components/brand-mark'
 export default function EmailConfirmedPage() {
   useEffect(() => {
     const supabase = createClient()
-    void supabase.auth.getSession().finally(() => {
-      void supabase.auth.signOut()
-    })
+    void (async () => {
+      try {
+        const { data } = await supabase.auth.getSession()
+        if (data.session) {
+          await fetch('/api/account/sync-email-confirmation', { method: 'POST' })
+        }
+      } finally {
+        await supabase.auth.signOut()
+      }
+    })()
   }, [])
 
   return (

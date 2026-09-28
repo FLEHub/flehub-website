@@ -1,6 +1,8 @@
 import { createServerClient } from '@supabase/ssr';
 import { NextResponse, type NextRequest } from 'next/server';
-import { isActiveAccountStatus } from '@/lib/account-status';
+import { ACCOUNT_STATUS, isActiveAccountStatus } from '@/lib/account-status';
+import { promoteProfileAfterEmailConfirmation } from '@/lib/ensure-profile';
+import { createAdminClient } from '@/lib/supabase/admin';
 
 function redirectWithCookies(url: URL, sessionResponse: NextResponse) {
   const redirectResponse = NextResponse.redirect(url);
@@ -49,7 +51,22 @@ export async function updateSession(request: NextRequest) {
       .eq('id', user.id)
       .maybeSingle();
 
-    const active = Boolean(profile && isActiveAccountStatus(profile.status));
+    let status = profile?.status ?? null;
+    if (user.email_confirmed_at && status === ACCOUNT_STATUS.PENDING_EMAIL) {
+      try {
+        const admin = createAdminClient();
+        const promoted = await promoteProfileAfterEmailConfirmation(
+          admin,
+          user.id,
+          user.email_confirmed_at
+        );
+        if (promoted) status = ACCOUNT_STATUS.PENDING_ADMIN;
+      } catch (err) {
+        console.error('[middleware] promote after email confirmation', err);
+      }
+    }
+
+    const active = Boolean(profile && isActiveAccountStatus(status));
 
     if (!active) {
       await supabase.auth.signOut();
@@ -59,7 +76,7 @@ export async function updateSession(request: NextRequest) {
       const url = request.nextUrl.clone();
       url.pathname = '/login';
       url.search = '';
-      url.searchParams.set('reason', profile?.status || 'inactive');
+      url.searchParams.set('reason', status || 'inactive');
       return redirectWithCookies(url, supabaseResponse);
     }
 
