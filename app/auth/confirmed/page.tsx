@@ -34,8 +34,8 @@ export default function EmailConfirmedPage() {
         </div>
         <h1 className="text-2xl font-bold text-gray-900 mb-3">E-mail confirmé</h1>
         <p className="text-gray-500 text-sm leading-relaxed mb-6">
-          Votre email est confirmé. Votre compte est en cours de validation par notre équipe,
-          vous recevrez un email dès son activation.
+          Votre email est confirmé. Vous pouvez vous connecter dès maintenant. Un
+          administrateur peut encore examiner le compte après coup.
         </p>
         <Link
           href="/login"
