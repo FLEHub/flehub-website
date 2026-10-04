@@ -274,14 +274,13 @@ export default function RegisterPage() {
               <>
                 Un e-mail de confirmation a été envoyé à{' '}
                 <span className="font-medium text-gray-700">{formData.email}</span>. Cliquez sur
-                le lien pour vérifier votre adresse. Votre compte sera ensuite examiné par notre
-                équipe, et vous recevrez un e-mail dès son activation.
+                le lien pour vérifier votre adresse : ensuite, vous pourrez vous connecter. Un
+                administrateur peut encore examiner le compte après coup.
               </>
             ) : (
               <>
-                Votre adresse e-mail est confirmée. Votre compte est en cours de validation par
-                notre équipe. Vous recevrez un e-mail dès son activation, puis vous pourrez vous
-                connecter.
+                Votre adresse e-mail est confirmée. Vous pouvez vous connecter. Un
+                administrateur peut encore examiner le compte après coup.
               </>
             )}
           </p>
@@ -688,7 +687,8 @@ export default function RegisterPage() {
                       className="h-10 border-gray-300 focus:border-flehub-green rounded-xl"
                     />
                     <p className="text-xs text-gray-400">
-                      Votre compte sera examiné par un administrateur avant activation.
+                      Une fois l&apos;e-mail confirmé, vous pourrez vous connecter. Un administrateur
+                      peut examiner le compte après coup.
                     </p>
                   </div>
                 </div>
@@ -812,7 +812,8 @@ export default function RegisterPage() {
                   </div>
 
                   <p className="text-xs text-gray-400">
-                    Votre compte école sera examiné par un administrateur avant activation.
+                    Une fois l&apos;e-mail confirmé, vous pourrez vous connecter. Un administrateur
+                    peut examiner le compte école après coup.
                   </p>
                 </div>
               )}

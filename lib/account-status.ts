@@ -21,9 +21,21 @@ const EMAIL_NOT_CONFIRMED =
 const AWAITING_ADMIN =
   'Votre email est confirmé. Votre compte est en cours de validation par notre équipe, vous recevrez un email dès son activation.'
 
-/** Accounts that may use the platform. Legacy `approved` is treated as active. */
+/**
+ * Accounts that may use the platform. Legacy `approved` is treated as active.
+ *
+ * TEMPORAIRE : validation admin non bloquante le temps de stabiliser le flux email.
+ * Revenir à un blocage strict une fois la confirmation d'email validée en production
+ * (le lien arrive, et le compte passe de pending_email_confirmation à
+ * pending_admin_validation) : retirer ACCOUNT_STATUS.PENDING_ADMIN ci-dessous.
+ * Le trigger qui fait ce passage, et la page /admin/validations, restent en place.
+ */
 export function isActiveAccountStatus(status: string | null | undefined): boolean {
-  return status === ACCOUNT_STATUS.ACTIVE || status === 'approved'
+  return (
+    status === ACCOUNT_STATUS.ACTIVE ||
+    status === 'approved' ||
+    status === ACCOUNT_STATUS.PENDING_ADMIN
+  )
 }
 
 export function loginBlockForStatus(
@@ -36,6 +48,9 @@ export function loginBlockForStatus(
     return { tone: 'warning', message: EMAIL_NOT_CONFIRMED }
   }
 
+  // Inatteignable pour pending_admin_validation tant que isActiveAccountStatus
+  // le laisse entrer. Conservé pour le retour au blocage strict, et pour
+  // l'ancien statut `pending`.
   if (status === ACCOUNT_STATUS.PENDING_ADMIN || status === 'pending') {
     return { tone: 'warning', message: AWAITING_ADMIN }
   }
