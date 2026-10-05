@@ -58,14 +58,6 @@ const statusConfig: Record<
   },
 };
 
-function nestedTeacherName(row: any): string {
-  const teachers = Array.isArray(row.teachers) ? row.teachers[0] : row.teachers;
-  const profiles = Array.isArray(teachers?.profiles)
-    ? teachers.profiles[0]
-    : teachers?.profiles;
-  return profiles?.full_name?.trim() || 'Enseignant';
-}
-
 export default function LearnerSessionsPage() {
   const supabase = createClient();
   const [loading, setLoading] = useState(true);
@@ -91,6 +83,13 @@ export default function LearnerSessionsPage() {
         return;
       }
 
+      const { data: directory } = await supabase.rpc('list_teachers_for_learners');
+      const teacherNameById = new Map<string, string>();
+      ((directory ?? []) as { id: string; full_name: string | null }[]).forEach((row) => {
+        const name = row.full_name?.trim();
+        if (row.id && name) teacherNameById.set(row.id, name);
+      });
+
       const { data: rows } = await supabase
         .from('live_sessions')
         .select(
@@ -103,9 +102,7 @@ export default function LearnerSessionsPage() {
           cefr_level,
           status,
           meeting_url,
-          teachers (
-            profiles ( full_name )
-          )
+          teacher_id
         `
         )
         .in('teacher_id', teacherIds)
@@ -121,7 +118,7 @@ export default function LearnerSessionsPage() {
           cefr_level: r.cefr_level,
           status: r.status as SessionStatus,
           meeting_url: r.meeting_url,
-          teacher_name: nestedTeacherName(r),
+          teacher_name: teacherNameById.get(r.teacher_id) || 'Enseignant',
         }))
       );
     } catch (err) {
