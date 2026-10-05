@@ -38,6 +38,7 @@ next-env.d.ts
 # vidéos générées par le script Playwright
 /videos/*.webm
 /videos/*.mp4
+!/videos/inscription-mfk.mp4
 /videos/.tmp/
 
 # python
