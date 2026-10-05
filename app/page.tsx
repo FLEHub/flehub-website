@@ -69,7 +69,6 @@ export default async function HomePage() {
         shortName={shortName}
         tagline={tagline}
         active="home"
-        showAppCta
       />
 
       <main className="flex-1">
@@ -93,33 +92,19 @@ export default async function HomePage() {
 
         {/* App CTA strip — bandeau vibrant */}
         <section className="bg-gradient-to-r from-[#1E5FA8] via-[#3A92D1] to-[#F2B705]">
-          <div className="max-w-5xl mx-auto px-6 py-5 flex flex-col sm:flex-row items-center justify-between gap-4">
-            <p className="text-sm sm:text-base text-white font-medium text-center sm:text-left">
+          <div className="max-w-5xl mx-auto px-4 sm:px-6 py-5 flex flex-col md:flex-row items-center justify-between gap-4">
+            <p className="text-sm sm:text-base text-white font-medium text-center md:text-left">
               Accédez à la plateforme e-learning et aux services {shortName}.
             </p>
-            <div className="flex w-full sm:w-auto flex-col sm:flex-row items-stretch sm:items-center gap-2">
-              <Link
-                href="/register"
-                data-testid="learn-french"
-                className="inline-flex min-h-11 shrink-0 items-center justify-center gap-2 whitespace-nowrap px-5 py-2.5 rounded-xl bg-[#F2B705] hover:bg-[#C99404] text-[#0B1F3A] text-sm font-bold shadow-md transition-colors"
-              >
-                J’apprends le français
-                <ArrowRight className="w-4 h-4" />
-              </Link>
-              <Link
-                href="/app"
-                className="inline-flex min-h-11 items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-white hover:bg-[#FFF8E1] text-[#0B1F3A] text-sm font-bold shadow-md transition-colors"
-              >
-                Accéder à {shortName} App
-                <ArrowRight className="w-4 h-4" />
-              </Link>
-              <Link
-                href="/login"
-                className="inline-flex min-h-11 items-center justify-center px-4 py-2.5 rounded-xl border-2 border-white/70 bg-transparent text-white text-sm font-semibold hover:bg-white/15 transition-colors"
-              >
-                Se connecter
-              </Link>
-            </div>
+            <Link
+              href="/app"
+              title="J’apprends le français"
+              aria-label="J’apprends le français"
+              className="inline-flex min-h-[44px] shrink-0 items-center justify-center gap-2 whitespace-nowrap px-4 sm:px-5 py-2.5 rounded-xl bg-white hover:bg-[#FFF8E1] text-[#0B1F3A] text-sm font-bold shadow-md transition-colors"
+            >
+              J’apprends le français
+              <ArrowRight className="w-4 h-4 shrink-0" aria-hidden="true" />
+            </Link>
           </div>
         </section>
 

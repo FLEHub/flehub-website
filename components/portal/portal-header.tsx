@@ -18,8 +18,10 @@ type Props = {
     | 'galeries'
     | 'webseries'
     | 'podcasts'
-  showAppCta?: boolean
 }
+
+const ELEARNING_CTA_HREF = '/app'
+const ELEARNING_CTA_LABEL = 'J’apprends le français'
 
 const NAV: { href: string; label: string; key: NonNullable<Props['active']> }[] = [
   { href: '/actualites', label: 'Actualités', key: 'actualites' },
@@ -40,7 +42,6 @@ export function PortalHeader({
   shortName,
   tagline,
   active,
-  showAppCta = false,
 }: Props) {
   const [open, setOpen] = useState(false)
 
@@ -68,29 +69,23 @@ export function PortalHeader({
           />
         </Link>
 
-        <nav className="hidden lg:flex items-center gap-4 text-sm font-medium">
+        <nav className="hidden lg:flex items-center gap-3 xl:gap-4 text-sm font-medium">
           {NAV.map((item) => (
             <Link
               key={item.key}
               href={item.href}
-              className={navClass(active === item.key)}
+              className={cn(navClass(active === item.key), 'whitespace-nowrap')}
             >
               {item.label}
             </Link>
           ))}
-          {showAppCta && (
-            <Link
-              href="/app"
-              className="inline-flex min-h-11 items-center px-3.5 py-1.5 rounded-lg bg-[#F2B705] hover:bg-[#C99404] text-[#0B1F3A] text-sm font-bold shadow-sm transition-colors"
-            >
-              {shortName} App
-            </Link>
-          )}
           <Link
-            href="/login"
-            className="inline-flex min-h-11 items-center px-3 py-1.5 rounded-lg border border-[#1E5FA8]/30 text-[#1E5FA8] hover:bg-[#E8F1FA] font-semibold transition-colors"
+            href={ELEARNING_CTA_HREF}
+            title={ELEARNING_CTA_LABEL}
+            aria-label={ELEARNING_CTA_LABEL}
+            className="inline-flex min-h-[44px] shrink-0 items-center whitespace-nowrap px-2.5 xl:px-3.5 py-1.5 rounded-lg bg-[#F2B705] hover:bg-[#C99404] text-[#0B1F3A] text-[13px] xl:text-sm font-bold shadow-sm transition-colors"
           >
-            Connexion
+            {ELEARNING_CTA_LABEL}
           </Link>
         </nav>
 
@@ -121,21 +116,14 @@ export function PortalHeader({
                 {item.label}
               </Link>
             ))}
-            {showAppCta && (
-              <Link
-                href="/app"
-                onClick={() => setOpen(false)}
-                className="mt-2 inline-flex min-h-11 items-center justify-center rounded-lg bg-[#F2B705] hover:bg-[#C99404] text-[#0B1F3A] text-sm font-bold"
-              >
-                {shortName} App
-              </Link>
-            )}
             <Link
-              href="/login"
+              href={ELEARNING_CTA_HREF}
+              title={ELEARNING_CTA_LABEL}
+              aria-label={ELEARNING_CTA_LABEL}
               onClick={() => setOpen(false)}
-              className="mt-2 inline-flex min-h-11 items-center justify-center rounded-lg border border-[#1E5FA8]/30 text-[#1E5FA8] font-semibold"
+              className="mt-2 inline-flex min-h-[44px] items-center justify-center whitespace-nowrap rounded-lg bg-[#F2B705] hover:bg-[#C99404] text-[#0B1F3A] px-3 py-2.5 text-sm font-bold"
             >
-              Connexion
+              {ELEARNING_CTA_LABEL}
             </Link>
           </nav>
         </div>

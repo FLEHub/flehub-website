@@ -257,21 +257,30 @@ async function record(baseUrl, { live }) {
   try {
     await page.goto(baseUrl, { waitUntil: 'domcontentloaded' })
 
-    const learnFrench = page.getByTestId('learn-french')
+    const learnFrench = page
+      .locator('section a[aria-label="J’apprends le français"]')
+      .first()
     await step(page, 'Étape 1 : Cliquez sur J’apprends le français', async () => {
       await highlight(learnFrench)
       await learnFrench.click()
+      await page.waitForURL('**/login')
+    })
+
+    const createAccount = page.getByRole('link', { name: 'Créer un compte gratuit' })
+    await step(page, 'Étape 2 : Créez un compte gratuit', async () => {
+      await highlight(createAccount)
+      await createAccount.click()
       await page.waitForURL('**/register')
     })
 
     const learnerRole = page.getByRole('button', { name: /Apprenant/ })
-    await step(page, 'Étape 2 : Choisissez le rôle Apprenant', async () => {
+    await step(page, 'Étape 3 : Choisissez le rôle Apprenant', async () => {
       await highlight(learnerRole)
       await learnerRole.click()
     })
 
     const continueButton = page.getByRole('button', { name: 'Continuer' })
-    await step(page, 'Étape 3 : Continuer vers le formulaire', async () => {
+    await step(page, 'Étape 4 : Continuer vers le formulaire', async () => {
       await highlight(continueButton)
       await continueButton.click()
       await page.getByLabel(/Nom complet/).waitFor()
@@ -281,53 +290,53 @@ async function record(baseUrl, { live }) {
       page,
       page.getByLabel(/Nom complet/),
       DEMO_ACCOUNT.fullName,
-      'Étape 4 : Remplissez le nom complet'
+      'Étape 5 : Remplissez le nom complet'
     )
     await fillField(
       page,
       page.getByLabel(/Adresse e-mail/),
       DEMO_ACCOUNT.email,
-      'Étape 5 : Remplissez l’adresse e-mail'
+      'Étape 6 : Remplissez l’adresse e-mail'
     )
     await fillField(
       page,
       page.locator('#password'),
       DEMO_ACCOUNT.password,
-      'Étape 6 : Choisissez un mot de passe fictif'
+      'Étape 7 : Choisissez un mot de passe fictif'
     )
     await fillField(
       page,
       page.locator('#confirm_password'),
       DEMO_ACCOUNT.password,
-      'Étape 7 : Confirmez le mot de passe'
+      'Étape 8 : Confirmez le mot de passe'
     )
     await fillField(
       page,
       page.getByLabel(/Téléphone/),
       DEMO_ACCOUNT.phone,
-      'Étape 8 : Remplissez le téléphone'
+      'Étape 9 : Remplissez le téléphone'
     )
 
     const independent = page.getByRole('button', { name: /Indépendant/ })
-    await step(page, 'Étape 9 : Choisissez le type d’apprenant', async () => {
+    await step(page, 'Étape 10 : Choisissez le type d’apprenant', async () => {
       await highlight(independent)
       await independent.click()
     })
 
     const level = page.locator('#cefr_level')
-    await step(page, 'Étape 10 : Choisissez le niveau CECRL', async () => {
+    await step(page, 'Étape 11 : Choisissez le niveau CECRL', async () => {
       await highlight(level)
       await level.selectOption(DEMO_ACCOUNT.cefr)
     })
 
     const submit = page.getByRole('button', { name: 'Créer mon compte' })
-    await step(page, 'Étape 11 : Validez l’inscription', async () => {
+    await step(page, 'Étape 12 : Validez l’inscription', async () => {
       await highlight(submit)
       await submit.click()
       await page.getByRole('heading', { name: 'Inscription envoyée' }).waitFor()
     })
 
-    await step(page, 'Étape 12 : Inscription confirmée', async () => {
+    await step(page, 'Étape 13 : Inscription confirmée', async () => {
       await page.getByRole('heading', { name: 'Inscription envoyée' }).scrollIntoViewIfNeeded()
     })
   } finally {

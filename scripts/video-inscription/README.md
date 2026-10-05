@@ -1,6 +1,6 @@
 # Vidéo d'inscription MFK
 
-Le script Playwright ouvre l'accueil, clique sur **J’apprends le français**, remplit le formulaire apprenant avec des données fictives, valide l'inscription et filme la page « Inscription envoyée ».
+Le script Playwright ouvre l'accueil, clique sur le bouton blanc **J’apprends le français**, passe par « Créer un compte gratuit », remplit le formulaire apprenant avec des données fictives, valide l'inscription et filme la page « Inscription envoyée ».
 
 ## Lancer l'enregistrement
 
