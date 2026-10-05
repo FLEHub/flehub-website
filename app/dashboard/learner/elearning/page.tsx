@@ -57,6 +57,13 @@ export default function LearnerElearningModulesPage() {
 
       const teacherIds = (links ?? []).map((l) => l.teacher_id as string);
 
+      const { data: directory } = await supabase.rpc('list_teachers_for_learners');
+      const teacherNameById = new Map<string, string>();
+      ((directory ?? []) as { id: string; full_name: string | null }[]).forEach((row) => {
+        const name = row.full_name?.trim();
+        if (row.id && name) teacherNameById.set(row.id, name);
+      });
+
       const { data: assignmentRows } = await supabase
         .from('elearning_module_assignments')
         .select('module_id')
@@ -76,10 +83,7 @@ export default function LearnerElearningModulesPage() {
           title,
           description,
           cefr_level,
-          teacher_id,
-          teachers (
-            profiles ( full_name )
-          )
+          teacher_id
         `
         )
         .order('title', { ascending: true });
@@ -165,10 +169,6 @@ export default function LearnerElearningModulesPage() {
 
       setModules(
         moduleList.map((m: any) => {
-          const teachers = Array.isArray(m.teachers) ? m.teachers[0] : m.teachers;
-          const profiles = Array.isArray(teachers?.profiles)
-            ? teachers.profiles[0]
-            : teachers?.profiles;
           const lessonList = lessonsByModule.get(m.id) ?? [];
           const completed = lessonList.filter((id) => completedLessonIds.has(id)).length;
           const progress_percent =
@@ -181,7 +181,7 @@ export default function LearnerElearningModulesPage() {
             title: m.title,
             description: m.description,
             cefr_level: m.cefr_level,
-            teacher_name: profiles?.full_name ?? 'Enseignant',
+            teacher_name: teacherNameById.get(m.teacher_id) ?? 'Enseignant',
             enrolled: enrolledSet.has(m.id),
             progress_percent,
           };

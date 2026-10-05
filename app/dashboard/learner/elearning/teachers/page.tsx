@@ -10,21 +10,29 @@ import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { ArrowLeft, Check, GraduationCap, UserMinus, UserPlus } from 'lucide-react';
 
+interface TeacherModule {
+  id: string;
+  title: string;
+}
+
 interface TeacherCard {
   id: string;
   full_name: string;
-  email: string;
+  avatar_url: string | null;
   bio: string | null;
   specializations: string[];
+  modules: TeacherModule[];
 }
 
-function nestedProfile(row: any): { full_name: string; email: string } {
-  const profiles = row.profiles;
-  const profile = Array.isArray(profiles) ? profiles[0] : profiles;
-  return {
-    full_name: profile?.full_name?.trim() || 'Enseignant',
-    email: profile?.email?.trim() || '',
-  };
+function asModules(value: unknown): TeacherModule[] {
+  if (!Array.isArray(value)) return [];
+  return value.flatMap((item) => {
+    if (!item || typeof item !== 'object') return [];
+    const row = item as { id?: unknown; title?: unknown };
+    const title = typeof row.title === 'string' ? row.title.trim() : '';
+    if (!title) return [];
+    return [{ id: typeof row.id === 'string' ? row.id : title, title }];
+  });
 }
 
 export default function LearnerChooseTeachersPage() {
@@ -34,40 +42,55 @@ export default function LearnerChooseTeachersPage() {
   const [teachers, setTeachers] = useState<TeacherCard[]>([]);
   const [chosenIds, setChosenIds] = useState<Set<string>>(new Set());
   const [busyId, setBusyId] = useState<string | null>(null);
+  const [loadError, setLoadError] = useState<string | null>(null);
 
   const load = useCallback(async () => {
     try {
+      setLoadError(null);
       const lid = await getCurrentLearnerId(supabase);
-      if (!lid) return;
+      if (!lid) {
+        setLoadError("Votre profil d'apprenant est incomplet. Réessayez dans un instant.");
+        return;
+      }
       setLearnerId(lid);
 
-      const [{ data: teacherRows }, { data: links }] = await Promise.all([
-        supabase
-          .from('teachers')
-          .select('id, bio, specializations, profiles ( full_name, email )')
-          .order('created_at', { ascending: true }),
-        supabase
-          .from('learner_teacher_links')
-          .select('teacher_id')
-          .eq('learner_id', lid),
-      ]);
+      const [{ data: teacherRows, error: teacherError }, { data: links, error: linksError }] =
+        await Promise.all([
+          supabase.rpc('list_teachers_for_learners'),
+          supabase
+            .from('learner_teacher_links')
+            .select('teacher_id')
+            .eq('learner_id', lid),
+        ]);
+
+      if (teacherError) throw teacherError;
+      if (linksError) throw linksError;
 
       setChosenIds(new Set((links ?? []).map((l) => l.teacher_id as string)));
 
+      const rows = (teacherRows ?? []) as {
+        id: string;
+        full_name: string | null;
+        avatar_url: string | null;
+        bio: string | null;
+        specializations: string[] | null;
+        modules: unknown;
+      }[];
+
       setTeachers(
-        (teacherRows ?? []).map((t: any) => {
-          const p = nestedProfile(t);
-          return {
-            id: t.id,
-            full_name: p.full_name,
-            email: p.email,
-            bio: t.bio,
-            specializations: Array.isArray(t.specializations) ? t.specializations : [],
-          };
-        })
+        rows.map((t) => ({
+          id: t.id,
+          full_name: t.full_name?.trim() || 'Enseignant',
+          avatar_url: t.avatar_url?.trim() || null,
+          bio: t.bio,
+          specializations: Array.isArray(t.specializations) ? t.specializations : [],
+          modules: asModules(t.modules),
+        }))
       );
     } catch (err) {
       console.error(err);
+      setTeachers([]);
+      setLoadError('Impossible de charger les enseignants pour le moment.');
     } finally {
       setLoading(false);
     }
@@ -144,6 +167,11 @@ export default function LearnerChooseTeachersPage() {
             <Skeleton key={i} className="h-44 rounded-xl" />
           ))}
         </div>
+      ) : loadError ? (
+        <div className="flex flex-col items-center justify-center py-16 text-gray-400 border border-dashed border-gray-200 rounded-xl">
+          <GraduationCap className="w-12 h-12 mb-3 opacity-40" />
+          <p className="text-lg font-medium text-gray-700">{loadError}</p>
+        </div>
       ) : teachers.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-16 text-gray-400 border border-dashed border-gray-200 rounded-xl">
           <GraduationCap className="w-12 h-12 mb-3 opacity-40" />
@@ -157,14 +185,21 @@ export default function LearnerChooseTeachersPage() {
               <Card key={teacher.id} className="card-hover flex flex-col">
                 <CardHeader className="pb-2">
                   <div className="flex items-start gap-3">
-                    <div className="p-2 rounded-lg bg-flehub-green-light">
-                      <GraduationCap className="w-5 h-5 text-flehub-green" />
-                    </div>
+                    {teacher.avatar_url ? (
+                      <img
+                        src={teacher.avatar_url}
+                        alt=""
+                        className="h-10 w-10 rounded-full object-cover shrink-0"
+                      />
+                    ) : (
+                      <div className="p-2 rounded-lg bg-flehub-green-light">
+                        <GraduationCap className="w-5 h-5 text-flehub-green" />
+                      </div>
+                    )}
                     <div className="min-w-0">
                       <h3 className="font-semibold text-gray-900 text-sm truncate">
                         {teacher.full_name}
                       </h3>
-                      <p className="text-xs text-gray-400 truncate">{teacher.email}</p>
                     </div>
                   </div>
                 </CardHeader>
@@ -172,6 +207,15 @@ export default function LearnerChooseTeachersPage() {
                   <p className="text-xs text-gray-500 line-clamp-3">
                     {teacher.bio || 'Aucune biographie'}
                   </p>
+                  {teacher.modules.length > 0 && (
+                    <div className="flex flex-wrap gap-1">
+                      {teacher.modules.slice(0, 4).map((mod) => (
+                        <Badge key={mod.id} variant="outline" className="text-xs">
+                          {mod.title}
+                        </Badge>
+                      ))}
+                    </div>
+                  )}
                   {teacher.specializations.length > 0 && (
                     <div className="flex flex-wrap gap-1">
                       {teacher.specializations.slice(0, 4).map((s) => (
