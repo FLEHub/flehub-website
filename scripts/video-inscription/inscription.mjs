@@ -163,13 +163,23 @@ async function showBanner(page, text) {
 }
 
 async function highlight(locator) {
+  const page = locator.page()
+  await page.evaluate(() => {
+    document.querySelectorAll('[data-mfk-highlight]').forEach((element) => {
+      element.style.outline = ''
+      element.style.outlineOffset = ''
+      element.style.boxShadow = ''
+      element.removeAttribute('data-mfk-highlight')
+    })
+  })
   await locator.scrollIntoViewIfNeeded()
   await locator.evaluate((element) => {
-    element.style.outline = '4px solid #CA8A04'
-    element.style.outlineOffset = '4px'
-    element.style.boxShadow = '0 0 0 8px rgba(250, 204, 21, 0.55)'
-    element.style.transition = 'box-shadow 150ms ease'
+    element.setAttribute('data-mfk-highlight', 'true')
+    element.style.outline = '4px solid #1D4ED8'
+    element.style.outlineOffset = '3px'
+    element.style.boxShadow = '0 0 0 6px rgba(253, 224, 71, 0.95)'
   })
+  await page.waitForTimeout(1000)
 }
 
 async function step(page, label, action) {

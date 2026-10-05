@@ -101,7 +101,7 @@ export default async function HomePage() {
               <Link
                 href="/register"
                 data-testid="learn-french"
-                className="inline-flex min-h-11 items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-[#F2B705] hover:bg-[#C99404] text-[#0B1F3A] text-sm font-bold shadow-md transition-colors"
+                className="inline-flex min-h-11 shrink-0 items-center justify-center gap-2 whitespace-nowrap px-5 py-2.5 rounded-xl bg-[#F2B705] hover:bg-[#C99404] text-[#0B1F3A] text-sm font-bold shadow-md transition-colors"
               >
                 J’apprends le français
                 <ArrowRight className="w-4 h-4" />
