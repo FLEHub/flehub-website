@@ -38,3 +38,6 @@ next-env.d.ts
 # python
 __pycache__/
 *.pyc
+
+# Question papers Cambridge téléchargés localement (ne pas versionner)
+/IGCSE_French_0520_P4/
