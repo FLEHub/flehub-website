@@ -7,7 +7,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "video:inscription": "node scripts/video-inscription/inscription.mjs"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.9.0",
@@ -73,5 +74,8 @@
     "typescript": "5.2.2",
     "vaul": "^0.9.9",
     "zod": "^3.23.8"
+  },
+  "devDependencies": {
+    "playwright": "^1.63.0"
   }
 }
